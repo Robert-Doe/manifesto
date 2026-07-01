@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab — OAuth2 &amp; API Demo</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:32px;max-width:800px;margin:0 auto;}
+    h1{color:var(--gold);font-size:26px;font-weight:900;margin-bottom:6px;}
+    .sub{color:var(--muted);margin-bottom:24px;font-size:13px;}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;}
+    .card-title{color:var(--gold);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;}
+    .btn{border:none;cursor:pointer;border-radius:6px;font-family:'Lato',sans-serif;font-weight:700;font-size:12px;padding:9px 18px;margin-right:8px;}
+    .btn-primary{background:var(--cyan);color:#000;}
+    .btn-danger{background:var(--red);color:#fff;}
+    .btn-sec{background:#1e3a5f;color:var(--text);}
+    .status{margin-top:14px;padding:10px 14px;border-radius:6px;font-size:13px;}
+    .status.auth{background:#05200a;border:1px solid var(--green);color:var(--green);}
+    .status.unauth{background:#200505;border:1px solid var(--red);color:var(--red);}
+    .result{background:#060a12;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:'Source Code Pro',monospace;font-size:12px;color:var(--muted);min-height:80px;margin-top:12px;white-space:pre-wrap;}
+    .flow-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px;}
+    .step-num{background:var(--cyan);color:#000;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;flex-shrink:0;margin-top:2px;}
+    .step-text{color:var(--muted);font-size:13px;line-height:1.6;}
+  </style>
+</head>
+<body>
+  <h1>🔐 OAuth2 &amp; External APIs</h1>
+  <p class="sub">chrome.identity.launchWebAuthFlow — the MV3 way to authorize users without a backend server.</p>
+
+  <div class="card">
+    <div class="card-title">Auth Flow Diagram</div>
+    <div class="flow-step"><div class="step-num">1</div><div class="step-text">Extension calls <code>chrome.identity.launchWebAuthFlow({ url: googleAuthUrl, interactive: true })</code></div></div>
+    <div class="flow-step"><div class="step-num">2</div><div class="step-text">Chrome opens a pop-up to Google's OAuth endpoint. User logs in and consents.</div></div>
+    <div class="flow-step"><div class="step-num">3</div><div class="step-text">Google redirects to <code>https://&lt;ext-id&gt;.chromiumapp.org/</code> with <code>#access_token=…</code></div></div>
+    <div class="flow-step"><div class="step-num">4</div><div class="step-text">Chrome intercepts the redirect and returns the URL to the extension. Extension parses the token.</div></div>
+    <div class="flow-step"><div class="step-num">5</div><div class="step-text">Extension stores the token in <code>chrome.storage.local</code> and makes API calls with <code>Authorization: Bearer …</code></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Auth Status</div>
+    <button class="btn btn-primary" id="btn-login">Login with Google</button>
+    <button class="btn btn-danger" id="btn-logout">Logout</button>
+    <div class="status unauth" id="auth-status">Not authenticated — click Login to start OAuth flow</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">API Calls</div>
+    <button class="btn btn-sec" id="btn-userinfo">GET /userinfo</button>
+    <div class="result" id="api-result">Login first to make API calls…</div>
+  </div>
+
+  <script>
+    const statusEl = document.getElementById('auth-status');
+    const resultEl = document.getElementById('api-result');
+
+    async function checkAuth() {
+      const res = await chrome.runtime.sendMessage({ type: 'oauthGetToken' });
+      if (res?.token) {
+        statusEl.textContent = '✓ Authenticated — token stored in local storage';
+        statusEl.className = 'status auth';
+      } else {
+        statusEl.textContent = 'Not authenticated — click Login to start OAuth flow';
+        statusEl.className = 'status unauth';
+      }
+    }
+
+    document.getElementById('btn-login').addEventListener('click', async () => {
+      statusEl.textContent = 'Opening OAuth popup…';
+      const res = await chrome.runtime.sendMessage({ type: 'oauthLogin' });
+      if (res?.error) { statusEl.textContent = 'Error: ' + res.error; return; }
+      await checkAuth();
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      await chrome.runtime.sendMessage({ type: 'oauthLogout' });
+      await checkAuth();
+      resultEl.textContent = 'Logged out.';
+    });
+
+    document.getElementById('btn-userinfo').addEventListener('click', async () => {
+      resultEl.textContent = 'Fetching…';
+      const res = await chrome.runtime.sendMessage({ type: 'oauthGetUserInfo' });
+      resultEl.textContent = res?.error ? 'Error: ' + res.error : JSON.stringify(res, null, 2);
+    });
+
+    checkAuth();
+  </script>
+</body>
+</html>

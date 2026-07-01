@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 12 — OAuth2 & External APIs</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .warning{border-color:var(--red);}
+    .warning .label{color:var(--red);}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+  <h1>Module 12 — OAuth2 &amp; External APIs</h1>
+  <div class="byline">NeuralTab Curriculum · Module 12 of 25</div>
+
+  <h2>Why Extensions Need Their Own OAuth Flow</h2>
+  <p>Web apps use the OAuth2 authorization code flow with a backend server that holds the client secret. Extensions have no backend — they're entirely client-side. Chrome provides <code>chrome.identity.launchWebAuthFlow</code> specifically for this: it opens a popup browser window to the OAuth provider, captures the redirect, and returns the token URL to your extension without any server involvement.</p>
+
+  <h2>The chromiumapp.org Redirect</h2>
+  <p>The key to the extension OAuth flow is the redirect URI: <code>https://&lt;ext-id&gt;.chromiumapp.org/</code>. Chrome intercepts any redirect to this domain and returns the full URL (including token in the fragment) to <code>launchWebAuthFlow</code>. The extension ID in the subdomain ensures that only the specific extension can receive that redirect — it's cryptographically bound to the signing key.</p>
+  <pre>// The redirect URI Chrome will intercept:
+const REDIRECT = `https://${chrome.runtime.id}.chromiumapp.org/`;
+
+// Google sees this as a valid registered redirect URI
+// Chrome intercepts the redirect — your server never sees it
+const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+  `client_id=CLIENT_ID&redirect_uri=${encodeURIComponent(REDIRECT)}&` +
+  `response_type=token&scope=email+profile`;</pre>
+
+  <h2>Parsing the Token from the Redirect</h2>
+  <p>Google's implicit flow puts the access token in the URL fragment: <code>https://abc123.chromiumapp.org/#access_token=ya29.xxx&token_type=Bearer&expires_in=3599</code>. Your extension must parse this from the redirect URL that <code>launchWebAuthFlow</code> returns.</p>
+  <pre>const redirectUrl = await chrome.identity.launchWebAuthFlow({
+  url: buildAuthUrl(),
+  interactive: true   // show popup to user
+});
+// redirectUrl = "https://ABC.chromiumapp.org/#access_token=ya29...&..."
+const token = new URL(redirectUrl).hash
+  .slice(1)                              // remove leading #
+  .split('&')
+  .find(p => p.startsWith('access_token='))
+  ?.split('=')[1];</pre>
+
+  <h2>Token Storage Strategy</h2>
+  <p>Tokens go in <code>chrome.storage.local</code> — never <code>sync</code>. Tokens are device-bound sessions. Syncing them across devices creates a situation where revoking on one device leaves stale tokens on others, causing mysterious 401 failures.</p>
+
+  <h2>Handling Expiration</h2>
+  <p>Google access tokens expire after 3600 seconds. The cleanest handling: treat every 401 response as an expiration signal, clear the stored token, and re-run the login flow. With <code>interactive: false</code>, Chrome will re-authenticate silently if the user has an active Google session — no popup, instant new token.</p>
+
+  <div class="callout warning">
+    <div class="label">Security Note</div>
+    <p>Never log or transmit access tokens. They're bearer tokens — whoever holds one can call the API as the user. Store them only in <code>chrome.storage.local</code>, which is not accessible to web pages or other extensions.</p>
+  </div>
+
+  <h2>Exercises</h2>
+  <div class="exercise">
+    <div class="ex-label">Exercise 12-A — Complete the Setup</div>
+    <p>Follow the demo page's setup instructions: create a Google Cloud project, enable the People API, create OAuth2 Web Application credentials, add the chromiumapp.org redirect URI, and replace the CLIENT_ID placeholder in auth_manager.js. Complete a full login flow and verify the userinfo endpoint returns your email address.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 12-B — Add Silent Re-auth</div>
+    <p>Modify <code>AuthManager.callAPI()</code> to attempt <code>launchWebAuthFlow({ interactive: false })</code> on a 401 before falling back to <code>interactive: true</code>. This gives users a seamless re-auth experience when their token expires overnight.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 12-C — Cache User Info</div>
+    <p>Add a <code>cachedUserInfo</code> function that stores the <code>getUserInfo()</code> response in <code>chrome.storage.session</code> with a 5-minute TTL. The popup should show the user's name and avatar without making a network request on every open.</p>
+  </div>
+</body>
+</html>

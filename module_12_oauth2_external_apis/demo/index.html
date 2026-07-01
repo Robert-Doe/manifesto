@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 12 Demo — OAuth2 & External APIs</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:860px;margin:0 auto;}
+    h1{color:var(--gold);font-size:34px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:36px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;color:var(--text);margin:16px 0;}
+  </style>
+</head>
+<body>
+  <h1>Module 12 — OAuth2 & External APIs</h1>
+  <p class="sub">launchWebAuthFlow: the extension-native OAuth2 flow that works with any provider, no server required.</p>
+
+  <h2>The Redirect URI Trick</h2>
+  <p>Extensions get a special redirect URI: <strong>https://&lt;ext-id&gt;.chromiumapp.org/</strong>. Chrome intercepts redirects to this domain and returns the URL to <code>launchWebAuthFlow</code>. No server, no CORS, no proxy needed. The extension ID is cryptographically bound to your signing key, making this URI unguessable.</p>
+
+  <h2>Token Lifetime</h2>
+  <p>Google access tokens expire after 1 hour. <strong>auth_manager.js</strong> handles 401 responses by clearing the stored token and prompting a new login. For silent re-auth (user already has an active Google session), <code>launchWebAuthFlow({ interactive: false })</code> completes without showing a popup.</p>
+
+  <h2>Setup Requirements</h2>
+  <pre># 1. Create a Google Cloud project
+# 2. Enable the API you want (Gmail, Drive, etc.)
+# 3. Create OAuth2 credentials (Web Application type)
+# 4. Add authorized redirect URI:
+#    https://&lt;YOUR_EXTENSION_ID&gt;.chromiumapp.org/
+# 5. Replace CLIENT_ID in auth_manager.js with your OAuth2 client ID</pre>
+</body>
+</html>
