@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 19 — Testing Extensions</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+  <h1>Module 19 — Testing Extensions</h1>
+  <div class="byline">NeuralTab Curriculum · Module 19 of 25</div>
+
+  <h2>The Testing Problem</h2>
+  <p>Extension code calls <code>chrome.*</code> APIs that don't exist in Node.js — where Jest runs. There's no real browser, no tabs, no storage, no message passing. The solution: manually stub the entire <code>chrome</code> global with <code>jest.fn()</code> mocks that you control. You're not testing Chrome; you're testing your <em>logic</em> that calls Chrome.</p>
+  <p>This distinction matters. Unit tests verify that given certain inputs, your code calls the right APIs with the right arguments, and handles the responses correctly. Whether the API actually works in a browser is a separate concern — that's what manual testing and E2E tests are for.</p>
+
+  <h2>The Chrome Mock Pattern</h2>
+  <pre>// __tests__/setup.js (or inline in each test file)
+const store = {};   // in-memory storage backing
+
+global.chrome = {
+  storage: {
+    local: {
+      get: jest.fn((keys, callback) => {
+        const result = {};
+        const keyList = typeof keys === 'string' ? [keys] : (keys || Object.keys(store));
+        keyList.forEach(k => { if (k in store) result[k] = store[k]; });
+        callback(result);
+      }),
+      set: jest.fn((items, callback) => {
+        Object.assign(store, items);
+        callback?.();
+      }),
+      clear: jest.fn((callback) => {
+        Object.keys(store).forEach(k => delete store[k]);
+        callback?.();
+      }),
+      getBytesInUse: jest.fn((keys, callback) => callback(0)),
+    },
+  },
+  runtime: {
+    lastError: null,
+    onMessage: { addListener: jest.fn() },
+    sendMessage: jest.fn(),
+  },
+};</pre>
+
+  <h2>Testing Storage Logic</h2>
+  <pre>// __tests__/storage_manager.test.js
+describe('StorageManager', () => {
+  beforeEach(() => chrome.storage.local.clear(jest.fn()));
+
+  test('set and get round-trip', async () => {
+    await StorageManager.set('key', 'value');
+    const val = await StorageManager.get('key');
+    expect(val).toBe('value');
+  });
+
+  test('getQuotaInfo returns numbers', async () => {
+    const info = await StorageManager.getQuotaInfo();
+    expect(typeof info.bytesInUse).toBe('number');
+    expect(typeof info.quotaBytes).toBe('number');
+  });
+});</pre>
+
+  <h2>Testing Pure Functions — No Mock Needed</h2>
+  <p>The best code to test has no side effects. <code>compareVersions</code> in MigrationManager is a pure function: given two version strings, it returns -1, 0, or 1. No chrome APIs, no state. This is the easiest thing to test and often the most valuable — it's the logic that determines which migrations run.</p>
+  <pre>describe('compareVersions', () => {
+  test('equal versions return 0', () => {
+    expect(compareVersions('1.0.0', '1.0.0')).toBe(0);
+  });
+  test('higher major returns 1', () => {
+    expect(compareVersions('2.0.0', '1.9.9')).toBe(1);
+  });
+  test('version sorting', () => {
+    const versions = ['0.10.0', '0.9.0', '1.0.0', '0.2.0'];
+    versions.sort(compareVersions);
+    expect(versions[0]).toBe('0.2.0');
+    expect(versions[3]).toBe('1.0.0');
+  });
+});</pre>
+
+  <h2>Coverage Thresholds</h2>
+  <p>NeuralTab's jest.config.js requires 70% line and function coverage. This is deliberately moderate — the goal is to catch regressions in core logic, not to achieve 100% coverage by writing trivial tests. Coverage under 70% indicates that large chunks of code run with no automated validation. Coverage approaching 100% often indicates tests that add no real signal.</p>
+
+  <div class="callout">
+    <div class="label">What Tests Can't Cover</div>
+    <p>Unit tests cannot verify: that your manifest.json permissions match what your code actually calls, that content scripts inject at the right time relative to page load, that the service worker wakes up on the right events, or that your UI renders correctly in the extension popup. These require manual testing or Playwright E2E tests against a real Chrome instance.</p>
+  </div>
+
+  <h2>Exercises</h2>
+  <div class="exercise">
+    <div class="ex-label">Exercise 19-A — Run the Test Suite</div>
+    <p>In module_19, run <code>npm install</code> and <code>npm test</code>. All tests should pass. Then run <code>npm test -- --coverage</code> and find the coverage report. Which functions are below the 70% threshold? Which file has the lowest coverage?</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 19-B — Write a Failing Test First</div>
+    <p>Add a test for a function that doesn't exist yet: <code>StorageManager.setWithExpiry(key, value, ttlMs)</code> that stores a value with a timestamp. Write the test first (it should fail). Then implement the function in storage_manager.js so the test passes. This is TDD — test-driven development.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 19-C — Mock sendMessage</div>
+    <p>Write a test for a message handler function extracted from background.js. The handler receives <code>{ type: 'getStorageQuota' }</code> and calls <code>sendResponse</code> with the quota info. Mock <code>chrome.storage.local.getBytesInUse</code> to return 1024, and assert that <code>sendResponse</code> was called with <code>{ bytesInUse: 1024 }</code>.</p>
+  </div>
+</body>
+</html>
