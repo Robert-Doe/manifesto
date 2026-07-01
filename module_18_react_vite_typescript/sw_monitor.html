@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab — SW Monitor</title>
+  <link rel="stylesheet" href="sw_monitor.css"/>
+</head>
+<body>
+  <div class="top-bar"><div class="inner">
+    <div class="brand"><span class="bolt">⚡</span><span class="brand-name">SW Monitor</span></div>
+    <button class="btn btn-ghost" id="btn-refresh">Refresh</button>
+  </div></div>
+  <div class="content">
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num" id="sw-starts">—</div><div class="stat-label">SW Starts</div></div>
+      <div class="stat-card"><div class="stat-num" id="sw-uptime">—</div><div class="stat-label">Uptime (s)</div></div>
+      <div class="stat-card"><div class="stat-num" id="stream-ports">—</div><div class="stat-label">Stream Ports</div></div>
+      <div class="stat-card"><div class="stat-num" id="msg-count">—</div><div class="stat-label">Messages</div></div>
+    </div>
+    <h3>Lifecycle Log</h3>
+    <div class="log" id="sw-log"></div>
+  </div>
+  <script src="storage_manager.js"></script>
+  <script src="sw_monitor.js"></script>
+</body>
+</html>

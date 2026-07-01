@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "NeuralTab",
+  "version": "0.18.0",
+  "description": "React + Vite + TypeScript: modern build pipeline, HMR in development, type-safe extension",
+  "background": { "service_worker": "dist/background.js", "type": "module" },
+  "action": { "default_popup": "dist/popup.html", "default_title": "NeuralTab" },
+  "options_page": "dist/options.html",
+  "side_panel": { "default_path": "dist/sidepanel.html" },
+  "permissions": [
+    "storage", "alarms", "tabs", "scripting", "unlimitedStorage",
+    "history", "bookmarks", "tabGroups",
+    "declarativeNetRequest", "declarativeNetRequestFeedback", "webNavigation",
+    "identity", "debugger", "sidePanel", "contextMenus"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "declarative_net_request": {
+    "rule_resources": [{ "id": "neuraltab_rules", "enabled": true, "path": "dist/dnr_rules.json" }]
+  },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["dist/content.js"],
+    "css": ["dist/content.css"],
+    "run_at": "document_idle"
+  }],
+  "web_accessible_resources": [{
+    "resources": ["dist/*"],
+    "matches": ["<all_urls>"]
+  }]
+}

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 18 — React + Vite + TypeScript</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+  <h1>Module 18 — React + Vite + TypeScript</h1>
+  <div class="byline">NeuralTab Curriculum · Module 18 of 25</div>
+
+  <h2>Why a Build Pipeline?</h2>
+  <p>Vanilla JS extensions are fine up to a point. At some point your popup has 30 conditional renders, your background.js is 800 lines, and you're copying string template IDs between files hoping they match. TypeScript catches the mismatch at compile time. React turns the popup into a component tree instead of a DOM mutation soup. Vite makes the build instant — typically under a second for a full rebuild.</p>
+  <p>The tradeoff: a build step means the files Chrome loads are <em>generated</em>, not the files you edit. The <code>dist/</code> directory is what gets packed and submitted to CWS. Never submit the <code>src/</code> directory.</p>
+
+  <h2>vite-plugin-web-extension</h2>
+  <p>Standard Vite doesn't know what a manifest.json is. The <code>vite-plugin-web-extension</code> plugin reads your manifest and builds each entry point (popup, background, content scripts, options page) as separate Vite entry bundles. It handles the quirks: background service workers get their own chunk, content scripts don't get HMR (because that would require eval), and web_accessible_resources are copied as-is.</p>
+  <pre>// vite.config.ts
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import webExtension from 'vite-plugin-web-extension';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    webExtension({
+      manifest: () => require('./manifest.json'),
+    }),
+  ],
+  build: {
+    outDir: 'dist',
+    sourcemap: false,         // no source maps in production build
+    minify: 'terser',
+    rollupOptions: {
+      output: {
+        entryFileNames: '[name].js',   // predictable output names
+      },
+    },
+  },
+});</pre>
+
+  <h2>TypeScript for chrome.*</h2>
+  <p>The <code>@types/chrome</code> package provides TypeScript definitions for all Chrome extension APIs. With this package installed and <code>"types": ["chrome"]</code> in tsconfig.json, you get autocomplete and type-checking for every <code>chrome.*</code> call. Typos in method names, wrong parameter shapes, and missing required fields all become compile-time errors instead of runtime surprises.</p>
+  <pre>// TypeScript catches this at compile time:
+const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+//   ^-- Tab[] — TypeScript knows the return type
+
+tabs[0].url;   // string | undefined — URL may not be available without "tabs" permission
+//          ^-- TypeScript reminds you to check for undefined</pre>
+
+  <h2>Service Worker: type:module vs type:classic</h2>
+  <p>MV3 background service workers can be declared as <code>"type": "module"</code> in the manifest. Module workers support <code>import</code> statements at the top level — you can split your background into multiple files and import them. <strong>However, module workers cannot use <code>importScripts()</code></strong>. If any of your dependencies use <code>importScripts</code> (some older polyfills do), you must stay with classic SW.</p>
+  <pre>// manifest.json:
+"background": {
+  "service_worker": "dist/background.js",
+  "type": "module"   // enables ESM imports, disables importScripts
+}
+
+// src/background.ts (module style):
+import { StorageManager } from './storage_manager';
+import { handleMessage } from './message_router';
+chrome.runtime.onMessage.addListener(handleMessage);</pre>
+
+  <h2>React in the Popup</h2>
+  <pre>// src/popup/Popup.tsx
+import { useEffect, useState } from 'react';
+
+export default function Popup() {
+  const [tab, setTab] = useState&lt;chrome.tabs.Tab | null&gt;(null);
+
+  useEffect(() => {
+    chrome.tabs.query({ active: true, currentWindow: true })
+      .then(([tab]) => setTab(tab ?? null));
+  }, []);
+
+  return (
+    &lt;div className="popup"&gt;
+      &lt;h1&gt;NeuralTab&lt;/h1&gt;
+      &lt;p&gt;{tab?.title ?? 'Loading...'}&lt;/p&gt;
+    &lt;/div&gt;
+  );
+}</pre>
+
+  <div class="callout">
+    <div class="label">CWS Source Code Submission</div>
+    <p>When submitting to the Chrome Web Store, you upload a ZIP of your <code>dist/</code> folder — the compiled output, not your source. However, CWS reviewers may request your source code separately to verify the build is reproducible. Always keep your <code>src/</code> directory and ensure <code>npm run build</code> produces the exact same output from a clean checkout.</p>
+  </div>
+
+  <h2>Exercises</h2>
+  <div class="exercise">
+    <div class="ex-label">Exercise 18-A — Run the Build</div>
+    <p>In the module_18 directory, run <code>npm install</code> then <code>npm run build</code>. Inspect the <code>dist/</code> directory — identify the bundled popup.js, background.js, and any content script files. Compare file sizes to the raw module_17 source files. Load <code>dist/</code> as an unpacked extension in Chrome and verify the popup opens.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 18-B — TypeScript Error</div>
+    <p>Intentionally introduce a TypeScript error: try accessing <code>tabs[0].favIconUrl.length</code> without checking for undefined first. Run <code>npm run build</code> and read the TypeScript error. Then fix it by adding a null check. This exercise demonstrates the value of <code>@types/chrome</code>: it knows <code>favIconUrl</code> is <code>string | undefined</code>.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 18-C — Add a React Component</div>
+    <p>Create <code>src/popup/StorageCard.tsx</code> that displays the current <code>storageQuota</code> from <code>chrome.storage.local.getBytesInUse()</code>. Import it into <code>Popup.tsx</code> and render it. Verify the build succeeds and the quota number appears in the popup. Use TypeScript generics for the <code>useState</code> holding the quota value.</p>
+  </div>
+</body>
+</html>

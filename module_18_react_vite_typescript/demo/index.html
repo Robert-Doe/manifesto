@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 18 Demo — React + Vite + TypeScript</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:860px;margin:0 auto;}
+    h1{color:var(--gold);font-size:34px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:36px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;color:var(--text);margin:16px 0;}
+  </style>
+</head>
+<body>
+  <h1>Module 18 — React + Vite + TypeScript</h1>
+  <p class="sub">Production-grade build pipeline for Chrome extensions: hot reload for UI, TypeScript for correctness, Vite for speed.</p>
+
+  <h2>Project Structure</h2>
+  <pre>module_18/
+├── manifest.json           ← references dist/ paths
+├── vite.config.ts          ← vite-plugin-web-extension config
+├── tsconfig.json
+├── package.json
+├── src/
+│   ├── popup/
+│   │   ├── index.tsx       ← React root for popup
+│   │   └── Popup.tsx
+│   ├── background.ts       ← service worker (TS)
+│   └── content.ts          ← content script (TS)
+└── dist/                   ← built output (submit this)</pre>
+
+  <h2>Getting Started</h2>
+  <pre>npm install
+npm run dev      # watch mode — rebuilds on save
+# Load dist/ as unpacked extension in Chrome
+
+npm run build    # production build
+npm run typecheck # TypeScript errors without building</pre>
+
+  <h2>Key Constraint: SW Cannot Be an ES Module with importScripts</h2>
+  <p>When <code>manifest.json</code> sets <code>"type": "module"</code> for the background, <code>importScripts()</code> is unavailable. All imports must be bundled by Vite. When using <code>"type": "classic"</code>, you lose native ESM but regain <code>importScripts</code>. Vite's plugin handles this by default — it bundles everything for the SW regardless of type.</p>
+</body>
+</html>
