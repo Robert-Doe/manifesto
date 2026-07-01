@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 20 — Performance Monitoring</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .warning{border-color:var(--red);}
+    .warning .label{color:var(--red);}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+  <h1>Module 20 — Performance Monitoring</h1>
+  <div class="byline">NeuralTab Curriculum · Module 20 of 25</div>
+
+  <h2>What "Performance" Means in an Extension</h2>
+  <p>Extension performance has two dimensions: <strong>latency</strong> (how long individual operations take) and <strong>overhead</strong> (how much the extension costs in CPU, memory, and storage, passively). A fast popup that opens instantly is latency. An extension that slows down every page load is overhead. Users notice both, but overhead complaints dominate reviews — "this extension makes Chrome slow" is a one-star killer.</p>
+
+  <h2>performance.now() in the Service Worker</h2>
+  <p><code>performance.now()</code> is available in MV3 service workers, but with an important caveat: it returns milliseconds since the <em>service worker started</em>, not since Chrome launched. Every time the SW wakes up from sleep, the clock resets. This means you can't use it to measure total uptime — only elapsed time within a single SW activation.</p>
+  <pre>// In background.js — capture start time at module scope:
+const SW_START = Date.now();   // wall-clock time, persists in module scope
+
+// Measure message handler latency:
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  const t0 = performance.now();
+  handleMessage(msg).then(result => {
+    const latencyMs = performance.now() - t0;
+    recordLatency(latencyMs);
+    sendResponse(result);
+  });
+  return true;
+});</pre>
+
+  <h2>Measuring SW Uptime</h2>
+  <p>Since <code>performance.now()</code> resets on each SW start, measure uptime using wall-clock time: record <code>Date.now()</code> at module scope, persist it to <code>chrome.storage.session</code> on first start, and compute uptime as <code>Date.now() - firstStartTime</code>. Also increment a counter in session storage to track how many times the SW has restarted.</p>
+  <pre>const SW_START = Date.now();
+
+// On first run in this browser session:
+chrome.storage.session.get(['swStartTime', 'swStartCount'], (data) => {
+  if (!data.swStartTime) {
+    chrome.storage.session.set({
+      swStartTime: SW_START,
+      swStartCount: 1,
+    });
+  } else {
+    chrome.storage.session.set({
+      swStartCount: (data.swStartCount || 0) + 1,
+    });
+  }
+});</pre>
+
+  <h2>Why No performance.memory</h2>
+  <p><code>performance.memory</code> — which shows heap size, used heap, and total heap — is available in browser tabs but not in service workers. To see extension memory usage, open Chrome's Task Manager (Shift+Esc) and look for "Extension: NeuralTab." The service worker and each page (popup, options, sidepanel) get separate rows.</p>
+
+  <h2>setInterval vs. chrome.alarms</h2>
+  <p>Never use <code>setInterval</code> in a service worker to keep it alive or do periodic work. Chrome will terminate idle service workers after 30 seconds of inactivity. A <code>setInterval</code> that fires every 5 seconds will keep the SW alive — consuming CPU and preventing the browser from reclaiming resources — in direct violation of Chrome's guidance and CWS policy.</p>
+  <pre>// ❌ Keeps SW alive permanently — CWS policy violation:
+setInterval(() => { doPeriodicWork(); }, 5000);
+
+// ✅ Correct pattern — SW sleeps between alarm firings:
+chrome.alarms.create('periodicWork', { periodInMinutes: 1 });
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'periodicWork') doPeriodicWork();
+});</pre>
+
+  <div class="callout warning">
+    <div class="label">Storage as Performance Data</div>
+    <p>NeuralTab records message latency P50 in <code>chrome.storage.local</code>. Keep this data compact — store only a rolling window (last 100 measurements), not every measurement ever. Storage reads and writes are themselves async operations with ~1ms overhead; measuring them too often creates measurement-induced distortion.</p>
+  </div>
+
+  <h2>Exercises</h2>
+  <div class="exercise">
+    <div class="ex-label">Exercise 20-A — Benchmark Message Latency</div>
+    <p>Open perf_monitor.html. Click "Run Message Benchmark" — it sends 20 messages and records the P50 latency. Open a tab that's doing heavy work (streaming video, a complex SPA). Click the benchmark again. How much does background tab CPU pressure affect extension message latency? Record the results for both scenarios.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 20-B — SW Restart Counter</div>
+    <p>Open the Performance Monitor, note the SW start count. Then navigate to chrome://serviceworker-internals, find the NeuralTab worker, and click "Stop." Return to perf_monitor.html, send any message (which will wake the SW), and reload. Verify the restart count incremented. Repeat 5 times — understand how often Chrome terminates extension SWs in normal use.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 20-C — Add chrome.alarms Scheduling</div>
+    <p>Add a <code>chrome.alarms.create('cleanup', { periodInMinutes: 60 })</code> to background.js that runs <code>StorageManager.pruneOldData()</code> every hour. Add a "Last Cleanup" timestamp to the perf_monitor.html dashboard. Verify via the alarms API that the alarm is registered: <code>chrome.alarms.getAll(console.log)</code> in the background console.</p>
+  </div>
+</body>
+</html>

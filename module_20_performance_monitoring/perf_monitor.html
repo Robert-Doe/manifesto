@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab — Performance Monitor</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:32px;max-width:960px;margin:0 auto;}
+    h1{color:var(--gold);font-size:26px;font-weight:900;margin-bottom:6px;}
+    .sub{color:var(--muted);margin-bottom:24px;font-size:13px;}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+    .metric{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;}
+    .m-label{color:var(--muted);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+    .m-val{color:var(--cyan);font-size:26px;font-weight:900;font-family:'Source Code Pro',monospace;}
+    .m-unit{color:var(--muted);font-size:11px;margin-top:2px;}
+    .m-val.good{color:var(--green);}
+    .m-val.warn{color:var(--orange);}
+    .m-val.bad{color:var(--red);}
+    .panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;}
+    .panel-title{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+    .log{font-family:'Source Code Pro',monospace;font-size:11px;max-height:260px;overflow-y:auto;}
+    .log-row{padding:3px 0;border-bottom:1px solid #0f1a2e;color:var(--muted);}
+    .log-row span{color:var(--cyan);}
+    .bar-wrap{margin-bottom:8px;}
+    .bar-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:3px;}
+    .bar{height:8px;background:#1a2840;border-radius:4px;overflow:hidden;}
+    .bar-fill{height:100%;border-radius:4px;transition:width 0.4s;}
+    .btn{background:var(--cyan);color:#000;border:none;border-radius:6px;font-family:'Lato',sans-serif;font-weight:700;font-size:12px;padding:8px 16px;cursor:pointer;margin-right:8px;margin-bottom:16px;}
+  </style>
+</head>
+<body>
+  <h1>📊 Performance Monitor</h1>
+  <p class="sub">Service worker lifecycle timing, memory usage, storage growth, and message latency benchmarks.</p>
+
+  <button class="btn" id="btn-refresh">Refresh Metrics</button>
+  <button class="btn" id="btn-bench" style="background:var(--purple);color:#fff;">Run Benchmark</button>
+
+  <div class="grid">
+    <div class="metric"><div class="m-label">SW Uptime</div><div class="m-val" id="m-uptime">—</div><div class="m-unit">seconds</div></div>
+    <div class="metric"><div class="m-label">Storage Used</div><div class="m-val" id="m-storage">—</div><div class="m-unit">kilobytes</div></div>
+    <div class="metric"><div class="m-label">Msg Latency</div><div class="m-val" id="m-latency">—</div><div class="m-unit">ms (p50)</div></div>
+    <div class="metric"><div class="m-label">SW Starts</div><div class="m-val" id="m-starts">—</div><div class="m-unit">total</div></div>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-title">Storage Breakdown</div>
+      <div id="storage-bars">Loading…</div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Message Latency Log</div>
+      <div class="log" id="latency-log"></div>
+    </div>
+  </div>
+
+  <script>
+    const swStart = Date.now();
+    const latencies = [];
+
+    async function refreshMetrics() {
+      const bytes = await new Promise(r => chrome.storage.local.getBytesInUse(null, r));
+      const data = await new Promise(r => chrome.storage.local.get(['swStartCount','swInstallTime','historyVisitCount','networkEvents'], r));
+
+      const uptimeSec = Math.floor((Date.now() - swStart) / 1000);
+      document.getElementById('m-uptime').textContent = uptimeSec;
+      document.getElementById('m-storage').textContent = (bytes / 1024).toFixed(1);
+      document.getElementById('m-starts').textContent = data.swStartCount || 0;
+
+      const p50 = latencies.length ? latencies.sort((a,b)=>a-b)[Math.floor(latencies.length/2)] : 0;
+      const latEl = document.getElementById('m-latency');
+      latEl.textContent = p50.toFixed(1);
+      latEl.className = 'm-val ' + (p50 < 5 ? 'good' : p50 < 20 ? 'warn' : 'bad');
+
+      const navCount = (data.networkEvents || []).length;
+      const histCount = data.historyVisitCount || 0;
+      const bars = [
+        { label: 'History entries', val: histCount, max: 10000 },
+        { label: 'Network events', val: navCount, max: 500 },
+        { label: 'Storage quota', val: bytes, max: 10 * 1024 * 1024 },
+      ];
+      document.getElementById('storage-bars').innerHTML = bars.map(b => {
+        const pct = Math.min(100, (b.val / b.max) * 100).toFixed(1);
+        const col = pct > 80 ? 'var(--red)' : pct > 60 ? 'var(--orange)' : 'var(--green)';
+        return `<div class="bar-wrap">
+          <div class="bar-label"><span>${b.label}</span><span>${b.val.toLocaleString()}</span></div>
+          <div class="bar"><div class="bar-fill" style="width:${pct}%;background:${col};"></div></div>
+        </div>`;
+      }).join('');
+    }
+
+    document.getElementById('btn-bench').addEventListener('click', async () => {
+      const log = document.getElementById('latency-log');
+      for (let i = 0; i < 20; i++) {
+        const t0 = performance.now();
+        await chrome.runtime.sendMessage({ type: 'getWorldInfo' });
+        const ms = performance.now() - t0;
+        latencies.push(ms);
+        const row = document.createElement('div');
+        row.className = 'log-row';
+        row.innerHTML = `<span>#${i+1}</span> ${ms.toFixed(2)}ms`;
+        log.insertBefore(row, log.firstChild);
+      }
+      await refreshMetrics();
+    });
+
+    document.getElementById('btn-refresh').addEventListener('click', refreshMetrics);
+    refreshMetrics();
+    setInterval(refreshMetrics, 5000);
+  </script>
+</body>
+</html>

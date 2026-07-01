@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 20 Demo — Performance</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--orange:#fb923c;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:860px;margin:0 auto;}
+    h1{color:var(--gold);font-size:34px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:36px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;color:var(--text);margin:16px 0;}
+    table{width:100%;border-collapse:collapse;margin:16px 0;}
+    th{background:#141c2e;color:var(--gold);padding:9px 12px;font-size:12px;text-align:left;border:1px solid var(--border);}
+    td{padding:9px 12px;border:1px solid var(--border);font-size:12px;color:var(--muted);}
+    .good{color:var(--green);}
+    .warn{color:var(--orange);}
+    .bad{color:var(--red);}
+  </style>
+</head>
+<body>
+  <h1>Module 20 — Performance Monitoring</h1>
+  <p class="sub">MV3 service workers restart constantly. Measuring this is the first step to optimizing for it.</p>
+
+  <h2>Message Latency Interpretation</h2>
+  <table>
+    <tr><th>Latency</th><th>Meaning</th><th>Status</th></tr>
+    <tr><td>&lt; 5ms</td><td>SW was already running, responded immediately</td><td class="good">Healthy</td></tr>
+    <tr><td>5–20ms</td><td>SW was sleeping, woke up to handle message</td><td class="warn">Normal</td></tr>
+    <tr><td>20–100ms</td><td>SW startup + heavy initialization code</td><td class="warn">Optimize SW init</td></tr>
+    <tr><td>&gt; 100ms</td><td>SW blocked on heavy synchronous work or storage I/O</td><td class="bad">Fix required</td></tr>
+  </table>
+
+  <h2>Minimizing SW Startup Time</h2>
+  <pre>// Bad: heavy work at module scope
+const data = JSON.parse(fs.readFileSync('big-file.json')); // blocks startup
+
+// Good: lazy initialization inside message handlers
+chrome.runtime.onMessage.addListener((msg, _, sendResponse) => {
+  if (msg.type === 'heavyOperation') {
+    initIfNeeded().then(doWork).then(sendResponse);
+    return true;
+  }
+});</pre>
+
+  <h2>The performance.mark() Pattern</h2>
+  <pre>// In background.js — instrument your own code
+performance.mark('idb-start');
+const results = await IDBManager.ready().then(m => m.searchVisits(q));
+performance.mark('idb-end');
+performance.measure('idb-search', 'idb-start', 'idb-end');
+const [entry] = performance.getEntriesByName('idb-search');
+console.log('IDB search took', entry.duration, 'ms');</pre>
+
+  <h2>Storage Monitoring Strategy</h2>
+  <p>NeuralTab calls <code>getBytesInUse(null)</code> periodically. The 10MB local storage limit is generous for most extensions, but history + network events can grow fast. The rolling window pattern (Module 07: 10,000 IDB entries max; Module 09: 500 network events max) prevents unbounded growth without needing a quota monitor.</p>
+</body>
+</html>

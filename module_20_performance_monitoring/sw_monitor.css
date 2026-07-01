@@ -1,0 +1,25 @@
+/* NeuralTab — sw_monitor.css (Module 07 — unchanged from M06) */
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+:root{--bg:#0b0f1a;--bg2:#0f1623;--card:#141c2e;--card2:#1a2540;--border:#1e3a5f;
+  --gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;font-size:14px;}
+.top-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;height:54px;display:flex;align-items:center;}
+.inner{width:100%;max-width:800px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;}
+.brand{display:flex;align-items:center;gap:8px;}
+.bolt{color:var(--gold);font-size:20px;}
+.brand-name{font-weight:900;font-size:16px;color:var(--gold);}
+.btn{border:none;cursor:pointer;border-radius:6px;font-family:'Lato',sans-serif;font-weight:700;font-size:13px;padding:7px 14px;}
+.btn-ghost{background:var(--card2);color:var(--text);border:1px solid var(--border);}
+.content{max-width:800px;margin:0 auto;padding:24px;}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center;}
+.stat-num{font-size:28px;font-weight:900;color:var(--cyan);}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-top:4px;}
+h3{font-size:14px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.log{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;max-height:500px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;}
+.log-row{padding:2px 6px;border-radius:3px;}
+.log-row:nth-child(even){background:var(--bg);}
+.ev-heartbeat{color:var(--muted);}
+.ev-install,.ev-startup{color:var(--green);font-weight:700;}
+.ev-error{color:var(--red);font-weight:700;}
