@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab Side Panel</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:16px;height:100vh;display:flex;flex-direction:column;}
+    h1{color:var(--gold);font-size:18px;font-weight:900;margin-bottom:4px;}
+    .sub{color:var(--muted);font-size:11px;margin-bottom:16px;}
+    .tab-info{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;flex-shrink:0;}
+    .ti-label{color:var(--muted);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+    .ti-title{color:var(--text);font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .ti-url{color:var(--cyan);font-size:11px;font-family:'Source Code Pro',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:12px;flex-shrink:0;}
+    .sec-title{color:var(--gold);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+    .stat-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1a2840;}
+    .stat-row:last-child{border-bottom:none;}
+    .sl{color:var(--muted);font-size:11px;}
+    .sv{color:var(--cyan);font-size:11px;font-family:'Source Code Pro',monospace;}
+    .feed{flex:1;overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:8px;padding:10px;}
+    .feed-title{color:var(--gold);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+    .event{padding:4px 0;border-bottom:1px solid #0f1a2e;font-size:11px;color:var(--muted);}
+    .event span{color:var(--cyan);font-family:'Source Code Pro',monospace;font-size:10px;}
+  </style>
+</head>
+<body>
+  <h1>⚡ NeuralTab</h1>
+  <p class="sub">Side Panel — persistent across navigation</p>
+
+  <div class="tab-info">
+    <div class="ti-label">Active Tab</div>
+    <div class="ti-title" id="tab-title">—</div>
+    <div class="ti-url" id="tab-url">—</div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">Session Stats</div>
+    <div class="stat-row"><span class="sl">Visits this session</span><span class="sv" id="sp-visits">0</span></div>
+    <div class="stat-row"><span class="sl">Pages tracked</span><span class="sv" id="sp-pages">0</span></div>
+    <div class="stat-row"><span class="sl">Storage used</span><span class="sv" id="sp-storage">—</span></div>
+    <div class="stat-row"><span class="sl">Active since</span><span class="sv" id="sp-since">—</span></div>
+  </div>
+
+  <div class="feed">
+    <div class="feed-title">Live Navigation Feed</div>
+    <div id="nav-feed">Waiting for navigation…</div>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 16 Demo — Side Panel</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:860px;margin:0 auto;}
+    h1{color:var(--gold);font-size:34px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:36px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;color:var(--text);margin:16px 0;}
+    .comparison{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;}
+    .c{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;}
+    .c-title{font-size:13px;font-weight:700;margin-bottom:8px;}
+    .pt{color:var(--cyan);}
+    .pp{color:var(--gold);}
+    ul{padding-left:18px;}
+    li{color:var(--muted);font-size:13px;margin-bottom:5px;}
+  </style>
+</head>
+<body>
+  <h1>Module 16 — Side Panel API</h1>
+  <p class="sub">A persistent sidebar that survives navigation — the right UI for features that observe browsing.</p>
+
+  <h2>Panel vs. Popup</h2>
+  <div class="comparison">
+    <div class="c">
+      <div class="c-title pt">Side Panel</div>
+      <ul>
+        <li>Persists across page navigation</li>
+        <li>Visible alongside the page</li>
+        <li>Full chrome.* API access</li>
+        <li>Can run indefinitely while open</li>
+        <li>Right for: research, history, assistants</li>
+      </ul>
+    </div>
+    <div class="c">
+      <div class="c-title pp">Popup</div>
+      <ul>
+        <li>Closes on any click outside</li>
+        <li>Overlays the page, then disappears</li>
+        <li>Full chrome.* API access</li>
+        <li>Dismissed automatically</li>
+        <li>Right for: quick actions, settings</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Opening the Panel</h2>
+  <pre>// In background.js — open the panel programmatically
+chrome.sidePanel.open({ windowId: tab.windowId });
+
+// Or configure action button to open panel instead of popup:
+await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });</pre>
+
+  <h2>NeuralTab's Side Panel</h2>
+  <p>The <strong>sidepanel.html</strong> shows the active tab's title and URL, session visit counts, storage usage, and a live navigation feed driven by <code>chrome.storage.onChanged</code>. It updates in real time as you browse — demonstrating the key advantage of the side panel over the popup: <strong>persistence</strong>.</p>
+</body>
+</html>

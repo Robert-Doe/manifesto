@@ -1,0 +1,55 @@
+[
+  {
+    "id": 1,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||doubleclick.net^",
+      "resourceTypes": ["script", "image", "xmlhttprequest", "sub_frame"]
+    }
+  },
+  {
+    "id": 2,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||googlesyndication.com^",
+      "resourceTypes": ["script", "image", "xmlhttprequest"]
+    }
+  },
+  {
+    "id": 3,
+    "priority": 1,
+    "action": { "type": "block" },
+    "condition": {
+      "urlFilter": "||adservice.google.com^",
+      "resourceTypes": ["script", "xmlhttprequest"]
+    }
+  },
+  {
+    "id": 4,
+    "priority": 2,
+    "action": {
+      "type": "modifyHeaders",
+      "requestHeaders": [
+        { "header": "X-NeuralTab-Version", "operation": "set", "value": "0.9.0" }
+      ]
+    },
+    "condition": {
+      "urlFilter": "||example.com^",
+      "resourceTypes": ["main_frame", "xmlhttprequest"]
+    }
+  },
+  {
+    "id": 5,
+    "priority": 3,
+    "action": {
+      "type": "redirect",
+      "redirect": { "url": "https://duckduckgo.com/?q={search_terms}" }
+    },
+    "condition": {
+      "urlFilter": "||google.com/search?*",
+      "resourceTypes": ["main_frame"]
+    }
+  }
+]

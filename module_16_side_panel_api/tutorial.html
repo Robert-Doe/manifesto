@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 16 — Side Panel API</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+  <h1>Module 16 — Side Panel API</h1>
+  <div class="byline">NeuralTab Curriculum · Module 16 of 25</div>
+
+  <h2>The Persistence Problem Popups Can't Solve</h2>
+  <p>The popup closes the moment the user clicks anywhere outside it. This makes popups ideal for quick actions — check a value, trigger a function, change a setting — but completely unsuitable for features that need to observe or react to ongoing browsing. Research assistants, reading modes, history trackers, live analytics: all of these need to stay open while the user browses. That's what the side panel exists for.</p>
+
+  <h2>Setup: Two Lines in onInstalled</h2>
+  <pre>// In background.js onInstalled:
+await chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+// Now the extension icon opens the side panel instead of the popup.
+
+// Or open programmatically:
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  chrome.sidePanel.open({ windowId: tab.windowId });
+});</pre>
+
+  <h2>The Panel's Lifecycle</h2>
+  <p>The side panel page is a full extension page — it has access to all <code>chrome.*</code> APIs, loads CSS and JS, and can run indefinitely while it's visible. Unlike the popup (which is destroyed when closed), the side panel's state persists as long as the panel stays open. If the user navigates away and returns, the panel is still there.</p>
+  <p>However, the panel is <strong>per-window</strong>, not per-tab. Opening a new window creates a fresh panel instance. Each window gets its own panel, and they don't share JavaScript state — only storage-mediated state.</p>
+
+  <h2>Communicating with the Panel</h2>
+  <p>The side panel uses the same messaging patterns as any other extension page. NeuralTab's sidepanel.js uses the storage pub/sub pattern (Pattern 4 from Module 06): it listens to <code>chrome.storage.onChanged</code> for <code>networkEvents</code> changes written by the background SW, and updates the live navigation feed without any direct messaging.</p>
+  <pre>// sidepanel.js — reactive to storage changes
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'local' || !changes.networkEvents) return;
+  const events = changes.networkEvents.newValue || [];
+  const latest = events[events.length - 1];
+  if (latest?.type === 'completed') {
+    addNavEvent(latest.url);
+  }
+});</pre>
+
+  <h2>Panel vs. Popup: When to Use Which</h2>
+  <p><strong>Use popup when:</strong> the interaction is short (&lt;10 seconds), no state needs to persist between clicks, the feature is "trigger and done" (open a page, copy something, change a setting).</p>
+  <p><strong>Use side panel when:</strong> you need to observe browsing behavior, show real-time updates, maintain conversational state, or display content that users want to reference while reading a page (reading mode, research notes, price comparisons).</p>
+
+  <div class="callout">
+    <div class="label">Requires Chrome 114+</div>
+    <p>The <code>sidePanel</code> API requires Chrome 114 or later. Always guard calls with <code>if (chrome.sidePanel)</code> to avoid errors on older Chrome versions. The Module 17 <code>NTCompat.hasSidePanel()</code> helper provides this guard throughout the extension.</p>
+  </div>
+
+  <h2>Exercises</h2>
+  <div class="exercise">
+    <div class="ex-label">Exercise 16-A — Open the Panel</div>
+    <p>Install Module 16's extension. Click the NeuralTab icon — the side panel should open instead of a popup (because <code>setPanelBehavior</code> was called in <code>onInstalled</code>). Navigate several pages. Confirm the live navigation feed updates in real time. Count the navigation events in the feed and compare to the network events in storage.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 16-B — Panel Toggle</div>
+    <p>Modify background.js to toggle between panel and popup behavior: if the panel is already open, the extension icon should close the panel and re-enable the popup. Store the current mode in <code>chrome.storage.session</code>. This requires listening to <code>chrome.action.onClicked</code> — which means removing <code>default_popup</code> from manifest.json.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 16-C — Domain Highlights</div>
+    <p>Extend sidepanel.js to count how many times each domain appears in the navigation feed. Display the top 5 most-visited domains during the current session as a small leaderboard in the panel. Update it every time a new navigation event arrives via <code>storage.onChanged</code>.</p>
+  </div>
+</body>
+</html>
