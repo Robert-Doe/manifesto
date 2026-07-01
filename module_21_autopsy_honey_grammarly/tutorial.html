@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 21 — Extension Autopsy I: Honey &amp; Grammarly</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+  <h1>Module 21 — Extension Autopsy I: Honey &amp; Grammarly</h1>
+  <div class="byline">NeuralTab Curriculum · Module 21 of 25</div>
+
+  <h2>Anatomy of a Real Extension</h2>
+  <p>Reading other extensions' source code is the fastest way to understand what's actually possible — and what's common practice vs. what you should never do. Chrome extensions are distributed as ZIP files of plain JavaScript. Any extension installed in your browser can be found at <code>%LOCALAPPDATA%\Google\Chrome\User Data\Default\Extensions\&lt;id&gt;\</code> and read directly. This module autopsies two extensions with hundreds of millions of users.</p>
+
+  <h2>Honey: Affiliate Replacement</h2>
+  <p>Honey's stated purpose is finding coupon codes. Its actual business model is affiliate marketing: when you're about to buy something, Honey replaces the merchant's existing affiliate referral code with its own PayPal-owned code — earning Honey a commission on the sale that would have gone to the content creator or site that referred you.</p>
+  <p>How it works technically:</p>
+  <ul style="color:var(--muted);padding-left:24px;margin:12px 0 16px;">
+    <li style="margin-bottom:8px;">Content scripts with <code>matches: ["&lt;all_urls&gt;"]</code> inject on every page.</li>
+    <li style="margin-bottom:8px;">The script reads cookies with names matching known affiliate patterns (<code>tag=</code>, <code>ref=</code>, <code>aff_id=</code>).</li>
+    <li style="margin-bottom:8px;">When a checkout page is detected (URL patterns like <code>/checkout</code>, <code>/cart</code>), Honey's affiliate code is injected into the URL or form fields.</li>
+    <li style="margin-bottom:8px;">The merchant's analytics shows the sale attributed to Honey, not the original referrer.</li>
+  </ul>
+  <p>This behavior was disclosed in Honey's privacy policy in fine print, but the FTC investigation (2024) concluded the disclosure was insufficient given the deceptive framing of the product as a user-benefit tool.</p>
+
+  <h2>Grammarly: Surface Area of Trust</h2>
+  <p>Grammarly is a legitimate and widely-used writing assistant. It captures every keystroke in text inputs — which is exactly what it needs to do to check grammar. The concern isn't malice; it's surface area.</p>
+  <pre>// The content script attaches to every editable element:
+document.addEventListener('focusin', (e) => {
+  if (isEditable(e.target)) {
+    e.target.addEventListener('input', captureText);
+    e.target.addEventListener('keydown', captureKeydown);
+  }
+}, true);</pre>
+  <p>With <code>matches: ["&lt;all_urls&gt;"]</code>, Grammarly captures text in: banking login forms (before the password field is identified as <code>type="password"</code>), internal company tools, medical record systems, lawyer-client communications, and mental health journaling apps. The extension correctly filters <code>type="password"</code> fields — but a bug or deliberate change could remove that filter. 35 million users would immediately be affected.</p>
+
+  <h2>The Lesson: Permission Surface Area</h2>
+  <p>Both extensions request <code>&lt;all_urls&gt;</code> host permission — which is necessary for their core features. This is a design constraint, not a flaw. The lesson for your own extensions: <strong>be as specific as possible</strong>. If your coupon finder only works on Amazon, match <code>*://*.amazon.com/*</code>. If your writing assistant only improves emails, match <code>*://mail.google.com/*</code>. Every URL you don't match is a user who doesn't have to trust you.</p>
+
+  <div class="callout">
+    <div class="label">How to Read an Extension's Source</div>
+    <p>Install the extension. Open <code>chrome://extensions</code> → find the extension → click "Details" → note the Extension ID. Navigate to <code>%LOCALAPPDATA%\Google\Chrome\User Data\Default\Extensions\&lt;ID&gt;</code>. The latest version folder contains all the files. Use VS Code to read them. Start with <code>manifest.json</code> to understand all declared permissions and entry points, then follow the content scripts and background to understand actual behavior.</p>
+  </div>
+
+  <h2>Exercises</h2>
+  <div class="exercise">
+    <div class="ex-label">Exercise 21-A — Audit Your Own Extension</div>
+    <p>Open autopsy.html and read the Honey affiliate pattern section. Now open NeuralTab's own manifest.json and audit it: which permissions could be narrowed? Does NeuralTab use <code>&lt;all_urls&gt;</code>? Could the host permissions be scoped to specific domains? Write down three changes that would reduce NeuralTab's permission surface area without breaking any features.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 21-B — Read a Real Extension</div>
+    <p>Install any open-source Chrome extension (uBlock Origin, Dark Reader, etc.). Find its ID in chrome://extensions. Navigate to its source in the Extensions folder. Read the manifest.json and the main content script. Identify: (1) all requested permissions, (2) which permissions are actually used in the code you can read, (3) any permissions that seem broader than necessary.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 21-C — Write Your Privacy Policy</div>
+    <p>Write a privacy policy for NeuralTab based on what the extension actually does (as you now understand it across all 21 modules). Be specific: what data is collected, where it's stored (local vs. sync vs. session), whether it's ever sent to a server, and how it can be deleted. This is required for CWS submission and FTC compliance.</p>
+  </div>
+</body>
+</html>

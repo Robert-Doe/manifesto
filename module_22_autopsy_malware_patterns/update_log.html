@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab — Update Log</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--bg2:#0f1623;--card:#141c2e;--card2:#1a2540;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;font-size:14px;padding:0;}
+    .top-bar{background:var(--bg2);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;padding:0 24px;gap:12px;}
+    .bolt{color:var(--gold);font-size:20px;}
+    .brand{font-weight:900;font-size:16px;color:var(--gold);}
+    .page-name{font-size:13px;color:var(--muted);}
+    .content{max-width:800px;margin:0 auto;padding:32px;}
+    .meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:28px;}
+    .meta-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;text-align:center;}
+    .meta-num{font-size:24px;font-weight:900;color:var(--cyan);margin-bottom:4px;}
+    .meta-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;}
+    h2{font-size:18px;font-weight:900;color:var(--gold);margin:24px 0 12px;}
+    .migration-list{display:flex;flex-direction:column;gap:8px;}
+    .migration-entry{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:14px;}
+    .m-version{font-family:'Source Code Pro',monospace;font-size:14px;font-weight:700;color:var(--gold);min-width:60px;}
+    .m-body{flex:1;}
+    .m-time{font-size:11px;color:var(--muted);}
+    .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;}
+    .badge-ok{background:#0d2e18;color:var(--green);}
+    .badge-err{background:#2e0a0a;color:var(--red);}
+    .empty{text-align:center;padding:48px;color:var(--muted);}
+    .btn{border:none;cursor:pointer;border-radius:6px;font-family:'Lato',sans-serif;font-weight:700;font-size:13px;padding:7px 14px;background:var(--card2);color:var(--text);border:1px solid var(--border);}
+    .btn:hover{opacity:0.85;}
+    .btn-row{display:flex;gap:8px;margin-bottom:20px;}
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <span class="bolt">⚡</span>
+    <span class="brand">NeuralTab</span>
+    <span class="page-name">Update Log</span>
+  </div>
+  <div class="content">
+    <div class="meta-grid">
+      <div class="meta-card"><div class="meta-num" id="m-current">—</div><div class="meta-label">Current Version</div></div>
+      <div class="meta-card"><div class="meta-num" id="m-schema">—</div><div class="meta-label">Schema Version</div></div>
+      <div class="meta-card"><div class="meta-num" id="m-runs">—</div><div class="meta-label">Migrations Run</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="btn-refresh">Refresh</button>
+      <button class="btn" id="btn-simulate">Simulate Update from 0.5.0</button>
+    </div>
+    <h2>Migration History</h2>
+    <div class="migration-list" id="migration-list"><div class="empty">Loading…</div></div>
+  </div>
+  <script src="storage_manager.js"></script>
+  <script>
+    async function load() {
+      const manifest = chrome.runtime.getManifest();
+      const r = await chrome.runtime.sendMessage({ action: 'getMigrationLog' });
+      document.getElementById('m-current').textContent = manifest.version;
+      document.getElementById('m-schema').textContent  = r.schemaVersion || '—';
+      document.getElementById('m-runs').textContent    = (r.migrationLog || []).length;
+      const list = document.getElementById('migration-list');
+      const log  = (r.migrationLog || []).slice().reverse();
+      if (!log.length) { list.innerHTML = '<div class="empty">No migrations have run yet.</div>'; return; }
+      list.innerHTML = '';
+      for (const e of log) {
+        const el = document.createElement('div');
+        el.className = 'migration-entry';
+        el.innerHTML = `<div class="m-version">→ ${e.version}</div>
+          <div class="m-body"><div class="m-time">${new Date(e.ts).toLocaleString()}</div>${e.error?`<div style="color:var(--red);font-size:12px;">${e.error}</div>`:''}</div>
+          <span class="badge ${e.success?'badge-ok':'badge-err'}">${e.success?'✓ OK':'✗ FAILED'}</span>`;
+        list.appendChild(el);
+      }
+    }
+    document.getElementById('btn-refresh').addEventListener('click', load);
+    document.getElementById('btn-simulate').addEventListener('click', async () => {
+      const r = await chrome.runtime.sendMessage({ action: 'runMigrations', fromVersion: '0.5.0' });
+      alert(`Migrations ran: ${r.ran?.join(', ') || 'none (already applied)'}`);
+      load();
+    });
+    load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 23 Demo — CWS Removals</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--red:#f87171;--orange:#fb923c;--green:#4ade80;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:860px;margin:0 auto;}
+    h1{color:var(--gold);font-size:34px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:36px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    .timeline{border-left:3px solid var(--border);padding-left:24px;margin:16px 0;}
+    .event{margin-bottom:20px;position:relative;}
+    .event::before{content:'';width:12px;height:12px;background:var(--orange);border-radius:50%;position:absolute;left:-30px;top:3px;}
+    .event.removed::before{background:var(--red);}
+    .event.ok::before{background:var(--green);}
+    .ev-year{color:var(--muted);font-size:11px;font-weight:700;letter-spacing:1px;}
+    .ev-name{color:var(--text);font-size:14px;font-weight:700;margin-bottom:3px;}
+    .ev-note{color:var(--muted);font-size:12px;line-height:1.6;}
+  </style>
+</head>
+<body>
+  <h1>Module 23 — CWS Policy Removals</h1>
+  <p class="sub">Real cases. Real consequences. The history of Chrome Web Store enforcement shapes every design decision in a published extension.</p>
+
+  <h2>Timeline of Major Enforcement Actions</h2>
+  <div class="timeline">
+    <div class="event ok">
+      <div class="ev-year">2012</div>
+      <div class="ev-name">Chrome Web Store launches with self-certification</div>
+      <div class="ev-note">Extensions submitted with minimal review. The wild west era.</div>
+    </div>
+    <div class="event">
+      <div class="ev-year">2014</div>
+      <div class="ev-name">Inline installs removed for off-store extensions</div>
+      <div class="ev-note">First major policy tightening. All installs must go through CWS.</div>
+    </div>
+    <div class="event removed">
+      <div class="ev-year">2018</div>
+      <div class="ev-name">Stylish removed — 1.8M users' history harvested</div>
+      <div class="ev-note">Privacy disclosure requirements introduced shortly after.</div>
+    </div>
+    <div class="event removed">
+      <div class="ev-year">2019</div>
+      <div class="ev-name">DataSpii — 8 extensions exfiltrating history</div>
+      <div class="ev-note">Led to stricter permission justification requirements.</div>
+    </div>
+    <div class="event ok">
+      <div class="ev-year">2020</div>
+      <div class="ev-name">Manifest V3 announced</div>
+      <div class="ev-note">CSP restrictions designed to prevent remote code execution patterns.</div>
+    </div>
+    <div class="event removed">
+      <div class="ev-year">2021</div>
+      <div class="ev-name">The Great Suspender force-disabled</div>
+      <div class="ev-note">First mass force-disable. Established that acquisitions are a risk vector.</div>
+    </div>
+    <div class="event ok">
+      <div class="ev-year">2022</div>
+      <div class="ev-name">Privacy Practices tab mandatory in CWS dashboard</div>
+      <div class="ev-note">Incomplete privacy disclosure = submission rejection.</div>
+    </div>
+    <div class="event ok">
+      <div class="ev-year">2024</div>
+      <div class="ev-name">MV2 phase-out begins for new submissions</div>
+      <div class="ev-note">MV3 required for all new extensions. MV3 CSP enforcement in effect.</div>
+    </div>
+  </div>
+
+  <h2>The Pattern</h2>
+  <p>Each enforcement action is followed by a policy change that would have prevented it. Build your extension assuming the <em>next</em> policy change will catch anything that skates on the edge of current policy. The safest extension is one where every permission is justified and all data stays on device.</p>
+</body>
+</html>

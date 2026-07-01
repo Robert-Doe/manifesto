@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 23 — Extension Autopsy III: CWS Removals</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .case{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px 24px;margin:24px 0;}
+    .case-title{color:var(--red);font-weight:900;font-size:15px;margin-bottom:6px;}
+    .case-meta{color:var(--muted);font-size:12px;margin-bottom:12px;}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+  <h1>Module 23 — Extension Autopsy III: CWS Removals</h1>
+  <div class="byline">NeuralTab Curriculum · Module 23 of 25</div>
+
+  <h2>Four Removals Worth Studying</h2>
+  <p>The Chrome Web Store has forcibly removed extensions millions of times. Most removals are low-profile: a single spam extension, quickly gone. But a handful of high-profile cases shaped the policies that govern the store today. Each is a lesson in what Google considers a line — and how close legitimate extensions can get to that line before crossing it.</p>
+
+  <div class="case">
+    <div class="case-title">The Great Suspender — February 2021</div>
+    <div class="case-meta">2 million users · Force-disabled across all Chrome installations</div>
+    <p>The Great Suspender was a legitimate tab-suspension extension with an open-source codebase and millions of users. The original developer sold it to an anonymous buyer in 2020. The new owner added obfuscated tracking code and a remote code execution mechanism — loading JavaScript from an external server — which allowed arbitrary code to run in the extension context. Google force-disabled the extension across all Chrome installations simultaneously, which users experienced as their suspended tabs disappearing and the extension icon vanishing. The lesson: <strong>supply chain</strong>. Acquiring an extension to exploit its user base is a recognized attack pattern. If you buy or sell an extension, both parties need to disclose the change to users.</p>
+  </div>
+
+  <div class="case">
+    <div class="case-title">DataSpii — July 2019</div>
+    <div class="case-meta">7 extensions · ~4 million users · Leaked browsing history to data brokers</div>
+    <p>DataSpii was discovered by security researcher Sam Jadali. Seven extensions quietly collected users' complete browsing history — including URLs that contained confidential information like documents and private GitHub links — and sent it to a data broker that resold it as "anonymous" analytics. The extensions had legitimate stated purposes (coupons, tab management). The collection happened via content scripts that read <code>window.location.href</code> on every page, attached to a <code>load</code> event listener, and sent batches to an analytics server every few minutes. The lesson: <strong>collecting data you don't disclose is grounds for removal</strong>, even if the data appears innocuous and you never sell it by name.</p>
+  </div>
+
+  <div class="case">
+    <div class="case-title">Stylish — July 2018</div>
+    <div class="case-meta">2 million users · Collected full browsing history with timestamps</div>
+    <p>Stylish was one of the most popular extensions for custom website styling. After being acquired by SimilarWeb in 2017, Stylish's update added a new feature: it sent every URL the user visited — including search queries — to SimilarWeb's analytics servers. This was disclosed in the updated privacy policy, but not prominently. Mozilla removed it first; Google followed within 24 hours. The case established that disclosed-but-obscured data collection is treated the same as undisclosed collection by both stores. The lesson: <strong>privacy policy disclosure must be prominent</strong>, not buried in a legal document no user reads.</p>
+  </div>
+
+  <div class="case">
+    <div class="case-title">Session Replay Batch — 2023</div>
+    <div class="case-meta">~40 extensions · Used content scripts to capture form inputs and session data</div>
+    <p>A coordinated batch of extensions — all with innocuous names like "PDF Converter" and "Screen Capture" — were found to inject session replay scripts that recorded user interactions (mouse movements, clicks, form values) and sent them to remote servers. The extensions used a common technique: loading the replay SDK dynamically from a CDN after passing review (the delayed payload pattern from Module 22). MV3's remote code blocking would have prevented this specific vector. The lesson: <strong>MV3's blocking of remote scripts is a genuine security improvement</strong>, not just a restriction on developers.</p>
+  </div>
+
+  <h2>The Common Thread</h2>
+  <p>Every removal shares a root cause: the extension collected or transmitted data that users didn't know about and didn't consent to, or executed code that wasn't in the reviewed package. MV3's structural changes prevent the code-execution vector. But data collection — reading the DOM, reading URLs, reading cookies — is still fully possible in MV3. The defense is transparency and minimal collection, not technical restriction.</p>
+
+  <div class="callout">
+    <div class="label">Automatic Removal Triggers</div>
+    <p>Google can (and does) force-disable extensions remotely without the developer's involvement. This power exists specifically to respond to cases like The Great Suspender — where millions of users are at risk and waiting for a developer to push an update is too slow. Build your extension assuming Google can pull the plug at any time, and structure your data storage so users aren't harmed if that happens suddenly.</p>
+  </div>
+
+  <h2>Exercises</h2>
+  <div class="exercise">
+    <div class="ex-label">Exercise 23-A — Disclosure Audit</div>
+    <p>Read the autopsy.html page for all four cases. For each case, identify the specific technical mechanism used for data collection or code execution. Then look at NeuralTab's current module_24 analytics_manager.js — compare its approach to each mechanism. Write one sentence explaining why NeuralTab's local-only analytics avoids each removal trigger.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 23-B — Incident Response Plan</div>
+    <p>Write a one-page incident response plan for NeuralTab assuming Google force-disables your extension. What happens to user data stored in chrome.storage.local? What notification do users receive from Chrome? What's the fastest path to re-enable the extension (hint: CWS appeal process)? What code change would address the removal trigger fastest?</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 23-C — Read the CWS Policy</div>
+    <p>Find and read the current Chrome Web Store Developer Program Policies. Identify which specific policy each case study violated. The policies are organized into categories — find the sections covering "User Data," "Deceptive Installation Tactics," and "Spam and Placed Extensions." For each of the four case studies, cite the specific policy section that was violated.</p>
+  </div>
+</body>
+</html>

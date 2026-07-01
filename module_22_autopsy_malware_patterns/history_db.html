@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>NeuralTab — History</title>
+  <link rel="stylesheet" href="history_db.css"/>
+</head>
+<body>
+  <div class="top-bar">
+    <div class="top-bar-inner">
+      <div class="brand"><span class="bolt">⚡</span><span class="brand-name">NeuralTab</span><span class="brand-page">History</span></div>
+      <div class="top-actions">
+        <button class="btn btn-ghost" id="btn-export">⬇ Export JSON</button>
+        <button class="btn btn-danger" id="btn-clear">🗑 Clear All</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-body">
+    <div class="sidebar">
+      <div class="stats-panel">
+        <div class="stat-row"><span class="s-label">Total Visits</span><span class="s-val" id="stat-total">—</span></div>
+        <div class="stat-row"><span class="s-label">Capacity</span><span class="s-val" id="stat-cap">10,000</span></div>
+        <div class="cap-bar-wrap"><div class="cap-bar" id="cap-bar"></div></div>
+      </div>
+      <div class="top-domains" id="top-domains"></div>
+    </div>
+
+    <div class="main-area">
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search URLs and titles…"/>
+        <button class="btn btn-gold" id="btn-search">Search</button>
+        <button class="btn btn-ghost" id="btn-all">Show All</button>
+      </div>
+      <div class="results-info" id="results-info"></div>
+      <div class="results-list" id="results-list"></div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+
+  <script src="storage_manager.js"></script>
+  <script src="idb_manager.js"></script>
+  <script src="history_db.js"></script>
+</body>
+</html>

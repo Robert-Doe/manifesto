@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 21 Demo — Autopsy I</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--orange:#fb923c;--green:#4ade80;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:860px;margin:0 auto;}
+    h1{color:var(--gold);font-size:34px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:36px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    .takeaway{background:#060a12;border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;}
+    .takeaway p{margin:0;color:var(--text);}
+  </style>
+</head>
+<body>
+  <h1>Module 21 — Autopsy I: Honey &amp; Grammarly</h1>
+  <p class="sub">What two of the most-installed extensions actually do with their extraordinary permissions.</p>
+
+  <h2>The Core Lesson</h2>
+  <p>Both Honey and Grammarly are legitimate products with legitimate use cases. Neither is malware. But both make choices that prioritize business model over user interests — and those choices are only visible if you know how to read a manifest.json and understand what <code>&lt;all_urls&gt;</code> actually means.</p>
+
+  <div class="takeaway">
+    <p><strong>Honey:</strong> Replaces affiliate links. Legal, disclosed on page 47 of ToS. Ethically questionable. Builds a purchase history profile for PayPal.</p>
+  </div>
+  <div class="takeaway">
+    <p><strong>Grammarly:</strong> Reads every text field on every website. Necessary for the product. Creates an enormous attack surface — 10M users' keystrokes through one company's infrastructure.</p>
+  </div>
+
+  <h2>How NeuralTab Is Different</h2>
+  <p>NeuralTab also uses <code>&lt;all_urls&gt;</code>. The difference: <strong>all data stays in IndexedDB on your device.</strong> No network requests from content scripts. No server receives your history. The autopsy.html page shows the comparison table — use it as your reference when evaluating any extension.</p>
+
+  <h2>Reading a Manifest Like a Security Researcher</h2>
+  <p>Before installing any extension, check: permissions requested, host_permissions scope, web_accessible_resources count, and background script network activity. Five minutes of inspection reveals more than reading the marketing description.</p>
+</body>
+</html>

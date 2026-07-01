@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab — Autopsy I: Honey &amp; Grammarly</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--orange:#fb923c;--purple:#a78bfa;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:32px;max-width:960px;margin:0 auto;}
+    h1{color:var(--gold);font-size:26px;font-weight:900;margin-bottom:6px;}
+    .sub{color:var(--muted);margin-bottom:28px;font-size:13px;line-height:1.6;}
+    h2{color:var(--cyan);font-size:18px;font-weight:900;margin:32px 0 12px;}
+    h3{color:var(--gold);font-size:14px;font-weight:700;margin:20px 0 8px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;font-size:14px;}
+    .ext-card{border-radius:12px;padding:24px;margin-bottom:24px;border:2px solid;}
+    .honey{background:#110a00;border-color:var(--orange);}
+    .grammarly{background:#000b18;border-color:var(--cyan);}
+    .ext-header{display:flex;align-items:center;gap:16px;margin-bottom:16px;}
+    .ext-name{font-size:20px;font-weight:900;}
+    .honey .ext-name{color:var(--orange);}
+    .grammarly .ext-name{color:var(--cyan);}
+    .ext-users{color:var(--muted);font-size:12px;}
+    .perm-list{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;}
+    .perm{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+    .perm-warn{background:#2d1a00;color:var(--orange);border:1px solid var(--orange);}
+    .perm-ok{background:#0d1f0d;color:var(--green);border:1px solid var(--green);}
+    .perm-danger{background:#2d0000;color:var(--red);border:1px solid var(--red);}
+    .technique{background:#060a12;border-left:3px solid var(--gold);border-radius:0 6px 6px 0;padding:12px 16px;margin:10px 0;font-family:'Source Code Pro',monospace;font-size:12px;color:var(--muted);}
+    .verdict{padding:12px 16px;border-radius:8px;margin-top:16px;font-size:13px;font-weight:700;}
+    .v-concern{background:#1a0e00;border:1px solid var(--orange);color:var(--orange);}
+    .v-ok{background:#0d1f0d;border:1px solid var(--green);color:var(--green);}
+    table{width:100%;border-collapse:collapse;margin:12px 0;}
+    th{background:var(--card);color:var(--gold);padding:9px 12px;font-size:12px;text-align:left;border:1px solid var(--border);}
+    td{padding:9px 12px;border:1px solid var(--border);font-size:12px;color:var(--muted);}
+  </style>
+</head>
+<body>
+  <h1>🔬 Extension Autopsy I</h1>
+  <p class="sub">Deep dissection of two famous commercial extensions: Honey (PayPal) and Grammarly. What permissions do they request? What data do they collect? Are they doing anything malicious — or just privacy-invasive by design?</p>
+
+  <div class="ext-card honey">
+    <div class="ext-header">
+      <div>
+        <div class="ext-name">🍯 Honey</div>
+        <div class="ext-users">~17 million users · Acquired by PayPal for $4B in 2020</div>
+      </div>
+    </div>
+
+    <h3>Permissions Requested</h3>
+    <div class="perm-list">
+      <span class="perm perm-danger">&lt;all_urls&gt;</span>
+      <span class="perm perm-warn">tabs</span>
+      <span class="perm perm-warn">webRequest</span>
+      <span class="perm perm-warn">storage</span>
+      <span class="perm perm-ok">cookies (shopping domains)</span>
+    </div>
+
+    <h3>What It Actually Does</h3>
+    <p>Honey injects content scripts on every page to detect checkout forms and coupon fields. It intercepts navigations to affiliate link targets and replaces the referring affiliate ID with Honey's own affiliate ID — even when the user arrived via a creator's affiliate link. This was exposed in the 2024 MegaLag investigation.</p>
+
+    <div class="technique">// Honey's affiliate hijacking pattern (reconstructed)
+// When user clicks creator's affiliate link:
+//   https://shop.example.com?ref=creator123
+// Honey intercepts and redirects to:
+//   https://shop.example.com?ref=honey_affiliate
+// PayPal earns the commission. Creator earns nothing.</div>
+
+    <h3>Data Collection</h3>
+    <table>
+      <tr><th>Data Type</th><th>Collected?</th><th>Shared with?</th></tr>
+      <tr><td>Pages visited (all URLs)</td><td style="color:var(--red)">Yes</td><td>PayPal analytics</td></tr>
+      <tr><td>Purchase history</td><td style="color:var(--red)">Yes</td><td>PayPal + partners</td></tr>
+      <tr><td>Affiliate link clicks</td><td style="color:var(--red)">Yes → replaced</td><td>PayPal earns commission</td></tr>
+      <tr><td>Browsing behavior</td><td style="color:var(--orange)">Shopping sites only</td><td>Internal targeting</td></tr>
+    </table>
+
+    <div class="verdict v-concern">⚠ Verdict: Legally compliant but ethically problematic. The affiliate hijacking is disclosed in ToS (page 47 of 52). Users don't know. Creators lose revenue silently.</div>
+  </div>
+
+  <div class="ext-card grammarly">
+    <div class="ext-header">
+      <div>
+        <div class="ext-name">📝 Grammarly</div>
+        <div class="ext-users">~10 million users · $13B valuation · Used in enterprise</div>
+      </div>
+    </div>
+
+    <h3>Permissions Requested</h3>
+    <div class="perm-list">
+      <span class="perm perm-danger">&lt;all_urls&gt;</span>
+      <span class="perm perm-warn">storage</span>
+      <span class="perm perm-ok">identity</span>
+      <span class="perm perm-ok">contextMenus</span>
+    </div>
+
+    <h3>What It Actually Does</h3>
+    <p>Grammarly injects a content script on every page that reads text from all input fields, textareas, and contenteditable elements. This text is sent to Grammarly's servers for grammar and spell checking. By necessity, this includes every email, password field (if auto-fill isn't used), private message, document, and form field on every website.</p>
+
+    <div class="technique">// Grammarly's text extraction pattern (reconstructed)
+document.addEventListener('input', e => {
+  const el = e.target;
+  if (el.matches('input, textarea, [contenteditable]')) {
+    sendToGrammarlyAPI(el.value || el.textContent);
+  }
+}, true);
+// This fires on EVERY keypress on EVERY website.</div>
+
+    <h3>Why This Is a Security Risk</h3>
+    <p>Security researchers at Tavis Ormandy (Google Project Zero) and others have flagged Grammarly for sending auth tokens in ways that allowed cross-site access. The core issue: an extension reading all text input on all pages is a high-value target. A single supply chain compromise of Grammarly would expose the typed content of millions of users across every website they visit.</p>
+
+    <div class="verdict v-concern">⚠ Verdict: Legitimate product, significant attack surface. Grammarly must be excluded from security-sensitive pages (banking, HR, legal) at the enterprise level. Their privacy policy is transparent but the surface area is enormous.</div>
+  </div>
+
+  <h2>Lessons for NeuralTab Developers</h2>
+  <table>
+    <tr><th>Practice</th><th>Honey</th><th>Grammarly</th><th>NeuralTab Approach</th></tr>
+    <tr><td>Minimal permissions</td><td style="color:var(--red)">No</td><td style="color:var(--orange)">Partial</td><td style="color:var(--green)">Yes — request only what's used</td></tr>
+    <tr><td>Data stays local</td><td style="color:var(--red)">No</td><td style="color:var(--red)">No</td><td style="color:var(--green)">Yes — IndexedDB, no server</td></tr>
+    <tr><td>Transparent ToS</td><td style="color:var(--red)">Hidden in fine print</td><td style="color:var(--orange)">Detailed but long</td><td style="color:var(--green)">Open source, no ToS</td></tr>
+    <tr><td>Affiliate manipulation</td><td style="color:var(--red)">Yes</td><td style="color:var(--green)">No</td><td style="color:var(--green)">No</td></tr>
+  </table>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab — Autopsy III: CWS Removals</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--orange:#fb923c;--purple:#a78bfa;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:32px;max-width:960px;margin:0 auto;}
+    h1{color:var(--gold);font-size:26px;font-weight:900;margin-bottom:6px;}
+    .sub{color:var(--muted);margin-bottom:28px;font-size:13px;line-height:1.6;}
+    h2{color:var(--cyan);font-size:17px;font-weight:900;margin:28px 0 12px;}
+    .case{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;}
+    .case-header{display:flex;justify-content:space-between;margin-bottom:8px;}
+    .case-name{color:var(--orange);font-size:14px;font-weight:900;}
+    .case-year{color:var(--muted);font-size:12px;}
+    .case-users{color:var(--muted);font-size:12px;margin-bottom:10px;}
+    .reason{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-bottom:10px;}
+    .r-malware{background:#2d0000;color:var(--red);border:1px solid var(--red);}
+    .r-policy{background:#2d1a00;color:var(--orange);border:1px solid var(--orange);}
+    .r-data{background:#1a002d;color:var(--purple);border:1px solid var(--purple);}
+    p{color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:8px;}
+    .lesson{background:#05200a;border:1px solid var(--green);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--green);margin-top:8px;}
+    .policy-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;}
+    .policy-card{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:14px;}
+    .pc-title{color:var(--gold);font-size:12px;font-weight:700;margin-bottom:6px;}
+    ul{padding-left:18px;}
+    li{color:var(--muted);font-size:12px;margin-bottom:4px;line-height:1.5;}
+    li strong{color:var(--text);}
+  </style>
+</head>
+<body>
+  <h1>📋 Autopsy III — CWS Policy Removals</h1>
+  <p class="sub">Real cases of Chrome Web Store extensions being removed or force-disabled. Each case study identifies the policy violation, what tipped Google off, and what legitimate developers should learn from it.</p>
+
+  <div class="case">
+    <div class="case-header">
+      <div class="case-name">The Great Suspender</div>
+      <div class="case-year">Removed: Feb 2021</div>
+    </div>
+    <div class="case-users">~2 million users · Tab suspension extension</div>
+    <span class="reason r-malware">MALWARE</span>
+    <p>The extension was sold to an unknown buyer in 2020. The new owner pushed an update that added tracking code and injected JavaScript from remote servers. The original open-source maintainer was unaware. Chrome force-disabled all installations with a security warning, which was unprecedented at the time.</p>
+    <p><strong>What tipped Google off:</strong> The new version made network requests to domains that security researchers flagged. The extension began injecting remote scripts (violation of MV2 CSP that was being enforced). Users reported behavioral changes.</p>
+    <div class="lesson">✓ Lesson: Vet extension ownership changes. Before installing an "acquired" extension, check the git history. MV3's CSP prevents remote script injection — a direct response to this class of attack.</div>
+  </div>
+
+  <div class="case">
+    <div class="case-header">
+      <div class="case-name">DataSpii — The Nacho Analytics Incident</div>
+      <div class="case-year">Removed: 2019</div>
+    </div>
+    <div class="case-users">~4 million users across 8 extensions</div>
+    <span class="reason r-data">DATA HARVESTING</span>
+    <p>Security researcher Sam Jadali discovered that a family of 8 browser extensions (including Hover Zoom+, SpeakIt!, SuperZoom) were harvesting full browsing history including URLs with sensitive tokens in them — password reset links, Dropbox document links, airline booking confirmations. This data was being sold to a company called Nacho Analytics that repackaged it as "business intelligence."</p>
+    <p><strong>What tipped Google off:</strong> Jadali's report included specific evidence of the data pipeline. The extensions used &lt;all_urls&gt; access to log every URL visited, including URLs containing authentication tokens.</p>
+    <div class="lesson">✓ Lesson: Browsing history + &lt;all_urls&gt; is a high-risk combination. NeuralTab stores history in IndexedDB locally with no exfiltration. If you build a history feature, make this explicit in your privacy policy.</div>
+  </div>
+
+  <div class="case">
+    <div class="case-header">
+      <div class="case-name">Stylish — 1.8M Users, All Browsing History Sold</div>
+      <div class="case-year">Removed: Jul 2018</div>
+    </div>
+    <div class="case-users">~1.8 million users · CSS theming extension</div>
+    <span class="reason r-data">DATA HARVESTING</span>
+    <p>Stylish (a legitimate, beloved extension for applying custom CSS to websites) was acquired and the new owners added code to collect the full browsing history of all users and sell it. The extension sent every URL visited, along with a unique user ID, to their servers. Robert Heaton's investigation showed the data pipeline in detail.</p>
+    <p><strong>Technical implementation:</strong> A single added line called a tracking function on every page load in the content script. The function POSTed the current URL and a cookie-derived user identifier to their analytics endpoint.</p>
+    <div class="lesson">✓ Lesson: Content script + history tracking = severe privacy violation. Google's response: new CWS policy requiring explicit disclosure of data collection. Privacy practices are now a required field in the CWS developer dashboard.</div>
+  </div>
+
+  <div class="case">
+    <div class="case-header">
+      <div class="case-name">Session Replay Extensions (2023 batch removal)</div>
+      <div class="case-year">Removed: 2023</div>
+    </div>
+    <div class="case-users">~200,000 users across multiple extensions</div>
+    <span class="reason r-policy">POLICY VIOLATION</span>
+    <p>A batch of extensions claimed to provide "productivity tools" but were recording full session replays (keystrokes, mouse movements, form inputs) on all websites using the same technology as FullStory and Hotjar — but without user consent and transmitting data to third-party servers. Violated the User Data Privacy policy section on keystroke logging.</p>
+    <div class="lesson">✓ Lesson: Session replay = automatic removal. Any extension that records keystrokes or input content and sends it off-device violates CWS policy regardless of stated purpose.</div>
+  </div>
+
+  <h2>CWS Policy Landmines — What Gets Extensions Killed</h2>
+  <div class="policy-grid">
+    <div class="policy-card">
+      <div class="pc-title">Automatic Removal Triggers</div>
+      <ul>
+        <li><strong>Remote code execution</strong> — eval, remote scripts</li>
+        <li><strong>Keystroke logging</strong> — recording input fields</li>
+        <li><strong>Selling browsing data</strong> — any commercialization</li>
+        <li><strong>Hidden functionality</strong> — behavior not in description</li>
+        <li><strong>Obfuscated code</strong> — minification ok, obfuscation not</li>
+        <li><strong>Deceptive install</strong> — misleading screenshots/description</li>
+      </ul>
+    </div>
+    <div class="policy-card">
+      <div class="pc-title">Warning / Manual Review Triggers</div>
+      <ul>
+        <li><strong>Excessive permissions</strong> — unused permissions</li>
+        <li><strong>Undisclosed data collection</strong> — must be in privacy policy</li>
+        <li><strong>&lt;all_urls&gt; without justification</strong> — must explain why</li>
+        <li><strong>Native messaging</strong> — requires justification</li>
+        <li><strong>Debugger permission</strong> — requires clear use case</li>
+        <li><strong>Rapid version updates</strong> — triggers re-review</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
