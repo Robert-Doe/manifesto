@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab — CDP Inspector</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:32px;max-width:960px;margin:0 auto;}
+    h1{color:var(--gold);font-size:26px;font-weight:900;margin-bottom:6px;}
+    .sub{color:var(--muted);margin-bottom:24px;font-size:13px;}
+    .toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+    .btn{border:none;cursor:pointer;border-radius:6px;font-family:'Lato',sans-serif;font-weight:700;font-size:12px;padding:9px 16px;}
+    .btn-att{background:var(--cyan);color:#000;}
+    .btn-det{background:var(--red);color:#fff;}
+    .btn-cmd{background:#1e3a5f;color:var(--text);}
+    .btn-cmd:hover{background:var(--border);}
+    .pane{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;}
+    .panel-title{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+    .result{background:#060a12;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:'Source Code Pro',monospace;font-size:11px;color:var(--muted);min-height:200px;max-height:350px;overflow-y:auto;white-space:pre-wrap;}
+    .status{padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:12px;display:none;}
+    .status.attached{background:#05200a;border:1px solid var(--green);color:var(--green);display:block;}
+    .status.detached{background:#200505;border:1px solid var(--red);color:var(--red);display:block;}
+    .log-entry{padding:2px 0;border-bottom:1px solid #0f1a2e;font-size:11px;}
+    .log-entry.err{color:var(--red);}
+    .log-entry.ok{color:var(--green);}
+  </style>
+</head>
+<body>
+  <h1>🔬 Chrome DevTools Protocol — Part 1</h1>
+  <p class="sub">Attach the CDP debugger to any tab and send commands: DOM inspection, JS evaluation, runtime info.</p>
+
+  <div id="attach-status" class="status detached">⚠ Debugger not attached</div>
+
+  <div class="toolbar">
+    <button class="btn btn-att" id="btn-attach">Attach Debugger</button>
+    <button class="btn btn-det" id="btn-detach">Detach</button>
+    <button class="btn btn-cmd" id="btn-runtime">Runtime.evaluate</button>
+    <button class="btn btn-cmd" id="btn-dom">DOM.getDocument</button>
+    <button class="btn btn-cmd" id="btn-perf">Performance.enable</button>
+    <button class="btn btn-cmd" id="btn-cookies">Network.getCookies</button>
+  </div>
+
+  <div class="pane">
+    <div class="panel">
+      <div class="panel-title">CDP Response</div>
+      <div class="result" id="cdp-result">Attach debugger first, then send a command…</div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Event Log</div>
+      <div class="result" id="cdp-log"></div>
+    </div>
+  </div>
+
+  <script>
+    const resultEl = document.getElementById('cdp-result');
+    const logEl = document.getElementById('cdp-log');
+    const statusEl = document.getElementById('attach-status');
+    let attached = false;
+
+    function addLog(text, type = '') {
+      const d = document.createElement('div');
+      d.className = 'log-entry ' + type;
+      d.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+      logEl.insertBefore(d, logEl.firstChild);
+    }
+
+    async function sendCDP(method, params = {}) {
+      const res = await chrome.runtime.sendMessage({ type: 'cdpSend', method, params });
+      if (res?.error) throw new Error(res.error);
+      return res;
+    }
+
+    document.getElementById('btn-attach').addEventListener('click', async () => {
+      const res = await chrome.runtime.sendMessage({ type: 'cdpAttach' });
+      if (res?.error) { addLog('Attach failed: ' + res.error, 'err'); return; }
+      attached = true;
+      statusEl.textContent = '✓ Debugger attached to active tab';
+      statusEl.className = 'status attached';
+      addLog('Debugger attached', 'ok');
+    });
+
+    document.getElementById('btn-detach').addEventListener('click', async () => {
+      await chrome.runtime.sendMessage({ type: 'cdpDetach' });
+      attached = false;
+      statusEl.textContent = '⚠ Debugger not attached';
+      statusEl.className = 'status detached';
+      addLog('Debugger detached');
+    });
+
+    document.getElementById('btn-runtime').addEventListener('click', async () => {
+      try {
+        const res = await sendCDP('Runtime.evaluate', { expression: 'document.title + " | " + location.href', returnByValue: true });
+        resultEl.textContent = JSON.stringify(res, null, 2);
+        addLog('Runtime.evaluate OK', 'ok');
+      } catch(e) { resultEl.textContent = 'Error: ' + e.message; addLog(e.message, 'err'); }
+    });
+
+    document.getElementById('btn-dom').addEventListener('click', async () => {
+      try {
+        const res = await sendCDP('DOM.getDocument', { depth: 2 });
+        resultEl.textContent = JSON.stringify(res, null, 2);
+        addLog('DOM.getDocument OK', 'ok');
+      } catch(e) { resultEl.textContent = 'Error: ' + e.message; addLog(e.message, 'err'); }
+    });
+
+    document.getElementById('btn-perf').addEventListener('click', async () => {
+      try {
+        await sendCDP('Performance.enable');
+        const res = await sendCDP('Performance.getMetrics');
+        resultEl.textContent = JSON.stringify(res, null, 2);
+        addLog('Performance metrics OK', 'ok');
+      } catch(e) { resultEl.textContent = 'Error: ' + e.message; addLog(e.message, 'err'); }
+    });
+
+    document.getElementById('btn-cookies').addEventListener('click', async () => {
+      try {
+        const res = await sendCDP('Network.getCookies');
+        resultEl.textContent = JSON.stringify(res, null, 2);
+        addLog(`Got ${res?.result?.cookies?.length || 0} cookies`, 'ok');
+      } catch(e) { resultEl.textContent = 'Error: ' + e.message; addLog(e.message, 'err'); }
+    });
+  </script>
+</body>
+</html>

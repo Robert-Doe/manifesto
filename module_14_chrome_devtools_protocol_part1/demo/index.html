@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 14 Demo — CDP Part 1</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:860px;margin:0 auto;}
+    h1{color:var(--gold);font-size:34px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:36px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;color:var(--text);margin:16px 0;}
+  </style>
+</head>
+<body>
+  <h1>Module 14 — Chrome DevTools Protocol Part 1</h1>
+  <p class="sub">Direct access to Chrome's internal debugging engine from your extension.</p>
+
+  <h2>What CDP Unlocks</h2>
+  <p>The Chrome DevTools Protocol is the same protocol that powers Chrome DevTools, Puppeteer, and Playwright. Your extension gets the same access via <code>chrome.debugger</code>: evaluate JavaScript in any tab, inspect the DOM tree, read cookies, capture performance metrics, and take screenshots.</p>
+
+  <h2>The Three-Step Pattern</h2>
+  <pre>// 1. Attach
+await chrome.debugger.attach({ tabId }, '1.3');
+
+// 2. Send commands
+const result = await chrome.debugger.sendCommand(
+  { tabId }, 'Runtime.evaluate', { expression: 'document.title' }
+);
+
+// 3. Detach when done (or on tab close)
+await chrome.debugger.detach({ tabId });</pre>
+
+  <h2>The Infobar Warning</h2>
+  <p>Chrome shows an orange "DevTools is connected" banner in any tab where the debugger is attached. <strong>This cannot be removed.</strong> Design your extension's UX to acknowledge this — tell users why debugging is active and provide a clear way to detach.</p>
+
+  <h2>Real Use Cases</h2>
+  <p>CDP powers: automated testing tools, performance profiling extensions, accessibility auditors, SEO analyzers (DOM inspection), screenshot tools, and developer productivity extensions. It is the most powerful API in the Chrome extension arsenal — and the most scrutinized by CWS reviewers.</p>
+</body>
+</html>

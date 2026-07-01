@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 14 — Chrome DevTools Protocol Part 1</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .warning{border-color:var(--red);}
+    .warning .label{color:var(--red);}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+  <h1>Module 14 — Chrome DevTools Protocol Part 1</h1>
+  <div class="byline">NeuralTab Curriculum · Module 14 of 25</div>
+
+  <h2>What CDP Actually Is</h2>
+  <p>Chrome DevTools Protocol is the JSON-RPC protocol that Chrome's DevTools UI uses to communicate with the browser engine. When you open DevTools and click "Elements," DevTools is sending <code>DOM.getDocument</code> over a WebSocket to the browser process. When you set a breakpoint, it's sending <code>Debugger.setBreakpoint</code>. Every action in DevTools corresponds to a CDP command.</p>
+  <p>Extensions get access to this same protocol via <code>chrome.debugger</code>. Instead of a WebSocket, you use the extension API — but the commands, parameters, and responses are identical to the DevTools protocol documentation at <code>chromedevtools.github.io/devtools-protocol/</code>.</p>
+
+  <h2>Attaching the Debugger</h2>
+  <pre>// Attach to a specific tab at protocol version 1.3
+await chrome.debugger.attach({ tabId: someTabId }, '1.3');
+
+// Or attach to a worker:
+await chrome.debugger.attach({ targetId: workerTargetId }, '1.3');
+
+// Detach when done — always detach!
+await chrome.debugger.detach({ tabId: someTabId });</pre>
+  <p>Only one debugger can be attached to a tab at a time. If Chrome DevTools is already open on that tab, your <code>attach()</code> will fail with "Another debugger is already attached." NeuralTab detects this and shows an error in the CDP inspector.</p>
+
+  <h2>Sending Commands</h2>
+  <pre>// Evaluate JavaScript in the page context
+const result = await chrome.debugger.sendCommand(
+  { tabId },
+  'Runtime.evaluate',
+  {
+    expression: 'window.location.href',
+    returnByValue: true,           // return plain value, not object reference
+    awaitPromise: false,
+  }
+);
+console.log(result.result.value);  // "https://example.com"
+
+// Get the DOM tree
+const dom = await chrome.debugger.sendCommand(
+  { tabId },
+  'DOM.getDocument',
+  { depth: 3, pierce: false }
+);
+console.log(dom.root.nodeName);  // "#document"</pre>
+
+  <h2>Receiving Events</h2>
+  <p>Some CDP domains emit events when you enable them. <code>Network.enable</code> causes <code>Network.requestWillBeSent</code> events to fire for every request. These arrive via <code>chrome.debugger.onEvent</code> — a global listener in your background SW.</p>
+  <pre>chrome.debugger.onEvent.addListener((source, method, params) => {
+  if (method === 'Network.requestWillBeSent') {
+    console.log('Request:', params.request.url);
+  }
+  if (method === 'Runtime.consoleAPICalled') {
+    console.log('Page console:', params.args.map(a => a.value).join(' '));
+  }
+});</pre>
+
+  <div class="callout warning">
+    <div class="label">CWS Review Warning</div>
+    <p>The <code>debugger</code> permission triggers mandatory manual review by Google. Be prepared to justify your use case in the listing description. Extensions that use CDP without a clear developer-tool use case are frequently rejected. Never request this permission "just in case."</p>
+  </div>
+
+  <h2>The Infobar Is Permanent</h2>
+  <p>Chrome displays an orange infobar in any tab where your extension has the debugger attached: <em>"DevTools is connected to Chrome."</em> This is a deliberate security feature to alert users that their tab is being debugged. You cannot hide it, remove it, or suppress it. Design your extension's UX to acknowledge this — show your own status indicator and provide a clear detach button.</p>
+
+  <h2>Common CDP Use Cases</h2>
+  <pre>// Accessibility auditing
+const tree = await debuggerSend('Accessibility.getFullAXTree');
+
+// DOM screenshot
+const { data } = await debuggerSend('Page.captureScreenshot', { format: 'png' });
+
+// Performance metrics
+await debuggerSend('Performance.enable');
+const { metrics } = await debuggerSend('Performance.getMetrics');
+const lcp = metrics.find(m => m.name === 'LargestContentfulPaint');
+
+// Cookie inspection
+const { cookies } = await debuggerSend('Network.getCookies');
+
+// Intercept console.log from page
+await debuggerSend('Runtime.enable');
+// then listen for Runtime.consoleAPICalled events</pre>
+
+  <h2>Exercises</h2>
+  <div class="exercise">
+    <div class="ex-label">Exercise 14-A — DOM Inspection</div>
+    <p>Use the CDP Inspector to call <code>DOM.getDocument</code> with <code>depth: 10</code> on a page of your choice. Find the count of all <code>&lt;img&gt;</code> elements by querying <code>DOM.querySelectorAll</code> with selector <code>"img"</code>. Display the count in the CDP result panel.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 14-B — Console Intercept</div>
+    <p>Add a new button to cdp_inspector.html: "Enable Console Capture." When clicked, call <code>Runtime.enable</code> and listen for <code>Runtime.consoleAPICalled</code> events. Display the captured console messages in the event log. Test by opening the page's DevTools console and typing <code>console.log('hello from CDP')</code>.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 14-C — Auto-Detach on Tab Navigation</div>
+    <p>The debugger stays attached across navigation — which can cause unexpected behavior. Add a <code>chrome.tabs.onUpdated</code> listener in background.js that automatically detaches the debugger when the attached tab navigates to a new page. Update the UI in cdp_inspector.html to show "detached (navigation)" when this happens.</p>
+  </div>
+</body>
+</html>
