@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 07 — Storage Mastery</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--bg2:#0f1623;--card:#141c2e;--card2:#1a2540;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;line-height:1.8;font-size:16px;}
+    .hero{background:linear-gradient(135deg,#0b0f1a,#0d1a30);border-bottom:2px solid var(--gold);padding:70px 60px 60px;text-align:center;}
+    .module-tag{display:inline-block;background:#0d1a30;border:1px solid var(--gold);color:var(--gold);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:5px 16px;border-radius:20px;margin-bottom:22px;}
+    .hero h1{font-size:48px;font-weight:900;color:var(--gold);margin-bottom:12px;}
+    .hero h1 em{color:var(--cyan);font-style:normal;}
+    .hero p{font-size:18px;color:var(--muted);max-width:720px;margin:0 auto;}
+    .content{max-width:900px;margin:0 auto;padding:60px;}
+    h2{font-size:32px;font-weight:900;color:var(--gold);margin:60px 0 16px;}
+    h2.first{margin-top:0;}
+    h3{font-size:21px;font-weight:900;color:var(--cyan);margin:36px 0 12px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    p em{color:var(--gold);font-style:normal;font-weight:700;}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:10px;padding:22px 24px;font-family:'Source Code Pro',monospace;font-size:13px;line-height:1.9;overflow-x:auto;margin:20px 0;}
+    .kw{color:var(--purple);font-weight:700;}.fn{color:var(--cyan);}.str{color:var(--green);}.cm{color:#3d5970;font-style:italic;}.num{color:var(--orange);}
+    .callout{border-radius:0 10px 10px 0;padding:20px 24px;margin:24px 0;font-size:15px;line-height:1.7;}
+    .callout.gold{background:#141000;border-left:4px solid var(--gold);}.callout.gold strong{color:var(--gold);}
+    .callout.red{background:#140404;border-left:4px solid var(--red);}.callout.red strong{color:var(--red);}
+    .callout.cyan{background:#040e14;border-left:4px solid var(--cyan);}.callout.cyan strong{color:var(--cyan);}
+    .callout.green{background:#040e08;border-left:4px solid var(--green);}.callout.green strong{color:var(--green);}
+    .callout.purple{background:#0a0414;border-left:4px solid var(--purple);}.callout.purple strong{color:var(--purple);}
+    .callout p{color:var(--muted);margin:0;}.callout p+p{margin-top:10px;}
+    table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+    th{background:var(--card2);color:var(--gold);font-weight:700;padding:11px 14px;border:1px solid var(--border);text-align:left;}
+    td{padding:11px 14px;border:1px solid var(--border);color:var(--muted);vertical-align:top;}
+    tr:nth-child(even) td{background:var(--card);}
+    td strong{color:var(--text);}
+    td code,p code{background:#060a12;border:1px solid var(--border);padding:1px 5px;border-radius:4px;font-family:'Source Code Pro',monospace;font-size:13px;color:var(--cyan);}
+    hr{border:none;border-top:1px solid var(--border);margin:50px 0;}
+    .exercise-box{background:var(--bg2);border:2px solid var(--gold);border-radius:12px;padding:28px 32px;margin:40px 0;}
+    .ex-title{font-weight:900;font-size:20px;color:var(--gold);margin-bottom:16px;}
+    .ex-body ol{color:var(--muted);padding-left:22px;}
+    .ex-body li{margin-bottom:8px;}
+    .ex-body li strong{color:var(--text);}
+    .ex-body code{background:#060a12;border:1px solid var(--border);padding:1px 6px;border-radius:4px;font-family:'Source Code Pro',monospace;font-size:13px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+<div class="hero">
+  <div class="module-tag">Module 07 · NeuralTab</div>
+  <h1>Storage Mastery:<br><em>local · sync · session · IndexedDB</em></h1>
+  <p>Four mechanisms, four different contracts. Understanding which one to reach for — and why the wrong choice silently degrades performance at scale — is what separates extension hobbyists from extension engineers.</p>
+</div>
+<div class="content">
+
+<h2 class="first">Why Four Storage Types?</h2>
+
+<p>Chrome gives extension developers four different storage APIs, and they exist because four genuinely different problems require four different solutions. Using <code>chrome.storage.local</code> for everything is like storing both your house keys and your tax returns in the same drawer — it works until the drawer gets too full and you can't find anything.</p>
+
+<table>
+  <tr><th>API</th><th>Quota</th><th>Survives restart</th><th>Synced</th><th>Queryable</th><th>Use for</th></tr>
+  <tr><td><code>storage.local</code></td><td><strong>5 MB</strong> (unlimited with flag)</td><td>Yes</td><td>No</td><td>No</td><td>Operational state, logs, settings</td></tr>
+  <tr><td><code>storage.sync</code></td><td><strong>100 KB</strong> total, 8 KB/item</td><td>Yes</td><td>Yes — across profiles</td><td>No</td><td>User preferences (small)</td></tr>
+  <tr><td><code>storage.session</code></td><td><strong>10 MB</strong></td><td>No</td><td>No</td><td>No</td><td>Per-session transient state</td></tr>
+  <tr><td>IndexedDB</td><td><strong>Unlimited</strong> (with unlimitedStorage)</td><td>Yes</td><td>No</td><td>Yes — indexes, cursors, ranges</td><td>Structured data at scale</td></tr>
+</table>
+
+<h2>chrome.storage.local — The Workhorse</h2>
+
+<p><code>chrome.storage.local</code> is available in every extension context: service worker, popup, options page, content script, extension pages. It is the right default for small-to-medium shared state that must survive extension restarts.</p>
+
+<p><strong>The key constraint to internalize:</strong> every read deserializes the entire value from the browser's internal storage into JavaScript memory. If you store a 10,000-entry array in a single key and call <code>get('myKey')</code>, Chrome deserializes all 10,000 entries into a JavaScript array, hands it to you, and then you throw most of it away. This is O(n) on every read. At 1,000 entries it is invisible. At 100,000 entries it causes jank.</p>
+
+<p><strong>The correct mitigation:</strong> keep individual storage values small. NeuralTab caps `messageLog` at 100 entries and `swLifecycleLog` at 50 entries. If you need to store more, switch to IndexedDB.</p>
+
+<h3>The getBytesInUse API</h3>
+
+<p>This is the most underused API in the chrome.storage suite. It tells you exactly how much storage you are consuming without deserializing a single value:</p>
+
+<pre><span class="cm">// Fast: single IPC call, no deserialization</span>
+<span class="kw">const</span> used  = <span class="kw">await</span> chrome.storage.local.<span class="fn">getBytesInUse</span>(<span class="kw">null</span>); <span class="cm">// null = all keys</span>
+<span class="kw">const</span> quota = chrome.storage.local.QUOTA_BYTES; <span class="cm">// 5242880 (5 MB)</span>
+console.<span class="fn">log</span>(<span class="str">`Using ${Math.round(used / 1024)} KB of ${Math.round(quota / 1024)} KB`</span>);</pre>
+
+<p>NeuralTab's `StorageManager.getQuotaInfo()` wraps this into a rich object with percentage. The popup displays a live quota bar using it. When usage crosses 80%, the heartbeat alarm writes `storageQuotaWarned: true` to storage, which triggers `storage.onChanged` in all open pages — a real-world application of Pattern 4 from Module 06 applied to operational monitoring.</p>
+
+<h2>chrome.storage.sync — The Cross-Device Bridge</h2>
+
+<p><code>chrome.storage.sync</code> is seductive. You write to it the same way as `storage.local`, but Chrome automatically synchronizes the data to the user's Google account and makes it available on every device where they're signed in. This sounds like a free feature until you hit the limits.</p>
+
+<p><strong>The constraints are real and enforced:</strong></p>
+<ul>
+  <li><strong>100 KB total</strong> across all sync keys combined</li>
+  <li><strong>8 KB per individual item</strong> — a single key-value pair</li>
+  <li><strong>512 items maximum</strong></li>
+  <li><strong>1800 write operations per hour</strong> — roughly one every 2 seconds</li>
+  <li><strong>120 write operations per minute burst</strong></li>
+</ul>
+
+<p>Exceeding these limits causes <code>QUOTA_EXCEEDED</code> errors on writes. Chrome does not queue excess writes — they fail silently unless you check <code>chrome.runtime.lastError</code>.</p>
+
+<p><strong>The correct use case for sync:</strong> user preferences that are small, infrequently changed, and genuinely should follow the user across devices. NeuralTab's `theme`, `fontSize`, and `showWordCount` are good candidates. The entire preferences object serializes to under 1 KB — well within limits. The message log, visit history, and operational counters are explicitly wrong for sync.</p>
+
+<div class="callout red">
+  <p><strong>Never put arrays of unbounded size in storage.sync.</strong> A developer who stores the message log in sync will hit the 8 KB per-item limit within minutes of normal usage. Chrome will start silently dropping writes. The user will see their preferences reset on reload. This is not a hypothetical — it is one of the most common extension bugs reported in the Chrome Web Store reviews.</p>
+</div>
+
+<h2>chrome.storage.session — The MV3 Newcomer</h2>
+
+<p><code>chrome.storage.session</code> is MV3-only, available since Chrome 102. It works identically to `storage.local` from an API perspective, but its data is cleared when the browser session ends (close and reopen Chrome). It also fires `storage.onChanged` events, so Pattern 4 works with it.</p>
+
+<p><strong>When session storage is the right tool:</strong></p>
+<ul>
+  <li>Tokens or credentials that must not survive a browser restart (security requirement)</li>
+  <li>Per-session UI state: "user has dismissed this banner this session"</li>
+  <li>Scratch space for in-progress operations in the service worker that the page needs to poll</li>
+  <li>Race-condition-free communication between service worker and extension pages where persistence is undesirable</li>
+</ul>
+
+<p>NeuralTab uses `StorageManager.sessionGet` and `sessionSet` wrappers that gracefully degrade (return empty objects) on Chrome versions before 102 where `chrome.storage.session` does not exist.</p>
+
+<h2>IndexedDB — Structured Data at Scale</h2>
+
+<p>IndexedDB is a full client-side database engine built into every modern browser. It is not a Chrome extension API — it is the standard Web API that Chrome exposes to extension pages, service workers, and content scripts alike. If you have used it in a web app, the same API works here.</p>
+
+<p>The key concepts:</p>
+<ul>
+  <li><strong>Database:</strong> a named, versioned container. NeuralTab uses `neuraltab-history` at version 1.</li>
+  <li><strong>Object store:</strong> like a table. The `page_visits` store has a `keyPath: 'id'` (the primary key) and `autoIncrement: true` (IDB assigns IDs automatically).</li>
+  <li><strong>Index:</strong> an auxiliary B-tree over a non-key field. The `timestamp` index lets us open a reverse cursor to read visits newest-first. The `domain` index lets us find all visits to a specific domain without scanning every record.</li>
+  <li><strong>Transaction:</strong> all reads and writes happen inside a transaction. A `'readonly'` transaction can overlap other reads. A `'readwrite'` transaction is exclusive.</li>
+  <li><strong>Cursor:</strong> an iterator over a range of records in key or index order.</li>
+</ul>
+
+<h3>The Promise Wrapper Pattern</h3>
+
+<p>IDB's native API is callback-based. Every operation returns an `IDBRequest` with an `onsuccess` and `onerror`. Working with raw callbacks in 2025 is painful. NeuralTab's `idb_manager.js` wraps every request in a promise:</p>
+
+<pre><span class="cm">// The core wrapper — converts any IDBRequest into a Promise</span>
+<span class="kw">function</span> <span class="fn">idbReq</span>(req) {
+  <span class="kw">return new</span> <span class="cls">Promise</span>((resolve, reject) => {
+    req.onsuccess = e => <span class="fn">resolve</span>(e.target.result);
+    req.onerror   = e => <span class="fn">reject</span>(e.target.error);
+  });
+}
+
+<span class="cm">// Usage: await any IDB operation</span>
+<span class="kw">const</span> count = <span class="kw">await</span> <span class="fn">idbReq</span>(store.<span class="fn">count</span>());
+<span class="kw">const</span> id    = <span class="kw">await</span> <span class="fn">idbReq</span>(store.<span class="fn">add</span>(visit));</pre>
+
+<p>This pattern is standard in production code. Libraries like <em>idb</em> (by Jake Archibald) do the same thing at a larger scale. NeuralTab's `idb_manager.js` is a minimal version built specifically for this module so you understand what those libraries are doing under the hood.</p>
+
+<h3>The onupgradeneeded Handler</h3>
+
+<p>This is the only place you can create or modify object stores and indexes. It fires when you call `indexedDB.open(name, version)` with a version number higher than the currently stored one. If the database does not exist, it fires with version 0 → 1.</p>
+
+<pre><span class="kw">const</span> req = indexedDB.<span class="fn">open</span>(<span class="str">'neuraltab-history'</span>, <span class="num">1</span>);
+
+req.onupgradeneeded = e => {
+  <span class="kw">const</span> db    = e.target.result;
+  <span class="kw">const</span> store = db.<span class="fn">createObjectStore</span>(<span class="str">'page_visits'</span>, {
+    keyPath: <span class="str">'id'</span>, autoIncrement: <span class="kw">true</span>
+  });
+  store.<span class="fn">createIndex</span>(<span class="str">'url'</span>,       <span class="str">'url'</span>,       { unique: <span class="kw">false</span> });
+  store.<span class="fn">createIndex</span>(<span class="str">'timestamp'</span>, <span class="str">'timestamp'</span>, { unique: <span class="kw">false</span> });
+  store.<span class="fn">createIndex</span>(<span class="str">'domain'</span>,    <span class="str">'domain'</span>,    { unique: <span class="kw">false</span> });
+};
+<span class="cm">// ↑ This runs ONCE (or when you bump the version number)</span></pre>
+
+<p>Module 08 (Update Mechanics) covers schema migrations in depth. The pattern is: bump the version number, check `e.oldVersion` inside `onupgradeneeded`, and run upgrade steps conditionally. NeuralTab's IDB is currently at version 1 with a flat schema — migrations will be the Module 08 teaching tool.</p>
+
+<h3>Searching the History with a Cursor</h3>
+
+<p>The `searchVisits` function demonstrates the power of IDB indexes. Reading visits newest-first without loading everything:</p>
+
+<pre><span class="cm">// Open a cursor on the timestamp index, descending (newest first)</span>
+<span class="kw">const</span> req = store.<span class="fn">index</span>(<span class="str">'timestamp'</span>).<span class="fn">openCursor</span>(<span class="kw">null</span>, <span class="str">'prev'</span>);
+
+req.onsuccess = e => {
+  <span class="kw">const</span> cursor = e.target.result;
+  <span class="kw">if</span> (!cursor) { <span class="cm">/* done */</span> resolve(); <span class="kw">return</span>; }
+
+  <span class="kw">const</span> v = cursor.value;
+  <span class="kw">if</span> (queryMatches(v)) all.<span class="fn">push</span>(v);
+
+  cursor.<span class="fn">continue</span>(); <span class="cm">// advance to next record</span>
+};</pre>
+
+<p>The `'prev'` direction is the IDB constant for descending order. The cursor visits records from highest timestamp to lowest — newest visits first. This is O(n) over the matching records, not O(n) over all records: if you only need the first 25 matches, you can call `cursor.advance(skip)` to jump forward and `break` when you have enough.</p>
+
+<div class="callout cyan">
+  <p><strong>IDB in the service worker:</strong> `indexedDB` is available as a global in MV3 service workers. You do not need to import anything — it is part of the Web Workers API baseline. However, if the service worker dies mid-transaction, IDB handles this gracefully: the transaction rolls back automatically. No partial writes survive a service worker death.</p>
+</div>
+
+<hr/>
+
+<h2>Race Conditions in Storage Writes</h2>
+
+<p>Every extension developer eventually encounters the read-modify-write race condition. It looks like this:</p>
+
+<pre><span class="cm">// Tab A and Tab B both do this at the same time:</span>
+<span class="kw">const</span> s    = <span class="kw">await</span> chrome.storage.local.<span class="fn">get</span>(<span class="str">'counter'</span>); <span class="cm">// both read 5</span>
+<span class="kw">const</span> next = s.counter + <span class="num">1</span>;                              <span class="cm">// both compute 6</span>
+<span class="kw">await</span> chrome.storage.local.<span class="fn">set</span>({ counter: next });       <span class="cm">// both write 6</span>
+<span class="cm">// Expected: 7. Actual: 6. One increment was lost.</span></pre>
+
+<p>`chrome.storage.local` has no built-in transaction system for read-modify-write operations. If two extension contexts write the same key simultaneously, the last write wins and intermediate writes are lost.</p>
+
+<p><strong>The correct fix:</strong> Route all mutating writes through the background service worker, which processes messages sequentially in a single event loop. The background's `incrementDemoCounter` handler is the correct pattern for counters that multiple pages can increment.</p>
+
+<p>IndexedDB transactions handle this correctly. A `'readwrite'` transaction on a store is exclusive — Chrome queues concurrent transactions and runs them one at a time. The increment inside a transaction is always atomic.</p>
+
+<hr/>
+
+<div class="exercise-box">
+  <div class="ex-title">Exercise 1 — Inspect the IDB Schema in DevTools</div>
+  <div class="ex-body">
+    <ol>
+      <li>Load the extension. Browse 5-10 pages (any websites).</li>
+      <li>Open DevTools on any page → Application → Storage → IndexedDB → neuraltab-history (chrome-extension://…) → page_visits.</li>
+      <li><strong>Observe:</strong> Each visited page appears as a record with id, domain, timestamp, title, url, wordCount.</li>
+      <li>Click the three indexes (domain, timestamp, url) on the left sidebar. See how the same records appear in different sort orders.</li>
+      <li>Click the "Start" button (cursor icon) next to the timestamp index and set direction to "prev". Observe: records appear newest-first.</li>
+      <li><strong>Write:</strong> Why is the timestamp index faster than sorting the results in JavaScript after reading them all?</li>
+    </ol>
+  </div>
+</div>
+
+<div class="exercise-box">
+  <div class="ex-title">Exercise 2 — Hit the storage.sync Quota</div>
+  <div class="ex-body">
+    <ol>
+      <li>Open the DevTools console on any extension page (e.g., the SW Monitor).</li>
+      <li>Try: <code>await chrome.storage.sync.set({ bigKey: 'x'.repeat(8193) })</code></li>
+      <li><strong>Observe:</strong> The promise rejects with <code>QUOTA_EXCEEDED</code>. The 8 KB per-item limit is enforced synchronously by Chrome.</li>
+      <li>Now try: <code>await chrome.storage.sync.set({ smallKey: 'NeuralTab theme' })</code></li>
+      <li><strong>Observe:</strong> Succeeds immediately. Check it appeared in DevTools → Application → Storage → Extension Storage → Sync.</li>
+      <li><strong>Write:</strong> What would happen if you stored NeuralTab's messageLog (which can reach 100 entries × ~100 bytes = 10 KB) in sync storage instead of local?</li>
+    </ol>
+  </div>
+</div>
+
+<div class="exercise-box">
+  <div class="ex-title">Exercise 3 — Add a wordCount Index to the History</div>
+  <div class="ex-body">
+    <ol>
+      <li>Open <code>idb_manager.js</code>. Find the <code>onupgradeneeded</code> handler.</li>
+      <li>Add <code>store.createIndex('wordCount', 'wordCount', { unique: false });</code></li>
+      <li><strong>Important:</strong> You must bump the database version from 1 to 2. Change <code>indexedDB.open(DB_NAME, 1)</code> to <code>indexedDB.open(DB_NAME, 2)</code>.</li>
+      <li>Add a migration guard: inside <code>onupgradeneeded</code>, check <code>if (e.oldVersion &lt; 2)</code> before adding the index (so re-installing does not try to create it twice).</li>
+      <li>Reload the extension. Open DevTools → IndexedDB. The database should now show a wordCount index alongside the existing three.</li>
+      <li>In <code>history_db.js</code>, add a "Sort by word count" button that opens a cursor on the wordCount index in descending order and shows the 10 longest pages you have visited.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="exercise-box">
+  <div class="ex-title">Exercise 4 — Reproduce the Read-Modify-Write Race</div>
+  <div class="ex-body">
+    <ol>
+      <li>Open the Message Lab in two tabs side by side.</li>
+      <li>In <strong>both</strong> DevTools consoles, paste and run simultaneously (use two fingers on both Enter keys):<br/><code>const s = await StorageManager.get(['demoCounter']); await StorageManager.set({ demoCounter: (s.demoCounter || 0) + 1 });</code></li>
+      <li><strong>Observe:</strong> The counter may increment by only 1 even though you ran two increments. One write was lost.</li>
+      <li>Now in both consoles, use the routed version: <code>await chrome.runtime.sendMessage({ action: 'incrementDemoCounter' })</code></li>
+      <li><strong>Observe:</strong> Counter increments by 2 reliably. The background serializes the writes.</li>
+      <li><strong>Write:</strong> Why does the background approach prevent the race even though JavaScript is single-threaded?</li>
+    </ol>
+  </div>
+</div>
+
+<div class="exercise-box">
+  <div class="ex-title">Exercise 5 — Monitor Quota Growth in Real Time</div>
+  <div class="ex-body">
+    <ol>
+      <li>Open the Options page → Storage tab. Note the current quota usage percentage.</li>
+      <li>Open the Message Lab. Send 50 fire-and-forget messages rapidly (keep clicking "Send One-Way").</li>
+      <li>Switch back to Options → Storage tab, click Refresh.</li>
+      <li><strong>Observe:</strong> The quota bar has grown slightly. Each message log entry is ~80-100 bytes.</li>
+      <li>Calculate: at 100 entries maximum × 100 bytes = 10 KB. At 5 MB total storage = 0.2% of quota. The cap is doing its job.</li>
+      <li><strong>Thought experiment:</strong> If you removed the 100-entry cap from <code>StorageManager.logMessage()</code>, how many messages would it take to fill 5 MB? At 100 bytes/message: 50,000 messages. How long would that take at one message per second? 13 hours. How long at 10 per second (a streaming page)? 83 minutes. The cap matters.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="callout gold" style="margin-top:40px;">
+  <p><strong>Coming up in Module 08 — Extension Update Mechanics:</strong> NeuralTab is now storing data in two places: <code>chrome.storage.local</code> (flat JSON) and IndexedDB (structured history). What happens when you ship a new version and the storage schema changes? The old format is still on disk. Module 08 covers the full update lifecycle: <code>chrome.runtime.onInstalled</code>, migration functions keyed on version numbers, and how to write a schema upgrade that works correctly even when users skip multiple versions.</p>
+</div>
+
+</div>
+</body>
+</html>

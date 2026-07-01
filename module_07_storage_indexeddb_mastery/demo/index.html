@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 07 Demo — Storage Mastery</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:1000px;margin:0 auto;}
+    h1{color:var(--gold);font-size:36px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:40px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:32px;}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;}
+    .card-title{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+    .ct-local{color:var(--cyan);}
+    .ct-sync{color:var(--green);}
+    .ct-session{color:var(--orange);}
+    .ct-idb{color:var(--purple);}
+    .card p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:8px;}
+    .stat{font-size:28px;font-weight:900;margin-bottom:4px;}
+    .stl{font-size:11px;color:var(--muted);text-transform:uppercase;}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Source Code Pro',monospace;font-size:12px;overflow-x:auto;color:var(--text);margin:16px 0;}
+    .comparison{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;}
+    th{background:var(--card);color:var(--gold);padding:10px 14px;text-align:left;border:1px solid var(--border);}
+    td{padding:10px 14px;border:1px solid var(--border);color:var(--muted);}
+    tr:nth-child(even) td{background:var(--card);}
+    td strong{color:var(--text);}
+    .tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;}
+    .tag-fast{background:#0a2e0a;color:var(--green);}
+    .tag-slow{background:#2e0a0a;color:#f87171;}
+    .tag-medium{background:#2e1a00;color:var(--orange);}
+  </style>
+</head>
+<body>
+  <h1>Module 07 — Storage Mastery</h1>
+  <p class="sub">Four storage mechanisms, each with distinct constraints, performance characteristics, and correct use cases.</p>
+
+  <h2>The Four Storage Types at a Glance</h2>
+  <div class="grid">
+    <div class="card"><div class="card-title ct-local">chrome.storage.local</div>
+      <div class="stat" style="color:var(--cyan)">5 MB</div><div class="stl">Default quota (unlimited with flag)</div>
+      <p>Per-device. Never synced. Survives browser restart. Fastest for frequent writes. NeuralTab stores all operational state here.</p>
+    </div>
+    <div class="card"><div class="card-title ct-sync">chrome.storage.sync</div>
+      <div class="stat" style="color:var(--green)">100 KB</div><div class="stl">Total / 8 KB per item / 1800 writes/hr</div>
+      <p>Synced across Chrome profiles via Google account. Small, infrequent writes only. Use for user preferences.</p>
+    </div>
+    <div class="card"><div class="card-title ct-session">chrome.storage.session</div>
+      <div class="stat" style="color:var(--orange)">10 MB</div><div class="stl">Ephemeral — clears on browser restart</div>
+      <p>MV3 only (Chrome 102+). Perfect for transient UI state, per-session tokens, or SW↔page communication that must not persist.</p>
+    </div>
+    <div class="card"><div class="card-title ct-idb">IndexedDB</div>
+      <div class="stat" style="color:var(--purple)">Unlimited*</div><div class="stl">With unlimitedStorage permission</div>
+      <p>Structured, indexed, queryable. Handles millions of rows. NeuralTab uses it for the 10,000-visit page history with full-text search.</p>
+    </div>
+  </div>
+
+  <h2>Performance Comparison</h2>
+  <table class="comparison">
+    <tr><th>Operation</th><th>chrome.storage.local</th><th>IndexedDB</th></tr>
+    <tr><td>Read single value</td><td><span class="tag tag-fast">~1ms</span></td><td><span class="tag tag-fast">~2ms (by key)</span></td></tr>
+    <tr><td>Read 10,000 items</td><td><span class="tag tag-slow">~300ms (full deserialize)</span></td><td><span class="tag tag-fast">~5ms (cursor on index)</span></td></tr>
+    <tr><td>Write single value</td><td><span class="tag tag-fast">~2ms</span></td><td><span class="tag tag-medium">~5ms (transaction)</span></td></tr>
+    <tr><td>Full-text search 10k records</td><td><span class="tag tag-slow">Not possible</span></td><td><span class="tag tag-fast">~20ms (index cursor)</span></td></tr>
+    <tr><td>Sorted range query</td><td><span class="tag tag-slow">O(n) in JS</span></td><td><span class="tag tag-fast">O(log n) via index</span></td></tr>
+  </table>
+
+  <h2>IndexedDB Structure</h2>
+  <pre>Database: neuraltab-history  (version 1)
+└── Object Store: page_visits  (keyPath: "id", autoIncrement: true)
+    ├── Index: url       → find all visits to a given URL
+    ├── Index: timestamp → range queries, reverse-order cursor (newest first)
+    └── Index: domain    → group/filter by domain
+
+Record shape:
+{
+  id:        1234,        // autoincrement primary key
+  url:       "https://example.com/article",
+  title:     "Example Article",
+  domain:    "example.com",
+  wordCount: 847,
+  timestamp: 1704067200000
+}</pre>
+
+  <h2>The 10,000-Entry Cap — Eviction Logic</h2>
+  <pre>async function addVisit(visit) {
+  const store = await tx(STORE_VISITS, 'readwrite');
+  const count = await idbReq(store.count());
+  if (count >= MAX_VISITS) {
+    // Open cursor at lowest key (oldest insert) — O(log n)
+    const cursor = await idbReq(store.openCursor());
+    if (cursor) await idbReq(cursor.delete());
+  }
+  return idbReq(store.add(visit));  // new entry
+}</pre>
+  <p style="color:var(--muted);font-size:13px;">No full table scan. The autoincrement primary key is itself an ordered index. The cursor opens at the minimum key — the oldest entry — in O(log n) time.</p>
+
+  <h2>What's in the Extension</h2>
+  <div class="grid">
+    <div class="card">
+      <div class="card-title" style="color:var(--cyan)">history_db.html</div>
+      <p>Full history browser. Search by keyword across URLs and titles. Filter by domain (click any sidebar domain). Paginated 25 per page. Export all visits as JSON. Individual visit delete.</p>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:var(--purple)">options.html → Storage tab</div>
+      <p>Live quota bar (chrome.storage.local). IDB visit count. Explanation of all four storage types with their roles in NeuralTab.</p>
+    </div>
+  </div>
+</body>
+</html>
