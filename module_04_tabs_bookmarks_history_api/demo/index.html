@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab — Module 04 Demo: Tab API, Alarms & Browser APIs</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Source+Code+Pro&display=swap');
+    :root { --bg:#0b0f1a; --bg2:#111827; --card:#141c2e; --border:#1e3a5f; --gold:#f5c842; --cyan:#38bdf8; --purple:#a78bfa; --green:#4ade80; --orange:#fb923c; --text:#e2e8f0; --muted:#7a9bbf; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Lato', sans-serif; font-size: 15px; line-height: 1.8; padding: 48px 24px; max-width: 760px; margin: 0 auto; }
+    .badge { display: inline-block; background: var(--card); border: 1px solid var(--border); border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--muted); padding: 4px 14px; margin-bottom: 20px; text-transform: uppercase; }
+    h1 { font-size: 30px; color: var(--gold); margin-bottom: 10px; font-weight: 700; }
+    h2 { font-size: 18px; color: var(--cyan); margin: 32px 0 10px; }
+    p  { margin-bottom: 14px; }
+    code { font-family: 'Source Code Pro', monospace; font-size: 12px; background: #060d1a; border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; color: var(--cyan); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 20px; }
+    .check-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .check-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; }
+    .ck { color: var(--green); font-size: 16px; flex-shrink: 0; }
+    .pending { color: var(--muted); font-size: 16px; flex-shrink: 0; }
+    footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="badge">Module 04 Demo — Tab API, Alarms &amp; Browser APIs</div>
+  <h1>⚡ Browser API Survey Test Page</h1>
+  <p>
+    This page verifies all the new capabilities added in Module 04:
+    service worker alarms, the Tab Manager page, optional permissions for tabs /
+    bookmarks / history / notifications, and the background message relay.
+  </p>
+
+  <div class="card">
+    <h2 style="margin-top:0">Background Service Worker</h2>
+    <ul class="check-list">
+      <li><span class="ck">✓</span><span>Open <code>chrome://extensions</code> → find NeuralTab → click "Service worker" link. The service worker DevTools panel opens. In the Console tab, you should see no errors on load.</span></li>
+      <li><span class="ck">✓</span><span>In the service worker console, type: <code>chrome.alarms.getAll(console.log)</code>. You should see an array containing one alarm named <code>"tab-analysis"</code> with <code>periodInMinutes: 30</code>.</span></li>
+      <li><span class="pending">○</span><span>In service worker console, type: <code>chrome.runtime.sendMessage({action:'triggerTabAnalysis'})</code>. Then check <code>chrome.storage.local.get(['lastTabAnalysis'], console.log)</code> — the timestamp should have just updated.</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Tab Manager Page</h2>
+    <ul class="check-list">
+      <li><span class="ck">✓</span><span>Click the NeuralTab toolbar icon → popup opens → click "Open Tab Manager". The Tab Manager page opens in a new tab at <code>chrome-extension://…/tab_manager.html</code>.</span></li>
+      <li><span class="pending">○</span><span>If the tabs permission is not granted, you see the purple permission banner at the top. Click "Grant permission" and accept the Chrome dialog. The banner disappears and your tabs load grouped by domain.</span></li>
+      <li><span class="pending">○</span><span>Click "Switch" on any tab — that tab becomes active. Click "✕" on a tab — it closes without affecting other tabs.</span></li>
+      <li><span class="pending">○</span><span>If bookmarks permission is granted: click "★ Save" on a tab. Open your bookmarks (Ctrl+Shift+O) and look for a "NeuralTab Saves" folder — the tab should be there.</span></li>
+      <li><span class="pending">○</span><span>If history permission is granted: type a search term in the History panel sidebar → click Go. Results appear as clickable items that open new tabs.</span></li>
+      <li><span class="pending">○</span><span>Click "Group by domain" — Chrome groups tabs with matching domains. Look at the tab bar — groups appear with coloured labels.</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Settings → Tabs &amp; Alarms</h2>
+    <ul class="check-list">
+      <li><span class="ck">✓</span><span>Right-click toolbar icon → Options → "Tabs &amp; Alarms" section. The alarm status box shows "Next run: [time] · Period: 30 min".</span></li>
+      <li><span class="pending">○</span><span>Click "Run analysis now". The alarm status refreshes. Open the service worker console and type <code>chrome.storage.local.get(['_totalTabCount','_idleTabCount'], console.log)</code> to see counts.</span></li>
+      <li><span class="pending">○</span><span>Toggle "Tab analysis" OFF. Reload the extension. Check alarms — the alarm should still exist (it was created on install, not based on the setting; the setting is checked at alarm fire time). This is intentional — the alarm itself is cheap. The analysis work is gated by the setting.</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Permissions → All Four Cards</h2>
+    <ul class="check-list">
+      <li><span class="ck">✓</span><span>Right-click toolbar icon → Options → "Permissions". All four permission cards are visible: tabs, bookmarks, history, notifications.</span></li>
+      <li><span class="pending">○</span><span>Grant "tabs" permission. The Grant button disappears, a green "✓ Granted" status appears, and a Revoke button appears.</span></li>
+      <li><span class="pending">○</span><span>Click Revoke. The permission is removed and the Grant button reappears. Open the Tab Manager — the banner is back.</span></li>
+      <li><span class="pending">○</span><span>Grant "notifications" permission. Then use the service worker console to send <code>chrome.runtime.sendMessage({action:'triggerTabAnalysis'})</code> after opening 5+ background tabs. If idle tabs ≥ 5, a desktop notification fires.</span></li>
+    </ul>
+  </div>
+
+  <h2>Long article — word count and highlight testing</h2>
+
+  <p>
+    The <code>chrome.tabs</code> API exposes a permission model that surprises most developers
+    the first time they encounter it. You can call <code>chrome.tabs.query()</code> without
+    any permission, but the returned Tab objects have their <code>url</code> and
+    <code>title</code> fields redacted to empty strings. You can count tabs, you can read
+    their IDs and window IDs, but you cannot see what page is loaded in each tab. Granting
+    the <code>"tabs"</code> optional permission fills in those fields. This design reflects
+    Chrome's principle of data minimisation: the API surface remains consistent, but the
+    data it exposes scales with the trust the user has explicitly granted.
+  </p>
+  <p>
+    The alarm system in Chrome extensions is one of the most important but least understood
+    APIs. A service worker has a hard idle timeout of roughly five minutes — if no events
+    fire for five minutes, Chrome terminates the service worker process to save memory.
+    Any in-flight operations are abandoned. Any state stored in JavaScript variables is
+    lost. The only way to schedule work that runs reliably after the service worker has
+    been killed is <code>chrome.alarms</code>. When an alarm fires, Chrome wakes the
+    service worker specifically to handle the alarm event, runs the <code>onAlarm</code>
+    handler to completion, and then allows the worker to idle out again. This
+    wake-and-terminate cycle is more efficient than keeping the service worker alive
+    continuously.
+  </p>
+  <p>
+    The <code>chrome.bookmarks</code> API exposes the full bookmark tree as a hierarchical
+    structure of <code>BookmarkTreeNode</code> objects. Each node is either a bookmark
+    (has a <code>url</code> field) or a folder (has a <code>children</code> array and no
+    <code>url</code>). The root nodes are special: Chrome's bookmark bar, "Other Bookmarks",
+    and "Mobile Bookmarks" are the three permanent top-level folders, and their IDs are
+    always <code>"1"</code>, <code>"2"</code>, and <code>"3"</code> respectively. When
+    NeuralTab creates a "NeuralTab Saves" folder, it uses
+    <code>chrome.bookmarks.create({ title: 'NeuralTab Saves' })</code> without specifying
+    a <code>parentId</code>, which places it in "Other Bookmarks" by default. This is
+    correct UX — users expect new folders to appear in Other Bookmarks, not cluttering
+    the bookmark bar.
+  </p>
+  <p>
+    The Tab Groups API (<code>chrome.tabs.group()</code> and <code>chrome.tabGroups.update()</code>)
+    requires no additional permission beyond what <code>chrome.tabs.query()</code> already
+    provides. It was introduced in Chrome 89 and provides a programmatic interface to the
+    same grouping feature users access by right-clicking a tab. Groups can be given a name
+    and a colour from a fixed palette of eight predefined colours. NeuralTab's "Group by
+    domain" feature uses the API to batch-group tabs that share a domain, creating a
+    visual workspace organisation that would take a user minutes to do manually.
+  </p>
+
+  <footer>NeuralTab · Module 04 of 25 · Tab API, Bookmarks, History &amp; Browser API Survey</footer>
+
+  <script>
+    // Show hostname for blocklist testing
+    document.title = 'NeuralTab M04 Demo — ' + location.hostname;
+  </script>
+</body>
+</html>

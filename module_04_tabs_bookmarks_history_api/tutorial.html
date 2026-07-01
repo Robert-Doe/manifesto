@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab — Module 04: Tab API, Bookmarks, History & Browser API Survey</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;0,900;1,400&family=Source+Code+Pro:wght@400;600&display=swap');
+    :root {
+      --bg:#0b0f1a; --bg2:#0f1623; --card:#141c2e; --card2:#1a2540; --border:#1e3a5f;
+      --gold:#f5c842; --gold2:#e0a800; --cyan:#38bdf8; --purple:#a78bfa;
+      --green:#4ade80; --red:#f87171; --orange:#fb923c; --text:#e2e8f0; --muted:#7a9bbf;
+      --code-bg:#060d1a;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:var(--text); font-family:'Lato',sans-serif; font-size:16px; line-height:1.85; }
+    .page-wrap { max-width:900px; margin:0 auto; padding:48px 28px 96px; }
+    .module-badge { display:inline-flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); border-radius:24px; padding:6px 18px; font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--muted); text-transform:uppercase; margin-bottom:28px; }
+    .module-badge .dot { width:7px; height:7px; border-radius:50%; background:var(--gold); }
+    .hero-title { font-size:42px; font-weight:900; line-height:1.2; color:var(--gold); margin-bottom:10px; }
+    .hero-sub { font-size:19px; color:var(--cyan); margin-bottom:20px; font-weight:700; }
+    .hero-desc { font-size:16px; color:var(--text); max-width:700px; margin-bottom:36px; line-height:1.9; }
+    h2 { font-size:26px; font-weight:900; color:var(--gold); margin:60px 0 16px; padding-bottom:8px; border-bottom:2px solid var(--border); }
+    h3 { font-size:19px; font-weight:700; color:var(--cyan); margin:36px 0 12px; }
+    h4 { font-size:15px; font-weight:700; color:var(--purple); margin:24px 0 8px; text-transform:uppercase; letter-spacing:0.8px; }
+    p { margin-bottom:18px; }
+    strong { color:var(--gold); }
+    em { color:var(--cyan); font-style:italic; }
+    ul, ol { margin:0 0 18px 24px; }
+    li { margin-bottom:6px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:24px 28px; margin:24px 0; }
+    .card.gold   { border-color:var(--gold2); background:#1a160a; }
+    .card.cyan   { border-color:var(--cyan);  background:#0a1520; }
+    .card.green  { border-color:var(--green); background:#091510; }
+    .card.red    { border-color:var(--red);   background:#160a0a; }
+    .card.purple { border-color:var(--purple);background:#120a1a; }
+    .card.orange { border-color:var(--orange);background:#1a1008; }
+    .card-label { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px; }
+    .card.gold   .card-label { color:var(--gold); }
+    .card.cyan   .card-label { color:var(--cyan); }
+    .card.green  .card-label { color:var(--green); }
+    .card.red    .card-label { color:var(--red); }
+    .card.purple .card-label { color:var(--purple); }
+    .card.orange .card-label { color:var(--orange); }
+    pre { background:var(--code-bg); border:1px solid var(--border); border-radius:8px; padding:20px 24px; font-family:'Source Code Pro',monospace; font-size:13px; line-height:1.7; overflow-x:auto; margin:18px 0; color:var(--text); }
+    code { font-family:'Source Code Pro',monospace; font-size:13px; background:var(--code-bg); border:1px solid var(--border); border-radius:4px; padding:1px 6px; color:var(--cyan); }
+    pre code { background:none; border:none; padding:0; color:inherit; font-size:inherit; }
+    .kw  { color:#c792ea; }
+    .fn  { color:#82aaff; }
+    .str { color:#c3e88d; }
+    .cmt { color:#546e7a; font-style:italic; }
+    .num { color:#f78c6c; }
+    .key { color:var(--gold); }
+    .api { color:var(--cyan); }
+    table { width:100%; border-collapse:collapse; margin:18px 0; font-size:14px; }
+    th { background:var(--card2); color:var(--gold); font-weight:700; text-align:left; padding:10px 14px; border-bottom:2px solid var(--border); }
+    td { padding:10px 14px; border-bottom:1px solid var(--border); vertical-align:top; }
+    tr:nth-child(even) td { background:var(--card); }
+    .exercise { background:var(--card); border-left:4px solid var(--gold); border-radius:0 10px 10px 0; padding:20px 24px; margin:20px 0; }
+    .exercise .ex-label { font-size:11px; font-weight:700; letter-spacing:1.5px; color:var(--gold); text-transform:uppercase; margin-bottom:8px; }
+    .exercise.core { border-left-color:var(--cyan); }
+    .exercise.core .ex-label { color:var(--cyan); }
+    .exercise.stretch { border-left-color:var(--purple); }
+    .exercise.stretch .ex-label { color:var(--purple); }
+    .steps { list-style:none; display:flex; flex-direction:column; gap:14px; margin:18px 0; }
+    .steps li { display:flex; gap:14px; align-items:flex-start; }
+    .step-num { width:28px; height:28px; border-radius:50%; background:var(--gold); color:#000; font-weight:900; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:2px; }
+    .diagram { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:24px; font-family:'Source Code Pro',monospace; font-size:13px; line-height:1.9; margin:18px 0; overflow-x:auto; }
+    .next-card { background:linear-gradient(135deg,#0f1e35 0%,#1a0f35 100%); border:1px solid var(--purple); border-radius:12px; padding:28px 32px; margin-top:60px; }
+    .next-card h3 { color:var(--purple); margin-top:0; }
+    .spec-ref { display:inline-block; background:var(--card); border:1px solid var(--border); border-radius:6px; font-size:12px; padding:3px 10px; color:var(--muted); font-family:'Source Code Pro',monospace; margin:2px; }
+    footer { border-top:1px solid var(--border); margin-top:80px; padding-top:24px; text-align:center; font-size:13px; color:var(--muted); }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <div class="module-badge"><span class="dot"></span> MODULE 04 OF 25 — NEURALTAB</div>
+  <h1 class="hero-title">Tab API, Bookmarks, History<br>&amp; Browser API Survey</h1>
+  <p class="hero-sub">Chrome extensions aren't just page-modifiers — they control the browser itself.</p>
+  <p class="hero-desc">
+    Module 03 gave NeuralTab a persistent settings system. Now it gets real browser power.
+    By the end of this module NeuralTab has a full Tab Manager — it can see every open tab,
+    group them by domain, close idle tabs in bulk, save tabs to bookmarks, and search browsing
+    history. All of this is driven by a background service worker that wakes on a schedule
+    via Chrome's alarm system, independent of what the user is doing. You will also meet
+    the four optional permissions that unlock this power — and understand why the browser
+    API is described as "the web with superpowers."
+  </p>
+
+  <div class="card gold">
+    <div class="card-label">Prerequisites</div>
+    <p style="margin-bottom:0;">Modules 01–03 complete. You understand chrome.storage, the options page, and the warm-ask pattern. The Module 03 extension loads without errors in chrome://extensions.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PART 1: THE SERVICE WORKER
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 1 — The Background Service Worker</h2>
+
+  <p>
+    Every non-trivial Chrome extension needs a background context — a JavaScript environment
+    that runs independently of any open tab or popup, capable of responding to browser events
+    (a tab closing, an alarm firing, a download completing) even when the user has not
+    interacted with the extension in hours.
+  </p>
+  <p>
+    In Manifest V2, this was a <strong>persistent background page</strong>: an invisible HTML
+    page that ran continuously, kept alive for the entire browser session. It was powerful but
+    expensive — every extension with a persistent background page consumed memory and CPU even
+    when completely idle. In Manifest V3, persistent background pages are <em>removed entirely</em>.
+    The replacement is a <strong>service worker</strong> — the same technology that powers
+    Progressive Web App offline caching, adapted for the extension context.
+  </p>
+
+  <h3>The Service Worker Lifecycle</h3>
+  <p>
+    A service worker is not always running. It has a lifecycle driven entirely by events:
+  </p>
+
+  <div class="diagram">
+Extension installed / updated
+  → chrome.runtime.onInstalled fires
+  → Service worker runs handlers
+  → Worker goes idle
+  → Chrome terminates worker (~5 min idle timeout)
+
+Alarm fires at scheduled time
+  → Chrome WAKES the service worker process
+  → chrome.alarms.onAlarm fires
+  → Service worker runs handler
+  → Worker goes idle again → Chrome terminates
+
+User clicks extension icon
+  → Chrome WAKES service worker if dead
+  → Worker runs message handlers, popup connects
+  → Popup closes → Worker can idle out again
+
+Browser closes
+  → Service worker is terminated (no onDestroy callback)
+  → All JS variables are lost
+  → chrome.storage data persists (it's on disk, not in the worker)
+  </div>
+
+  <div class="card red">
+    <div class="card-label">Critical — The 5-Minute Trap</div>
+    <p>If you store state in a module-level JavaScript variable in <code>background.js</code>, that state <strong>is lost</strong> when the service worker is terminated. This is the single most common source of confusing MV3 bugs. The only durable storage available to background code is <code>chrome.storage</code>. Any state that must survive the idle timeout must be written to storage before the worker dies — which is why NeuralTab writes <code>lastTabAnalysis</code> to storage after every alarm, not to a variable.</p>
+  </div>
+
+  <h3>Declaring a Service Worker in the Manifest</h3>
+<pre>{
+  <span class="key">"background"</span>: {
+    <span class="key">"service_worker"</span>: <span class="str">"background.js"</span>
+    <span class="cmt">// Optional: "type": "module" enables ES import syntax</span>
+    <span class="cmt">// Without it, classic mode — use importScripts() to load shared files</span>
+  }
+}</pre>
+
+  <p>
+    The service worker is a single file. It cannot use <code>&lt;script src&gt;</code> tags
+    or DOM APIs. It has access to the full <code>chrome.*</code> namespace, the Fetch API,
+    IndexedDB, and the Web Crypto API. It does not have access to <code>document</code>,
+    <code>window</code>, <code>localStorage</code>, or any DOM method.
+  </p>
+
+  <h3>onInstalled — The Right Place to Set Up Alarms</h3>
+<pre><span class="api">chrome.runtime.onInstalled</span>.<span class="fn">addListener</span>(<span class="kw">async</span> ({ reason }) => {
+  <span class="kw">if</span> (reason === <span class="str">'install'</span>) {
+    <span class="cmt">// First install only — record the install date</span>
+    <span class="kw">const</span> existing = <span class="kw">await</span> <span class="api">chrome.storage.local</span>.<span class="fn">get</span>({ installDate: <span class="kw">null</span> });
+    <span class="kw">if</span> (!existing.installDate) {
+      <span class="kw">await</span> <span class="api">chrome.storage.local</span>.<span class="fn">set</span>({ installDate: <span class="kw">Date</span>.<span class="fn">now</span>() });
+    }
+    <span class="cmt">// Create the recurring alarm — persists across service worker restarts</span>
+    <span class="kw">await</span> <span class="api">chrome.alarms</span>.<span class="fn">create</span>(<span class="str">'tab-analysis'</span>, { <span class="key">periodInMinutes</span>: <span class="num">30</span> });
+  }
+  <span class="kw">if</span> (reason === <span class="str">'update'</span>) {
+    <span class="cmt">// On extension update, Chrome may have cleared alarms — recreate if missing</span>
+    <span class="kw">const</span> existing = <span class="kw">await</span> <span class="api">chrome.alarms</span>.<span class="fn">get</span>(<span class="str">'tab-analysis'</span>);
+    <span class="kw">if</span> (!existing) {
+      <span class="kw">await</span> <span class="api">chrome.alarms</span>.<span class="fn">create</span>(<span class="str">'tab-analysis'</span>, { <span class="key">periodInMinutes</span>: <span class="num">30</span> });
+    }
+  }
+});</pre>
+
+  <p>
+    <code>onInstalled</code> fires in exactly three situations: first install (<code>reason === 'install'</code>),
+    extension update (<code>reason === 'update'</code>), and Chrome update (<code>reason === 'chrome_update'</code>).
+    It is the correct and canonical place to create alarms, because <code>chrome.alarms.create()</code>
+    creates a persistent alarm record in Chrome's alarm scheduler — independent of the service worker.
+    Once created, the alarm survives service worker terminations, browser restarts, and even extension
+    updates (though we guard for the update case because Chrome may clear alarms during an update).
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PART 2: chrome.alarms
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 2 — chrome.alarms: Scheduling Work That Survives Everything</h2>
+
+  <p>
+    The alarm system is Chrome's equivalent of cron — a mechanism for scheduling future work
+    that operates independently of the JavaScript runtime. Understanding it deeply is what
+    separates extensions that work reliably from extensions that silently stop working after
+    an hour.
+  </p>
+
+  <h3>Creating Alarms</h3>
+<pre><span class="cmt">// One-shot alarm: fires once, 5 minutes from now</span>
+<span class="api">chrome.alarms</span>.<span class="fn">create</span>(<span class="str">'check-update'</span>, { <span class="key">delayInMinutes</span>: <span class="num">5</span> });
+
+<span class="cmt">// Recurring alarm: fires every 30 minutes, starting immediately</span>
+<span class="api">chrome.alarms</span>.<span class="fn">create</span>(<span class="str">'tab-analysis'</span>, { <span class="key">periodInMinutes</span>: <span class="num">30</span> });
+
+<span class="cmt">// Recurring alarm with an initial delay: fires after 2 min, then every 30 min</span>
+<span class="api">chrome.alarms</span>.<span class="fn">create</span>(<span class="str">'tab-analysis'</span>, {
+  <span class="key">delayInMinutes</span>:  <span class="num">2</span>,
+  <span class="key">periodInMinutes</span>: <span class="num">30</span>,
+});
+
+<span class="cmt">// Alarm at an absolute time (Unix timestamp in milliseconds)</span>
+<span class="api">chrome.alarms</span>.<span class="fn">create</span>(<span class="str">'midnight-sync'</span>, {
+  <span class="key">when</span>: <span class="kw">new</span> <span class="fn">Date</span>().<span class="fn">setHours</span>(<span class="num">24</span>, <span class="num">0</span>, <span class="num">0</span>, <span class="num">0</span>), <span class="cmt">// next midnight</span>
+});</pre>
+
+  <h3>Listening and Responding</h3>
+<pre><span class="api">chrome.alarms.onAlarm</span>.<span class="fn">addListener</span>(<span class="kw">async</span> (alarm) => {
+  <span class="cmt">// alarm.name — the string name you gave it on create()</span>
+  <span class="cmt">// alarm.scheduledTime — when it was supposed to fire (ms epoch)</span>
+  <span class="cmt">// alarm.periodInMinutes — for recurring alarms, the period</span>
+
+  <span class="kw">if</span> (alarm.name === <span class="str">'tab-analysis'</span>) {
+    <span class="kw">await</span> <span class="fn">runTabAnalysis</span>();
+  }
+  <span class="kw">if</span> (alarm.name === <span class="str">'midnight-sync'</span>) {
+    <span class="kw">await</span> <span class="fn">syncHistory</span>();
+  }
+});</pre>
+
+  <h3>Inspecting and Clearing Alarms</h3>
+<pre><span class="cmt">// Get a specific alarm</span>
+<span class="kw">const</span> alarm = <span class="kw">await</span> <span class="api">chrome.alarms</span>.<span class="fn">get</span>(<span class="str">'tab-analysis'</span>);
+console.<span class="fn">log</span>(alarm); <span class="cmt">// { name, scheduledTime, periodInMinutes }</span>
+
+<span class="cmt">// Get all alarms</span>
+<span class="kw">const</span> allAlarms = <span class="kw">await</span> <span class="api">chrome.alarms</span>.<span class="fn">getAll</span>();
+
+<span class="cmt">// Clear a specific alarm</span>
+<span class="kw">await</span> <span class="api">chrome.alarms</span>.<span class="fn">clear</span>(<span class="str">'tab-analysis'</span>);
+
+<span class="cmt">// Clear all alarms</span>
+<span class="kw">await</span> <span class="api">chrome.alarms</span>.<span class="fn">clearAll</span>();</pre>
+
+  <div class="card orange">
+    <div class="card-label">Alarm Firing Accuracy</div>
+    <p style="margin-bottom:0;">Chrome does not guarantee exact alarm timing. If the computer is asleep, the alarm fires when the computer wakes. If Chrome is throttled (e.g., the laptop is on battery saver mode), alarms may be delayed by up to a few minutes. The minimum alarm period is 30 seconds in newer Chrome versions (raised from 1 minute in Chrome 120). Your alarm handlers must be idempotent — running them twice must produce the same result as running them once — because Chrome may fire an alarm that already fired but was not acknowledged.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PART 3: chrome.tabs
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 3 — chrome.tabs: The Full Tab Control Surface</h2>
+
+  <p>
+    The tabs API is the most commonly used API in the Chrome extension ecosystem, and also
+    the most frequently misunderstood. There are three distinct capability levels depending
+    on which permissions are granted.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Permission level</th>
+        <th>What you can read from Tab objects</th>
+        <th>What you can do</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>No permission (base)</td>
+        <td>id, windowId, index, active, audible, pinned, status, incognito, width, height — but url and title are <strong>empty strings</strong></td>
+        <td>Count tabs, close tabs by ID, move tabs, duplicate tabs, group tabs</td>
+      </tr>
+      <tr>
+        <td>"tabs" optional permission granted</td>
+        <td>Everything above PLUS url, title, pendingUrl, favIconUrl</td>
+        <td>Everything above PLUS read the URL/title of every tab</td>
+      </tr>
+      <tr>
+        <td>"activeTab" permission (required)</td>
+        <td>Grants url + title for the current active tab ONLY, without showing a prompt at install time. Permission is automatically revoked when the user switches away from the tab.</td>
+        <td>Access the active tab's URL/title without triggering the scary install-time warning. Used for the popup's "Active Tab" display.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Querying Tabs</h3>
+<pre><span class="cmt">// The active tab in the current window — works without "tabs" permission</span>
+<span class="cmt">// (activeTab covers this specific query)</span>
+<span class="kw">const</span> [tab] = <span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">query</span>({ <span class="key">active</span>: <span class="kw">true</span>, <span class="key">currentWindow</span>: <span class="kw">true</span> });
+
+<span class="cmt">// All tabs — url/title are "" without "tabs" permission</span>
+<span class="kw">const</span> allTabs = <span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">query</span>({});
+
+<span class="cmt">// Tabs in a specific window</span>
+<span class="kw">const</span> windowTabs = <span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">query</span>({ <span class="key">windowId</span>: windowId });
+
+<span class="cmt">// Pinned tabs only</span>
+<span class="kw">const</span> pinned = <span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">query</span>({ <span class="key">pinned</span>: <span class="kw">true</span> });
+
+<span class="cmt">// Tabs playing audio</span>
+<span class="kw">const</span> audible = <span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">query</span>({ <span class="key">audible</span>: <span class="kw">true</span> });
+
+<span class="cmt">// Tabs matching a specific URL pattern (requires "tabs" permission)</span>
+<span class="kw">const</span> githubTabs = <span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">query</span>({ <span class="key">url</span>: <span class="str">'*://github.com/*'</span> });</pre>
+
+  <h3>Modifying and Creating Tabs</h3>
+<pre><span class="cmt">// Make a tab active and bring its window to the foreground</span>
+<span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">update</span>(tabId, { <span class="key">active</span>: <span class="kw">true</span> });
+<span class="kw">await</span> <span class="api">chrome.windows</span>.<span class="fn">update</span>(windowId, { <span class="key">focused</span>: <span class="kw">true</span> });
+
+<span class="cmt">// Close one or more tabs</span>
+<span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">remove</span>(tabId);          <span class="cmt">// single tab</span>
+<span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">remove</span>([id1, id2, id3]); <span class="cmt">// multiple tabs in one call</span>
+
+<span class="cmt">// Open a new tab</span>
+<span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">create</span>({ <span class="key">url</span>: <span class="str">'https://example.com'</span>, <span class="key">active</span>: <span class="kw">true</span> });
+
+<span class="cmt">// Open an extension page in a new tab</span>
+<span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">create</span>({ <span class="key">url</span>: <span class="api">chrome.runtime</span>.<span class="fn">getURL</span>(<span class="str">'tab_manager.html'</span>) });
+
+<span class="cmt">// Move a tab to a different position in the same window</span>
+<span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">move</span>(tabId, { <span class="key">index</span>: <span class="num">0</span> }); <span class="cmt">// move to front</span>
+
+<span class="cmt">// Duplicate a tab</span>
+<span class="kw">const</span> newTab = <span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">duplicate</span>(tabId);</pre>
+
+  <h3>Tab Groups API (Chrome 89+)</h3>
+<pre><span class="cmt">// Group multiple tab IDs together — returns the new group ID</span>
+<span class="kw">const</span> groupId = <span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">group</span>({ <span class="key">tabIds</span>: [id1, id2, id3] });
+
+<span class="cmt">// Customise the group (requires no extra permission)</span>
+<span class="kw">await</span> <span class="api">chrome.tabGroups</span>.<span class="fn">update</span>(groupId, {
+  <span class="key">title</span>:     <span class="str">'github.com'</span>,
+  <span class="key">color</span>:     <span class="str">'blue'</span>,   <span class="cmt">// 'grey'|'blue'|'red'|'yellow'|'green'|'pink'|'purple'|'cyan'|'orange'</span>
+  <span class="key">collapsed</span>: <span class="kw">false</span>,
+});
+
+<span class="cmt">// Ungroup tabs</span>
+<span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">ungroup</span>([id1, id2]);</pre>
+
+  <h3>Tab Event Listeners</h3>
+<pre><span class="cmt">// Fired when any tab's status, url, or title changes</span>
+<span class="api">chrome.tabs.onUpdated</span>.<span class="fn">addListener</span>((tabId, changeInfo, tab) => {
+  <span class="cmt">// changeInfo only contains the CHANGED properties, not all tab properties</span>
+  <span class="kw">if</span> (changeInfo.status === <span class="str">'complete'</span>) {
+    console.<span class="fn">log</span>(<span class="str">`Tab ${tabId} finished loading: ${tab.url}`</span>);
+  }
+  <span class="kw">if</span> (changeInfo.url) {
+    <span class="cmt">// Tab navigated to a new URL</span>
+  }
+});
+
+<span class="cmt">// Fired when the user switches active tab</span>
+<span class="api">chrome.tabs.onActivated</span>.<span class="fn">addListener</span>(({ tabId, windowId }) => {
+  console.<span class="fn">log</span>(<span class="str">`User switched to tab ${tabId} in window ${windowId}`</span>);
+  <span class="cmt">// This is where you'd track "last accessed" timestamps (Module 05)</span>
+});
+
+<span class="cmt">// Fired when a tab is closed</span>
+<span class="api">chrome.tabs.onRemoved</span>.<span class="fn">addListener</span>((tabId, { windowId, isWindowClosing }) => {
+  console.<span class="fn">log</span>(<span class="str">`Tab ${tabId} closed. Window closing: ${isWindowClosing}`</span>);
+});
+
+<span class="cmt">// Fired when a new tab is created</span>
+<span class="api">chrome.tabs.onCreated</span>.<span class="fn">addListener</span>((tab) => {
+  console.<span class="fn">log</span>(<span class="str">`New tab created: ${tab.id}`</span>);
+});</pre>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PART 4: chrome.bookmarks
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 4 — chrome.bookmarks: The Full Bookmark Tree</h2>
+
+  <p>
+    The bookmarks API exposes Chrome's entire bookmark database as a tree structure.
+    Understanding the tree layout is essential before writing any bookmark code.
+  </p>
+
+  <div class="diagram">
+Root (id: "0")
+├── Bookmarks bar (id: "1")      ← chrome.bookmarks.BOOKMARK_BAR_ID
+│   ├── BookmarkTreeNode { title: "GitHub", url: "https://github.com" }
+│   └── BookmarkTreeNode { title: "Work", children: [...] }  ← this is a folder
+│
+├── Other Bookmarks (id: "2")   ← chrome.bookmarks.OTHER_BOOKMARKS_ID
+│   └── NeuralTab Saves/
+│       ├── { title: "Article I saved", url: "..." }
+│       └── { title: "Another article",  url: "..." }
+│
+└── Mobile Bookmarks (id: "3")  ← synced from Chrome on Android/iOS
+    └── { title: "Some mobile page", url: "..." }
+
+BookmarkTreeNode fields:
+  id         — string (unique, assigned by Chrome)
+  parentId   — string (id of the parent folder)
+  title      — string
+  url        — string | undefined  (undefined for folders)
+  children   — BookmarkTreeNode[] | undefined  (undefined for bookmarks)
+  dateAdded  — number (epoch ms)
+  index      — number (position within parent)
+  </div>
+
+  <h3>Reading Bookmarks</h3>
+<pre><span class="cmt">// Get the entire tree (can be large — use sparingly)</span>
+<span class="kw">const</span> tree = <span class="kw">await</span> <span class="api">chrome.bookmarks</span>.<span class="fn">getTree</span>();
+
+<span class="cmt">// Get a specific node and its children</span>
+<span class="kw">const</span> [node] = <span class="kw">await</span> <span class="api">chrome.bookmarks</span>.<span class="fn">get</span>(nodeId);
+
+<span class="cmt">// Get subtree rooted at a node (includes all descendants)</span>
+<span class="kw">const</span> [subtree] = <span class="kw">await</span> <span class="api">chrome.bookmarks</span>.<span class="fn">getSubTree</span>(nodeId);
+
+<span class="cmt">// Get children of a specific folder</span>
+<span class="kw">const</span> children = <span class="kw">await</span> <span class="api">chrome.bookmarks</span>.<span class="fn">getChildren</span>(folderId);
+
+<span class="cmt">// Get recently added bookmarks (newest first)</span>
+<span class="kw">const</span> recent = <span class="kw">await</span> <span class="api">chrome.bookmarks</span>.<span class="fn">getRecent</span>(<span class="num">10</span>);
+
+<span class="cmt">// Search by title, url, or query string</span>
+<span class="kw">const</span> results = <span class="kw">await</span> <span class="api">chrome.bookmarks</span>.<span class="fn">search</span>({ <span class="key">query</span>: <span class="str">'github'</span> });
+<span class="kw">const</span> byTitle = <span class="kw">await</span> <span class="api">chrome.bookmarks</span>.<span class="fn">search</span>({ <span class="key">title</span>: <span class="str">'NeuralTab Saves'</span> });</pre>
+
+  <h3>Writing Bookmarks</h3>
+<pre><span class="cmt">// Create a folder in "Other Bookmarks" (no parentId → defaults to "2")</span>
+<span class="kw">const</span> folder = <span class="kw">await</span> <span class="api">chrome.bookmarks</span>.<span class="fn">create</span>({ <span class="key">title</span>: <span class="str">'NeuralTab Saves'</span> });
+
+<span class="cmt">// Create a bookmark inside that folder</span>
+<span class="kw">const</span> bookmark = <span class="kw">await</span> <span class="api">chrome.bookmarks</span>.<span class="fn">create</span>({
+  <span class="key">parentId</span>: folder.id,
+  <span class="key">title</span>:    <span class="str">'Interesting article'</span>,
+  <span class="key">url</span>:      <span class="str">'https://example.com/article'</span>,
+});
+
+<span class="cmt">// Move a bookmark to a different folder</span>
+<span class="kw">await</span> <span class="api">chrome.bookmarks</span>.<span class="fn">move</span>(bookmark.id, { <span class="key">parentId</span>: otherFolderId });
+
+<span class="cmt">// Update a bookmark's title or URL</span>
+<span class="kw">await</span> <span class="api">chrome.bookmarks</span>.<span class="fn">update</span>(bookmark.id, { <span class="key">title</span>: <span class="str">'Better title'</span> });
+
+<span class="cmt">// Delete a bookmark (not a folder)</span>
+<span class="kw">await</span> <span class="api">chrome.bookmarks</span>.<span class="fn">remove</span>(bookmark.id);
+
+<span class="cmt">// Delete a folder and all its contents</span>
+<span class="kw">await</span> <span class="api">chrome.bookmarks</span>.<span class="fn">removeTree</span>(folder.id);</pre>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PART 5: chrome.history
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 5 — chrome.history: Querying the Browser's Visit Log</h2>
+
+  <p>
+    The history API gives read/write access to Chrome's browsing history database.
+    Each visited URL is represented as a <code>HistoryItem</code>, and each individual
+    visit to that URL is a <code>VisitItem</code>. The distinction matters: if you visit
+    the same URL three times, there is one <code>HistoryItem</code> with three
+    <code>VisitItem</code> records.
+  </p>
+
+<pre><span class="cmt">// Search history — text matches title and URL</span>
+<span class="kw">const</span> results = <span class="kw">await</span> <span class="api">chrome.history</span>.<span class="fn">search</span>({
+  <span class="key">text</span>:        <span class="str">'github'</span>,
+  <span class="key">maxResults</span>:  <span class="num">20</span>,            <span class="cmt">// default 100, max 100</span>
+  <span class="key">startTime</span>:   <span class="kw">Date</span>.<span class="fn">now</span>() - <span class="num">7</span> * <span class="num">86400000</span>,  <span class="cmt">// last 7 days</span>
+  <span class="key">endTime</span>:     <span class="kw">Date</span>.<span class="fn">now</span>(),
+});
+<span class="cmt">// Returns: [{ id, url, title, lastVisitTime, visitCount, typedCount }]</span>
+
+<span class="cmt">// Get all individual visits to a specific URL</span>
+<span class="kw">const</span> visits = <span class="kw">await</span> <span class="api">chrome.history</span>.<span class="fn">getVisits</span>({ <span class="key">url</span>: <span class="str">'https://github.com'</span> });
+<span class="cmt">// Returns: [{ id, visitId, visitTime, referringVisitId, transition }]</span>
+
+<span class="cmt">// Delete a specific URL from history</span>
+<span class="kw">await</span> <span class="api">chrome.history</span>.<span class="fn">deleteUrl</span>({ <span class="key">url</span>: <span class="str">'https://embarrassing.example.com'</span> });
+
+<span class="cmt">// Delete history in a time range</span>
+<span class="kw">await</span> <span class="api">chrome.history</span>.<span class="fn">deleteRange</span>({
+  <span class="key">startTime</span>: start,
+  <span class="key">endTime</span>:   end,
+});
+
+<span class="cmt">// Add a synthetic visit (useful for importing history from another browser)</span>
+<span class="kw">await</span> <span class="api">chrome.history</span>.<span class="fn">addUrl</span>({ <span class="key">url</span>: <span class="str">'https://example.com'</span> });</pre>
+
+  <div class="card purple">
+    <div class="card-label">Privacy Consideration</div>
+    <p style="margin-bottom:0;">The history permission is the most sensitive of NeuralTab's four optional permissions. Users' browsing history is deeply personal — it reveals medical searches, financial research, relationship status, and political views. Extensions that request history permission face higher CWS review scrutiny. Only request it when the feature clearly justifies the sensitivity, explain exactly what you do with history data in both the warm-ask UI and your privacy policy, and never send history data to external servers without explicit user consent. NeuralTab uses history exclusively for the local search panel — no data leaves the device.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PART 6: chrome.notifications
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 6 — chrome.notifications: Desktop-Level Alerts</h2>
+
+  <p>
+    Desktop notifications are the highest-priority communication channel available to
+    a Chrome extension — they appear outside the browser, at the operating system level,
+    even when Chrome is minimised. They require user permission (declared as
+    <code>optional_permissions</code>) because they can interrupt the user's work.
+  </p>
+
+<pre><span class="cmt">// Basic notification — the most common type</span>
+<span class="api">chrome.notifications</span>.<span class="fn">create</span>(<span class="str">'notif-id'</span>, {
+  <span class="key">type</span>:     <span class="str">'basic'</span>,
+  <span class="key">iconUrl</span>:  <span class="api">chrome.runtime</span>.<span class="fn">getURL</span>(<span class="str">'icons/icon48.png'</span>),
+  <span class="key">title</span>:    <span class="str">'NeuralTab — Tab Check'</span>,
+  <span class="key">message</span>:  <span class="str">'You have 12 idle tabs open.'</span>,
+  <span class="key">priority</span>: <span class="num">0</span>,   <span class="cmt">// 0 = default, 1 = high, 2 = requires interaction</span>
+});
+
+<span class="cmt">// Image notification — shows a preview image</span>
+<span class="api">chrome.notifications</span>.<span class="fn">create</span>(<span class="str">'article-saved'</span>, {
+  <span class="key">type</span>:     <span class="str">'image'</span>,
+  <span class="key">iconUrl</span>:  <span class="api">chrome.runtime</span>.<span class="fn">getURL</span>(<span class="str">'icons/icon48.png'</span>),
+  <span class="key">imageUrl</span>: <span class="str">'...'</span>, <span class="cmt">// must be a data: URL or extension URL</span>
+  <span class="key">title</span>:    <span class="str">'Saved!'</span>,
+  <span class="key">message</span>:  <span class="str">'Article bookmarked to NeuralTab Saves.'</span>,
+});
+
+<span class="cmt">// Handle notification click → open relevant page</span>
+<span class="api">chrome.notifications.onClicked</span>.<span class="fn">addListener</span>((notifId) => {
+  <span class="kw">if</span> (notifId === <span class="str">'notif-id'</span>) {
+    <span class="api">chrome.tabs</span>.<span class="fn">create</span>({ <span class="key">url</span>: <span class="api">chrome.runtime</span>.<span class="fn">getURL</span>(<span class="str">'tab_manager.html'</span>) });
+    <span class="api">chrome.notifications</span>.<span class="fn">clear</span>(notifId);
+  }
+});
+
+<span class="cmt">// Handle notification button click</span>
+<span class="api">chrome.notifications.onButtonClicked</span>.<span class="fn">addListener</span>((notifId, buttonIndex) => {
+  <span class="kw">if</span> (notifId === <span class="str">'notif-id'</span> && buttonIndex === <span class="num">0</span>) {
+    <span class="cmt">// User clicked the first button</span>
+  }
+});</pre>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PART 7: MESSAGE RELAY PATTERN
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 7 — The Message Relay Pattern</h2>
+
+  <p>
+    Content scripts cannot call certain APIs that are only available in extension pages
+    and background workers. <code>chrome.runtime.openOptionsPage()</code> is one —
+    it silently does nothing when called from a content script. The message relay pattern
+    solves this: the content script sends a message to the background worker, which
+    then calls the restricted API on its behalf.
+  </p>
+
+<pre><span class="cmt">// content.js — cannot call openOptionsPage() directly</span>
+shadow.<span class="fn">getElementById</span>(<span class="str">'nt-btn-settings'</span>).<span class="fn">addEventListener</span>(<span class="str">'click'</span>, () => {
+  <span class="api">chrome.runtime</span>.<span class="fn">sendMessage</span>({ <span class="key">action</span>: <span class="str">'openOptions'</span> });
+  <span class="cmt">// Does not need a response — fire and forget</span>
+});
+
+<span class="cmt">// background.js — the relay</span>
+<span class="api">chrome.runtime.onMessage</span>.<span class="fn">addListener</span>((msg, sender, sendResponse) => {
+  <span class="kw">if</span> (msg.action === <span class="str">'openOptions'</span>) {
+    <span class="api">chrome.runtime</span>.<span class="fn">openOptionsPage</span>();
+    <span class="fn">sendResponse</span>({ ok: <span class="kw">true</span> });
+    <span class="kw">return</span> <span class="kw">false</span>; <span class="cmt">// synchronous response — no need to return true</span>
+  }
+  <span class="kw">if</span> (msg.action === <span class="str">'triggerTabAnalysis'</span>) {
+    <span class="fn">runTabAnalysis</span>().<span class="fn">then</span>(() => <span class="fn">sendResponse</span>({ ok: <span class="kw">true</span> }));
+    <span class="kw">return</span> <span class="kw">true</span>; <span class="cmt">// ← IMPORTANT: return true to keep the channel open for async response</span>
+  }
+});</pre>
+
+  <div class="card red">
+    <div class="card-label">Common Bug: Forgetting "return true" for Async Responses</div>
+    <p style="margin-bottom:0;">
+      If your <code>onMessage</code> handler calls <code>sendResponse</code> asynchronously
+      (inside a Promise, a setTimeout, or after an <code>await</code>), you <strong>must</strong>
+      return <code>true</code> synchronously from the listener. Returning <code>true</code>
+      signals to Chrome that the message channel should be kept open for a delayed response.
+      If you return <code>false</code> or <code>undefined</code> (by not returning anything),
+      Chrome closes the channel immediately, and calling <code>sendResponse</code> later will
+      throw an error: "The message port closed before a response was received." This is one
+      of the top 5 most confusing bugs in Chrome extension development.
+    </p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PART 8: TAB MANAGER ARCHITECTURE
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 8 — Tab Manager Architecture</h2>
+
+  <p>
+    The Tab Manager is NeuralTab's first full-page extension UI. It uses all four APIs
+    from this module simultaneously. Let's trace how it works from load to interaction.
+  </p>
+
+<pre><span class="cmt">// tab_manager.js — init() flow</span>
+<span class="kw">async function</span> <span class="fn">init</span>() {
+  <span class="cmt">// 1. Check if "tabs" permission is granted</span>
+  <span class="kw">const</span> hasPermission = <span class="kw">await</span> <span class="api">chrome.permissions</span>.<span class="fn">contains</span>({ permissions: [<span class="str">'tabs'</span>] });
+
+  <span class="kw">if</span> (!hasPermission) {
+    <span class="cmt">// Show the permission banner with a Grant button</span>
+    document.<span class="fn">getElementById</span>(<span class="str">'permission-banner'</span>).<span class="fn">classList</span>.<span class="fn">add</span>(<span class="str">'visible'</span>);
+    <span class="fn">renderEmptyState</span>(<span class="str">'Grant the tabs permission above to view your open tabs.'</span>);
+    <span class="kw">return</span>;
+  }
+
+  <span class="cmt">// 2. Load tabs — one chrome.tabs.query() call returns everything</span>
+  allTabs = <span class="kw">await</span> <span class="api">chrome.tabs</span>.<span class="fn">query</span>({});
+
+  <span class="cmt">// 3. Render stats sidebar (count by domain, idle count, pinned count)</span>
+  <span class="fn">renderStats</span>();
+
+  <span class="cmt">// 4. Group tabs by domain using a Map, render each group as a collapsible card</span>
+  <span class="fn">renderTabGroups</span>();
+
+  <span class="cmt">// 5. Wire button event handlers</span>
+  <span class="fn">wireControls</span>();
+}</pre>
+
+  <h3>Grouping Tabs by Domain</h3>
+<pre><span class="cmt">// Group tabs using a Map — O(n) linear pass, no sorting needed</span>
+<span class="kw">const</span> groups = <span class="kw">new</span> Map();
+<span class="kw">for</span> (<span class="kw">const</span> tab <span class="kw">of</span> tabs) {
+  <span class="kw">const</span> domain = <span class="fn">extractDomain</span>(tab.url);
+  <span class="kw">if</span> (!groups.<span class="fn">has</span>(domain)) groups.<span class="fn">set</span>(domain, []);
+  groups.<span class="fn">get</span>(domain).<span class="fn">push</span>(tab);
+}
+
+<span class="cmt">// Sort: most tabs first (largest groups are the most actionable)</span>
+<span class="kw">const</span> sorted = [...groups.<span class="fn">entries</span>()].<span class="fn">sort</span>((a, b) => b[<span class="num">1</span>].length - a[<span class="num">1</span>].length);
+
+<span class="cmt">// Helper: safely extract hostname from any URL including chrome://, file://, etc.</span>
+<span class="kw">function</span> <span class="fn">extractDomain</span>(url) {
+  <span class="kw">if</span> (!url) <span class="kw">return</span> <span class="str">'(unknown)'</span>;
+  <span class="kw">try</span> {
+    <span class="kw">const</span> u = <span class="kw">new</span> <span class="fn">URL</span>(url);
+    <span class="kw">if</span> (u.protocol === <span class="str">'chrome:'</span>) <span class="kw">return</span> <span class="str">'chrome://'</span>;
+    <span class="kw">if</span> (u.protocol === <span class="str">'chrome-extension:'</span>) <span class="kw">return</span> <span class="str">'extension://'</span>;
+    <span class="kw">return</span> u.hostname || url;
+  } <span class="kw">catch</span> {
+    <span class="kw">return</span> url.<span class="fn">slice</span>(<span class="num">0</span>, <span class="num">40</span>);
+  }
+}</pre>
+
+  <p>
+    The <code>try/catch</code> around <code>new URL(url)</code> is essential. Not all tab
+    URLs are valid URLs according to the WHATWG URL parser. <code>chrome://newtab/</code>
+    parses fine, but some internal Chrome pages use URL schemes that throw. The catch block
+    falls back to showing the first 40 characters of the raw URL string.
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PART 9: BUILD AND RUN
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 9 — Build and Run</h2>
+
+  <ol class="steps">
+    <li><div class="step-num">1</div><div>Copy all Module 04 files into your extension folder. The new files are <code>background.js</code>, <code>tab_manager.html</code>, <code>tab_manager.css</code>, and <code>tab_manager.js</code>. All other files replace their Module 03 counterparts.</div></li>
+    <li><div class="step-num">2</div><div>In <code>chrome://extensions</code>, click the reload button for NeuralTab. After reloading, look for a "Service worker" link in the NeuralTab card — this confirms the background worker is registered.</div></li>
+    <li><div class="step-num">3</div><div>Click the "Service worker" link to open the service worker DevTools. In the Console, type <code>chrome.alarms.getAll(console.log)</code>. You should see the <code>tab-analysis</code> alarm listed.</div></li>
+    <li><div class="step-num">4</div><div>Open the popup and click "Open Tab Manager". The Tab Manager opens at <code>chrome-extension://[id]/tab_manager.html</code>. If the tabs permission is not granted, you see the purple banner.</div></li>
+    <li><div class="step-num">5</div><div>Grant the tabs permission from the banner (or from Options → Permissions). Your open tabs load, grouped by domain.</div></li>
+    <li><div class="step-num">6</div><div>Grant the bookmarks permission. Click "★ Save" on any tab. Check your bookmarks (Ctrl+Shift+O) for a "NeuralTab Saves" folder.</div></li>
+    <li><div class="step-num">7</div><div>Grant the history permission. Type something in the History search field and click Go. Results appear.</div></li>
+    <li><div class="step-num">8</div><div>In Options → Tabs & Alarms, click "Run analysis now". Check the service worker console for the storage update.</div></li>
+  </ol>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       EXERCISES
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 10 — Exercises</h2>
+
+  <div class="exercise">
+    <div class="ex-label">Warm-Up Exercise 1</div>
+    <p><strong>Alarm inspector.</strong> Open the service worker DevTools console and run these commands in order:</p>
+    <pre>// 1. Create a one-shot alarm 1 minute from now
+chrome.alarms.create('test-alarm', { delayInMinutes: 1 });
+// 2. See it listed
+chrome.alarms.getAll(console.log);
+// 3. Clear it before it fires
+chrome.alarms.clear('test-alarm');
+// 4. Confirm it's gone
+chrome.alarms.getAll(console.log);</pre>
+    <p><strong>What you learn:</strong> The full alarm CRUD cycle, hands-on. Notice that creating an alarm with the same name as an existing alarm silently replaces it — no error is thrown.</p>
+  </div>
+
+  <div class="exercise core">
+    <div class="ex-label">Core Exercise 2</div>
+    <p><strong>Last-accessed tracking.</strong> In <code>background.js</code>, add a <code>chrome.tabs.onActivated</code> listener. When any tab is activated, write <code>{ tabId: Date.now() }</code> into a <code>tabAccessTimes</code> object in <code>chrome.storage.local</code>. In <code>tab_manager.js</code>, read <code>tabAccessTimes</code> after loading all tabs and display a "Last active X minutes ago" label next to each tab whose last-access time is older than 10 minutes.</p>
+    <p><strong>What you learn:</strong> Event-driven background tracking. This is exactly how production extensions like OneTab and Session Buddy determine which tabs are "idle" — they track actual user interaction times, not guesses based on the <code>audible</code> flag.</p>
+  </div>
+
+  <div class="exercise core">
+    <div class="ex-label">Core Exercise 3</div>
+    <p><strong>History-based article detector.</strong> In <code>tab_manager.js</code>, when the history permission is granted, query <code>chrome.history.search({ text: '', maxResults: 100, startTime: Date.now() - 86400000 })</code> to get today's visits. Filter for URLs that appear to be articles (not home pages, not search results): the URL path has more than one segment and the <code>visitCount</code> is 1 (first visit). Display these in a new "Today's articles" section in the sidebar. Add a "★ Save all" button that bookmarks all detected articles to the NeuralTab Saves folder in one batch.</p>
+    <p><strong>What you learn:</strong> Composing history + bookmarks APIs. URL heuristics for article detection (a simplified version of what services like Pocket use). Batch bookmark creation with <code>Promise.all()</code>.</p>
+  </div>
+
+  <div class="exercise stretch">
+    <div class="ex-label">Stretch Exercise 4</div>
+    <p><strong>Smart tab closer with undo.</strong> Replace the simple "Close all idle" button with a smarter version: instead of closing tabs immediately, move all idle tabs into a temporary bookmark folder called "NeuralTab Closed Tabs [date]", then close them. Show a notification "Closed 8 idle tabs. Click to restore." with a button. If the user clicks Restore, open all bookmarked URLs as new tabs and delete the temporary folder. After 7 days, show a second notification: "Permanent cleanup: delete 8 saved tabs from [date]?" with Yes/No buttons.</p>
+    <p><strong>What you learn:</strong> Undo via bookmark-as-state — a real pattern used by Session Buddy. Multi-step notification flows. <code>chrome.notifications</code> button handlers. Time-gated follow-up alarms.</p>
+  </div>
+
+  <div class="exercise stretch">
+    <div class="ex-label">Stretch Exercise 5</div>
+    <p><strong>Tab session snapshot.</strong> Add a "Save session" button to the Tab Manager. Clicking it reads all current tabs (URLs + titles + order), serialises them as JSON, and stores them in <code>chrome.storage.local</code> under a key <code>sessions[timestamp]</code>. Add a "Sessions" section to the Tab Manager sidebar that lists saved sessions by date. Clicking a session offers two options: "Open in new window" (opens all saved URLs in a fresh Chrome window using <code>chrome.windows.create({ url: urls })</code>) or "Restore to this window" (opens all saved URLs as new tabs). Add a "Delete session" button next to each saved session.</p>
+    <p><strong>What you learn:</strong> <code>chrome.windows.create()</code>, full session management, storage with nested objects, and the patterns behind extensions like Session Buddy and Tab Session Manager — some of the most popular extensions in the Chrome Web Store.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       SPEC REFERENCES
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Specification References</h2>
+  <p>
+    <span class="spec-ref">chrome.tabs</span>
+    <span class="spec-ref">chrome.tabs.query()</span>
+    <span class="spec-ref">chrome.tabs.create()</span>
+    <span class="spec-ref">chrome.tabs.remove()</span>
+    <span class="spec-ref">chrome.tabs.update()</span>
+    <span class="spec-ref">chrome.tabs.group()</span>
+    <span class="spec-ref">chrome.tabs.onUpdated</span>
+    <span class="spec-ref">chrome.tabs.onActivated</span>
+    <span class="spec-ref">chrome.tabs.onRemoved</span>
+    <span class="spec-ref">chrome.tabGroups</span>
+    <span class="spec-ref">chrome.tabGroups.update()</span>
+    <span class="spec-ref">chrome.alarms</span>
+    <span class="spec-ref">chrome.alarms.create()</span>
+    <span class="spec-ref">chrome.alarms.onAlarm</span>
+    <span class="spec-ref">chrome.bookmarks</span>
+    <span class="spec-ref">chrome.bookmarks.create()</span>
+    <span class="spec-ref">chrome.bookmarks.getRecent()</span>
+    <span class="spec-ref">chrome.bookmarks.search()</span>
+    <span class="spec-ref">chrome.history</span>
+    <span class="spec-ref">chrome.history.search()</span>
+    <span class="spec-ref">chrome.history.getVisits()</span>
+    <span class="spec-ref">chrome.notifications</span>
+    <span class="spec-ref">chrome.notifications.create()</span>
+    <span class="spec-ref">chrome.notifications.onClicked</span>
+    <span class="spec-ref">chrome.runtime.onMessage</span>
+    <span class="spec-ref">chrome.runtime.onInstalled</span>
+    <span class="spec-ref">chrome.windows.create()</span>
+    <span class="spec-ref">chrome.windows.update()</span>
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       WHAT'S NEXT
+       ══════════════════════════════════════════════════════════════════ -->
+  <div class="next-card">
+    <h3>What's Next — Module 05: Service Worker Internals — The 5-Minute Kill &amp; Keepalive Patterns</h3>
+    <p>
+      Module 04 introduced the service worker. Module 05 cuts it open. You will learn exactly
+      how and when Chrome terminates a service worker — the actual V8 process lifecycle, the
+      idle timeout clock, and what "idle" means in practice. You will build tools to observe
+      the worker dying and resurrect it, and implement the two production keepalive patterns:
+      the <strong>chrome.alarms heartbeat</strong> (for work that can tolerate a few minutes
+      of gap) and the <strong>keepalive port</strong> (for work that must continue
+      uninterrupted, like a WebSocket connection or a streaming API call).
+    </p>
+    <p>
+      NeuralTab gains a WebSocket connection to a local server in Module 05 (the precursor to
+      the real AI integration in Module 12), kept alive using the port technique. You will also
+      fix the <code>storage_manager.js</code> sharing problem by introducing
+      <code>importScripts()</code> in the service worker, finally giving the background context
+      access to the same DEFAULTS object as every other context.
+    </p>
+    <p>
+      <strong>Key concepts in Module 05:</strong> The V8 service worker idle timer and its
+      relationship to open event listeners. The <code>ExtendableEvent.waitUntil()</code>
+      pattern. Chrome's <code>chrome.runtime.connect()</code> for long-lived ports.
+      The keepalive heartbeat using a self-pinging alarm. <code>importScripts()</code>
+      for sharing code in classic-mode service workers. Graceful shutdown handlers.
+      The difference between a worker being terminated (unexpected) and a worker finishing
+      its work and going idle (expected).
+    </p>
+  </div>
+
+  <footer>
+    NeuralTab Curriculum · Module 04 of 25 · Tab API, Bookmarks, History &amp; Browser API Survey<br>
+    Head First Extension Development Series · All code MIT licensed
+  </footer>
+
+</div>
+</body>
+</html>
