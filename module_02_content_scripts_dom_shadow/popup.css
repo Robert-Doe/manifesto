@@ -1,0 +1,170 @@
+/* ============================================================
+   NeuralTab — popup.css  (Module 02 — cumulative, includes M01)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Source+Code+Pro:wght@400;600&display=swap');
+
+:root {
+  --bg:      #0b0f1a;
+  --bg2:     #111827;
+  --bg3:     #1a2235;
+  --card:    #141c2e;
+  --border:  #1e3a5f;
+  --gold:    #f5c842;
+  --cyan:    #38bdf8;
+  --purple:  #a78bfa;
+  --red:     #f87171;
+  --green:   #4ade80;
+  --teal:    #0d9488;
+  --orange:  #fb923c;
+  --text:    #e2e8f0;
+  --muted:   #7a9bbf;
+  --code-bg: #060d1a;
+  --radius:  8px;
+  --font-body: 'Lato', system-ui, sans-serif;
+  --font-mono: 'Source Code Pro', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 360px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  padding-bottom: 4px;
+  overflow-x: hidden;
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 12px;
+  background: var(--bg2);
+}
+.logo { display: flex; align-items: center; gap: 8px; }
+.logo-icon { font-size: 18px; }
+.logo-text { font-size: 16px; font-weight: 700; color: var(--gold); letter-spacing: 0.5px; }
+.version-badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--muted);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.divider { height: 1px; background: var(--border); }
+
+/* ── Sections ────────────────────────────────────────────── */
+.section {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.section:last-of-type { border-bottom: none; }
+.section-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* ── URL box ─────────────────────────────────────────────── */
+.url-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+}
+.url-icon { flex-shrink: 0; margin-top: 1px; font-size: 12px; }
+.url-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--cyan);
+  word-break: break-all;
+  line-height: 1.6;
+}
+
+/* ── Content script status (NEW in M02) ──────────────────── */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
+.status-dot.dot-ok      { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.status-dot.dot-warn    { background: var(--orange); }
+.status-dot.dot-err     { background: var(--red); }
+.status-text { font-size: 12px; color: var(--text); }
+.status-note {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-top: 2px;
+}
+
+/* ── Action grid (NEW in M02) ────────────────────────────── */
+.action-grid {
+  display: flex;
+  gap: 8px;
+}
+.btn {
+  flex: 1;
+  padding: 7px 0;
+  border: none;
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  letter-spacing: 0.3px;
+}
+.btn:hover  { opacity: 0.85; }
+.btn:active { transform: scale(0.97); }
+.btn-cyan   { background: var(--cyan);   color: #001a2e; }
+.btn-purple { background: var(--purple); color: #0d0020; }
+.btn-red    { background: var(--red);    color: #1a0000; }
+
+/* ── Info grid ───────────────────────────────────────────── */
+.info-grid { display: flex; flex-direction: column; gap: 6px; }
+.info-row  { display: flex; justify-content: space-between; align-items: center; }
+.info-key  { font-size: 11px; color: var(--muted); }
+.info-val  {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--purple);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+.footer {
+  padding: 8px 16px;
+  font-size: 10px;
+  color: var(--muted);
+  text-align: center;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+}

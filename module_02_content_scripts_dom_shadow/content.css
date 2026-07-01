@@ -1,0 +1,44 @@
+/*
+  NeuralTab — content.css
+  Module 02: Content Scripts, DOM Surgery & Web Accessible Resources
+
+  This stylesheet is injected into EVERY matched page alongside content.js.
+  Chrome injects it via a <style> element into the page's real DOM.
+
+  IMPORTANT: These styles live in the PAGE's style scope, not in Shadow DOM.
+  They will be affected by the page's CSS specificity and cascade.
+  This is why our floating button and panel use Shadow DOM instead —
+  to guarantee isolation. We only use content.css for styles that
+  intentionally target the PAGE's own elements (like highlights).
+
+  The #neuraltab-host element is in the real DOM, but its shadow root
+  contents are NOT reachable from here — Shadow DOM creates a hard boundary.
+*/
+
+/*
+  The host container itself needs real-DOM positioning.
+  We set it to zero size so it does not affect page layout.
+  The Shadow DOM children are positioned fixed, so they float
+  above the page regardless of where the host sits in the DOM tree.
+*/
+#neuraltab-host {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/*
+  Restore pointer events inside the shadow root's children.
+  The host has pointer-events: none so it does not block clicks
+  on the underlying page. The shadow children re-enable them.
+  (This is controlled by the shadow root's own styles in content.js
+  but we document it here for clarity.)
+*/
+#neuraltab-host * {
+  pointer-events: auto;
+}

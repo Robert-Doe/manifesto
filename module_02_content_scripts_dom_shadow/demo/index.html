@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab — Module 02 Demo: Content Script Test Page</title>
+  <meta name="description" content="A long article page for testing NeuralTab content script injection, word counting, and highlighting." />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Source+Code+Pro&display=swap');
+    :root {
+      --bg: #0b0f1a; --bg2: #111827; --card: #141c2e;
+      --border: #1e3a5f; --gold: #f5c842; --cyan: #38bdf8;
+      --purple: #a78bfa; --green: #4ade80; --text: #e2e8f0; --muted: #7a9bbf;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Lato', system-ui, sans-serif;
+      font-size: 16px; line-height: 1.8;
+      padding: 48px 24px; max-width: 760px; margin: 0 auto;
+    }
+    .badge {
+      display: inline-block; background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px;
+      color: var(--muted); padding: 4px 14px; margin-bottom: 20px; text-transform: uppercase;
+    }
+    h1 { font-size: 32px; color: var(--gold); margin-bottom: 10px; font-weight: 700; }
+    h2 { font-size: 20px; color: var(--cyan); margin: 36px 0 12px; }
+    p  { margin-bottom: 16px; font-size: 15px; color: var(--text); }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px 24px; margin-bottom: 24px;
+    }
+    .checklist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .checklist li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; }
+    .check   { color: var(--green); font-size: 16px; flex-shrink: 0; }
+    .pending { color: var(--muted); font-size: 16px; flex-shrink: 0; }
+    .world-demo {
+      background: #060d1a; border: 1px solid var(--border);
+      border-radius: 8px; padding: 16px 20px; font-family: 'Source Code Pro', monospace;
+      font-size: 13px; line-height: 1.9; margin: 16px 0;
+    }
+    .world-label { font-size: 10px; letter-spacing: 1px; font-weight: 700; margin-bottom: 8px; }
+    .world-0 .world-label { color: var(--cyan); }
+    .world-1 .world-label { color: var(--purple); }
+    .world-0 .world-val { color: var(--green); }
+    .world-1 .world-val { color: var(--muted); font-style: italic; }
+    footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; }
+  </style>
+  <script>
+    /* ── World 0 variables — visible to inject.js, NOT to content.js ── */
+    window.myPageSecret = 'I am only in world 0';
+    window.pageCounter  = 42;
+    window.pageConfig   = { theme: 'dark', debug: true, apiKey: 'world-0-only' };
+  </script>
+</head>
+<body>
+
+  <div class="badge">Module 02 Demo — Content Script Test Page</div>
+  <h1>⚡ Content Script Injection Target</h1>
+  <p>
+    This page is designed to test all four features introduced in Module 02:
+    floating button injection, word counting, long-word highlighting, and
+    main-world script injection via web_accessible_resources.
+  </p>
+
+  <div class="card">
+    <h2 style="margin-top:0">What to verify</h2>
+    <ul class="checklist">
+      <li><span class="check">✓</span><span>A gold ⚡ "Summarize" button appears floating at the bottom-right of this page</span></li>
+      <li><span class="check">✓</span><span>Clicking the button reveals a dark panel showing word count, reading time, and page title</span></li>
+      <li><span class="check">✓</span><span>The word count roughly matches the number of words visible on this page</span></li>
+      <li><span class="check">✓</span><span>Clicking "Highlight long words" wraps words of 9+ characters in a gold highlight</span></li>
+      <li><span class="check">✓</span><span>"Clear highlights" removes all highlights and restores the original text</span></li>
+      <li><span class="check">✓</span><span>The popup's "Content Script Status" dot is green when you open NeuralTab on this page</span></li>
+      <li><span class="check">✓</span><span>The popup's "Highlight Words" button triggers the same highlight from inside the popup</span></li>
+      <li><span class="check">✓</span><span>Open the browser Console (F12) — you should see a "[NeuralTab] Main world data:" log entry</span></li>
+      <li><span class="pending">○</span><span>The console log shows <code>frameworks: []</code> because this page uses no JS framework</span></li>
+      <li><span class="pending">○</span><span>The console log shows <code>pageSecret: undefined</code> — proving world isolation (inject.js CAN read it, content.js cannot)</span></li>
+    </ul>
+  </div>
+
+  <h2>The Isolated Worlds Demo</h2>
+
+  <p>
+    This page deliberately defines JavaScript variables in the <strong>main world (world 0)</strong>.
+    Open your browser DevTools console. Type <code>window.myPageSecret</code> — you will see
+    the value. Now open the content script's world by selecting "NeuralTab content script" in
+    the console's context dropdown. Type the same variable — you will get <code>undefined</code>.
+    Same page. Different JavaScript heaps. That is isolated worlds in action.
+  </p>
+
+  <div class="world-demo world-0">
+    <div class="world-label">WORLD 0 — Page's Main World (inject.js runs here)</div>
+    <div>window.myPageSecret  → <span class="world-val" id="w0-secret">reading...</span></div>
+    <div>window.pageCounter   → <span class="world-val" id="w0-counter">reading...</span></div>
+    <div>window.pageConfig    → <span class="world-val" id="w0-config">reading...</span></div>
+  </div>
+
+  <div class="world-demo world-1">
+    <div class="world-label">WORLD 1 — Content Script's Isolated World (content.js runs here)</div>
+    <div>window.myPageSecret  → <span class="world-val">undefined  ← isolated! content.js cannot see this</span></div>
+    <div>window.pageCounter   → <span class="world-val">undefined  ← isolated! content.js cannot see this</span></div>
+    <div>window.pageConfig    → <span class="world-val">undefined  ← isolated! content.js cannot see this</span></div>
+  </div>
+
+  <h2>Long-form Article Content — For Word Count Testing</h2>
+
+  <p>
+    Understanding the architecture of modern web browsers requires grappling with
+    an astonishing complexity of interconnected subsystems. The rendering engine,
+    JavaScript runtime, networking stack, and security sandbox all interact in
+    ways that are simultaneously elegant and terrifying. When a browser extension
+    developer writes a content script, they are participating in a carefully
+    orchestrated system that Chrome has evolved over fifteen years of continuous
+    development.
+  </p>
+  <p>
+    The concept of isolated worlds was introduced specifically to address a security
+    vulnerability that existed in early browser extension implementations. If content
+    scripts shared the same JavaScript execution environment as the host page, a
+    malicious page could modify JavaScript prototypes — Array.prototype.push, for
+    example — and corrupt the extension's behaviour. By separating the heaps entirely,
+    Chrome guarantees that the extension's JavaScript environment is pristine
+    regardless of what the host page does to its own environment.
+  </p>
+  <p>
+    Consider what this means practically: if a page runs
+    <code>Array.prototype.map = () => 'hacked'</code>, a content script that calls
+    <code>[1,2,3].map(x => x * 2)</code> will still return <code>[2,4,6]</code> because
+    it is operating on its own separate Array prototype chain. The page's modification
+    is invisible. This is not magic — it is a consequence of V8 creating separate
+    JavaScript contexts (called Isolates and Contexts at the engine level) for each
+    world. We explore this in depth in Module 10 when we study V8 internals directly.
+  </p>
+  <p>
+    Web Accessible Resources solve a complementary problem. An extension's files live
+    inside the browser's extension package — inaccessible to the web by default. If
+    a content script tries to inject an image from the extension package into a page
+    using a relative URL, it will get a 404 because the page's origin cannot resolve
+    extension-internal paths. The web_accessible_resources manifest key is an explicit
+    whitelist: "these specific files may be loaded by pages whose origin matches these
+    patterns." Chrome generates a special URL for each listed resource in the format
+    chrome-extension://[extension-id]/[resource-path], which the page can load as if
+    it were a normal web resource.
+  </p>
+  <p>
+    This is also why inject.js can be loaded as a script tag from content.js.
+    The content script builds a URL by calling chrome.runtime.getURL('assets/inject.js'),
+    which returns the full chrome-extension:// URL. It then creates a script element with
+    that URL as the src attribute and appends it to the document. Chrome fetches the file
+    from the extension package, executes it in the page's main world, and the
+    cross-world communication channel via postMessage does the rest.
+  </p>
+  <p>
+    Single-Page Applications present a unique challenge for content script developers.
+    In a traditional multi-page website, every navigation triggers a full page reload
+    and Chrome re-injects the content script fresh. In a React or Next.js application,
+    clicking a navigation link updates the URL and rerenders the component tree without
+    any page reload. Chrome does not re-inject content scripts on these soft navigations
+    because there is no navigation event — only DOM mutations and a history.pushState call.
+    The MutationObserver approach in NeuralTab's content.js is the standard solution:
+    watch for significant DOM changes, compare the URL, and reset state accordingly.
+  </p>
+
+  <footer>
+    NeuralTab · Module 02 of 25 · Content Scripts, DOM Surgery &amp; Web Accessible Resources
+  </footer>
+
+  <script>
+    /* Populate the world-0 display from within the main world */
+    document.getElementById('w0-secret').textContent  = JSON.stringify(window.myPageSecret);
+    document.getElementById('w0-counter').textContent = JSON.stringify(window.pageCounter);
+    document.getElementById('w0-config').textContent  = JSON.stringify(window.pageConfig);
+  </script>
+
+</body>
+</html>

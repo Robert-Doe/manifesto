@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Module 02 — NeuralTab Browser Extension Course</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#0b0f1a; --bg2:#111827; --bg3:#1a2235; --card:#141c2e;
+      --border:#1e3a5f; --gold:#f5c842; --cyan:#38bdf8; --purple:#a78bfa;
+      --red:#f87171; --green:#4ade80; --teal:#0d9488; --orange:#fb923c;
+      --text:#e2e8f0; --muted:#7a9bbf; --code-bg:#060d1a;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background:var(--bg); color:var(--text); font-family:'Lato',system-ui,sans-serif; font-size:16px; line-height:1.75; }
+
+    /* ── Topbar ── */
+    .topbar { background:var(--bg2); border-bottom:1px solid var(--border); padding:14px 28px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+    .topbar-brand { font-weight:700; font-size:15px; color:var(--gold); }
+    .topbar-nav { display:flex; gap:20px; list-style:none; }
+    .topbar-nav a { color:var(--muted); text-decoration:none; font-size:13px; transition:color .2s; }
+    .topbar-nav a:hover { color:var(--cyan); }
+
+    /* ── Layout ── */
+    .page-wrap { max-width:860px; margin:0 auto; padding:0 28px 100px; }
+
+    /* ── Hero ── */
+    .hero { padding:64px 0 48px; border-bottom:1px solid var(--border); margin-bottom:56px; }
+    .module-badge { display:inline-flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); border-radius:30px; padding:6px 18px; margin-bottom:28px; }
+    .module-badge-number { font-family:'Source Code Pro',monospace; font-size:12px; font-weight:600; color:var(--gold); letter-spacing:1px; }
+    .module-badge-divider { width:1px; height:14px; background:var(--border); }
+    .module-badge-label { font-size:12px; color:var(--muted); }
+    h1 { font-family:'Playfair Display',Georgia,serif; font-size:clamp(30px,5vw,50px); font-weight:900; color:var(--gold); line-height:1.15; margin-bottom:18px; }
+    .subtitle { font-size:18px; color:var(--muted); max-width:640px; line-height:1.6; margin-bottom:32px; }
+
+    /* ── Prereqs ── */
+    .prereq-bar { background:var(--card); border:1px solid var(--border); border-left:4px solid var(--teal); border-radius:0 8px 8px 0; padding:16px 20px; display:flex; align-items:flex-start; gap:14px; margin-bottom:32px; }
+    .prereq-icon { font-size:20px; flex-shrink:0; margin-top:2px; }
+    .prereq-title { font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--teal); margin-bottom:6px; }
+    .prereq-list { list-style:none; display:flex; flex-direction:column; gap:4px; }
+    .prereq-list li { font-size:14px; color:var(--text); display:flex; align-items:flex-start; gap:8px; }
+    .prereq-list li::before { content:'✓'; color:var(--teal); font-size:12px; flex-shrink:0; margin-top:3px; }
+
+    /* ── Deliverables ── */
+    .deliverables { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:24px 28px; margin-bottom:56px; }
+    .deliverables-title { font-size:12px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--cyan); margin-bottom:16px; }
+    .deliverable-list { list-style:none; display:flex; flex-direction:column; gap:12px; }
+    .deliverable-list li { display:flex; align-items:flex-start; gap:12px; font-size:15px; }
+    .deliverable-num { flex-shrink:0; width:24px; height:24px; background:var(--bg3); border:1px solid var(--border); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Source Code Pro',monospace; font-size:11px; font-weight:600; color:var(--gold); margin-top:2px; }
+
+    /* ── Headings ── */
+    h2 { font-family:'Playfair Display',Georgia,serif; font-size:28px; font-weight:700; color:var(--cyan); margin:56px 0 20px; padding-top:8px; border-top:1px solid var(--border); }
+    h3 { font-family:'Lato',sans-serif; font-size:18px; font-weight:700; color:var(--purple); margin:32px 0 12px; }
+    h4 { font-size:14px; font-weight:700; color:var(--orange); letter-spacing:.5px; margin:24px 0 10px; text-transform:uppercase; }
+    p  { margin-bottom:16px; font-size:15.5px; color:var(--text); }
+    p:last-child { margin-bottom:0; }
+    strong { color:var(--gold); font-weight:700; }
+    em { color:var(--cyan); font-style:normal; }
+    a  { color:var(--cyan); text-decoration:underline; text-underline-offset:3px; }
+
+    /* ── Callouts ── */
+    .callout { border-radius:0 10px 10px 0; padding:18px 22px; margin:28px 0; font-size:14.5px; line-height:1.65; }
+    .callout-title { font-size:11px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; margin-bottom:8px; }
+    .callout.tip     { background:#091a10; border-left:4px solid var(--green);  } .callout.tip  .callout-title { color:var(--green); }
+    .callout.warn    { background:#1a1000; border-left:4px solid var(--orange); } .callout.warn .callout-title { color:var(--orange); }
+    .callout.danger  { background:#1a0808; border-left:4px solid var(--red);    } .callout.danger .callout-title { color:var(--red); }
+    .callout.insight { background:#0d0d1f; border-left:4px solid var(--purple); } .callout.insight .callout-title { color:var(--purple); }
+    .callout.spec    { background:#091518; border-left:4px solid var(--cyan);   } .callout.spec   .callout-title { color:var(--cyan); }
+
+    /* ── Code blocks ── */
+    .code-block { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; margin:24px 0; overflow:hidden; }
+    .code-header { background:var(--card); border-bottom:1px solid var(--border); padding:10px 18px; display:flex; align-items:center; justify-content:space-between; }
+    .code-filename { font-family:'Source Code Pro',monospace; font-size:12px; color:var(--gold); font-weight:600; }
+    .code-lang { font-size:11px; color:var(--muted); background:var(--bg3); border:1px solid var(--border); border-radius:4px; padding:2px 8px; font-family:'Source Code Pro',monospace; }
+    pre { padding:22px 24px; overflow-x:auto; font-family:'Source Code Pro',monospace; font-size:13px; line-height:1.8; color:var(--text); tab-size:2; }
+    code { font-family:'Source Code Pro',monospace; font-size:13px; background:var(--code-bg); color:var(--cyan); padding:2px 6px; border-radius:4px; border:1px solid var(--border); }
+    .k  { color:#c792ea; } .s { color:#c3e88d; } .c { color:#546e7a; font-style:italic; }
+    .n  { color:#82aaff; } .v { color:#f78c6c; } .fn{ color:#82aaff; } .p { color:var(--text); }
+
+    /* ── Terminal ── */
+    .terminal { background:#010409; border:1px solid #30363d; border-radius:10px; overflow:hidden; margin:24px 0; }
+    .terminal-bar { background:#161b22; border-bottom:1px solid #30363d; padding:10px 16px; display:flex; align-items:center; gap:8px; }
+    .terminal-dot { width:12px; height:12px; border-radius:50%; }
+    .dot-red{background:#ff5f57;} .dot-yellow{background:#ffbd2e;} .dot-green{background:#28c840;}
+    .terminal-title { font-size:12px; color:#8b949e; margin-left:8px; font-family:'Source Code Pro',monospace; }
+    .terminal pre { padding:18px 22px; color:#c9d1d9; font-size:13px; }
+    .term-prompt{color:#4ade80;} .term-cmd{color:#e2e8f0;} .term-out{color:#8b949e;} .term-ok{color:#4ade80;} .term-warn{color:#fb923c;}
+
+    /* ── Diagram ── */
+    .diagram { background:var(--code-bg); border:1px solid var(--border); border-radius:10px; padding:28px 24px; margin:28px 0; font-family:'Source Code Pro',monospace; font-size:13px; color:var(--text); line-height:2; overflow-x:auto; }
+
+    /* ── Steps ── */
+    .steps { counter-reset:step-counter; list-style:none; display:flex; flex-direction:column; gap:20px; margin:24px 0; }
+    .steps li { counter-increment:step-counter; display:flex; gap:18px; align-items:flex-start; }
+    .steps li::before { content:counter(step-counter); flex-shrink:0; width:30px; height:30px; background:var(--bg3); border:2px solid var(--cyan); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Source Code Pro',monospace; font-size:12px; font-weight:600; color:var(--cyan); margin-top:2px; }
+    .steps li .step-body { flex:1; }
+    .steps li .step-body p { margin-bottom:8px; }
+
+    /* ── Exercises ── */
+    .exercise { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:24px 28px; margin:24px 0; }
+    .exercise-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+    .exercise-tag { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:3px 10px; border-radius:4px; }
+    .tag-warmup  { background:#0d3320; color:var(--green);  border:1px solid var(--green);  }
+    .tag-core    { background:#1a1500; color:var(--gold);   border:1px solid var(--gold);   }
+    .tag-stretch { background:#1a0820; color:var(--purple); border:1px solid var(--purple); }
+    .exercise-title { font-size:16px; font-weight:700; color:var(--text); }
+    .exercise p  { font-size:14.5px; margin-bottom:12px; }
+    .exercise ul { padding-left:20px; color:var(--text); font-size:14.5px; }
+    .exercise li { margin-bottom:6px; }
+    .exercise-hint { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:10px 14px; font-size:13px; color:var(--muted); margin-top:14px; }
+    .exercise-hint strong { color:var(--orange); }
+
+    /* ── Two-col grid ── */
+    .concept-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:24px 0; }
+    @media(max-width:600px){ .concept-grid{grid-template-columns:1fr;} }
+    .concept-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:18px 20px; }
+    .concept-card-title { font-size:13px; font-weight:700; color:var(--gold); margin-bottom:8px; }
+    .concept-card p { font-size:13.5px; color:var(--muted); margin-bottom:0; }
+
+    /* ── Comparison table ── */
+    .cmp-table { width:100%; border-collapse:collapse; margin:20px 0; font-size:14px; }
+    .cmp-table th { text-align:left; padding:10px 16px; background:var(--bg3); color:var(--muted); font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; border-bottom:1px solid var(--border); }
+    .cmp-table td { padding:12px 16px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text); font-size:14px; line-height:1.6; }
+    .cmp-table tr:last-child td { border-bottom:none; }
+    .cmp-table .label { font-family:'Source Code Pro',monospace; font-size:12px; color:var(--cyan); white-space:nowrap; }
+    .cmp-table .yes { color:var(--green); font-weight:700; }
+    .cmp-table .no  { color:var(--red);   font-weight:700; }
+
+    /* ── Spec refs ── */
+    .spec-ref { background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:14px 18px; margin:16px 0; font-size:13.5px; display:flex; align-items:flex-start; gap:12px; }
+    .spec-ref-icon { font-size:18px; flex-shrink:0; }
+    .spec-ref-body { color:var(--muted); line-height:1.6; }
+    .spec-ref-body a { color:var(--cyan); }
+
+    /* ── World visualiser box ── */
+    .world-box { border-radius:8px; padding:18px 22px; margin:12px 0; font-family:'Source Code Pro',monospace; font-size:13px; line-height:2; }
+    .world-box.world-0 { background:#060f18; border:2px solid var(--cyan); }
+    .world-box.world-1 { background:#0d060f; border:2px solid var(--purple); }
+    .world-box .wlabel { font-size:10px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; margin-bottom:10px; }
+    .world-box.world-0 .wlabel { color:var(--cyan); }
+    .world-box.world-1 .wlabel { color:var(--purple); }
+    .world-box .yes { color:var(--green); }
+    .world-box .no  { color:var(--red); }
+    .world-box .neutral { color:var(--muted); }
+
+    /* ── Next module ── */
+    .next-module { background:var(--card); border:1px solid var(--border); border-top:3px solid var(--cyan); border-radius:0 0 10px 10px; padding:28px 32px; margin-top:56px; }
+    .next-label { font-size:11px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--cyan); margin-bottom:12px; }
+    .next-title { font-family:'Playfair Display',Georgia,serif; font-size:22px; color:var(--gold); margin-bottom:12px; }
+    .next-body  { font-size:15px; color:var(--muted); line-height:1.65; }
+    .next-body strong { color:var(--text); }
+
+    hr { border:none; border-top:1px solid var(--border); margin:40px 0; }
+  </style>
+</head>
+<body>
+
+<nav class="topbar">
+  <span class="topbar-brand">⚡ NeuralTab Course</span>
+  <ul class="topbar-nav">
+    <li><a href="#concepts">Concepts</a></li>
+    <li><a href="#worlds">Isolated Worlds</a></li>
+    <li><a href="#war">WAR</a></li>
+    <li><a href="#walkthrough">Code</a></li>
+    <li><a href="#build">Build</a></li>
+    <li><a href="#exercises">Exercises</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrap">
+
+<!-- ═══════════════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <div class="module-badge">
+    <span class="module-badge-number">MODULE 02 OF 25</span>
+    <div class="module-badge-divider"></div>
+    <span class="module-badge-label">Foundations</span>
+  </div>
+
+  <h1>Content Scripts, DOM Surgery &amp; Web Accessible Resources</h1>
+
+  <p class="subtitle">
+    Break NeuralTab out of its popup prison. Inject a living button into every
+    page on the internet, count words with a DOM tree walker, highlight text
+    without touching the page's CSS, read the page's private JavaScript variables
+    from the main world, and watch for SPA navigation with a MutationObserver.
+  </p>
+
+  <div class="prereq-bar">
+    <span class="prereq-icon">🎓</span>
+    <div class="prereq-content">
+      <div class="prereq-title">Prerequisites</div>
+      <ul class="prereq-list">
+        <li>Module 01 complete — you have NeuralTab loading as an unpacked extension with a working popup</li>
+        <li>You understand that <code>manifest.json</code> is Chrome's entry point into your extension</li>
+        <li>You know what the DOM is and have used <code>document.querySelector</code> at least once</li>
+        <li>You have seen a Promise before — you do not need to master async/await yet</li>
+        <li>Copy the <code>icons/</code> folder from Module 01 into this module's <code>icons/</code> folder</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Deliverables -->
+<section>
+  <div class="deliverables">
+    <div class="deliverables-title">What You Will Build in This Module</div>
+    <ul class="deliverable-list">
+      <li><span class="deliverable-num">1</span><span>A floating ⚡ Summarize button injected into every webpage via a content script — it appears on top of any site without disturbing its layout</span></li>
+      <li><span class="deliverable-num">2</span><span>A dark analysis panel (Shadow DOM isolated) showing live word count, reading time, and page title for any article</span></li>
+      <li><span class="deliverable-num">3</span><span>A word highlighter that walks the DOM's text nodes and wraps long words in <code>&lt;mark&gt;</code> elements — without breaking the page's structure</span></li>
+      <li><span class="deliverable-num">4</span><span>A main-world injector (<code>assets/inject.js</code>) that reads page JavaScript variables unreachable from the content script, proving isolated worlds with a live demo</span></li>
+      <li><span class="deliverable-num">5</span><span>A MutationObserver that detects SPA route changes and resets NeuralTab's state without a full page reload</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     CONCEPTS
+════════════════════════════════════════════════════════ -->
+<section id="concepts">
+  <h2>What Is a Content Script?</h2>
+
+  <p>
+    In Module 01, NeuralTab existed entirely inside its own popup. It could read
+    tab metadata — URLs, titles — but it could not touch the actual content of any
+    webpage. If you wanted to highlight text on Wikipedia, count words on a news
+    article, or inject a button onto a shopping page, the popup alone is powerless.
+    That is what content scripts solve.
+  </p>
+
+  <p>
+    A <strong>content script</strong> is a JavaScript file that Chrome automatically
+    injects into web pages you visit, based on URL patterns you declare in
+    <code>manifest.json</code>. Once injected, the script can read and modify the
+    page's DOM — create elements, change styles, add event listeners, extract text —
+    exactly as if it were the page's own JavaScript. From the DOM's perspective,
+    content script code is indistinguishable from page code. But from the JavaScript
+    engine's perspective, they are in entirely different worlds.
+  </p>
+
+  <p>
+    Think of it this way: the DOM is a shared whiteboard. Both the page's JavaScript
+    and your content script can draw on it, erase from it, and read what's on it.
+    But each party has their own private notepad (the JavaScript heap) that the other
+    cannot see or touch. This is the fundamental mental model for Module 02. Master
+    it now and the rest of content script development becomes predictable.
+  </p>
+
+  <p>
+    Content scripts are declared in <code>manifest.json</code> under the
+    <code>content_scripts</code> array. Each entry specifies which URLs to inject into
+    (the <code>matches</code> pattern), which files to inject (<code>js</code> and
+    <code>css</code> arrays), and when to inject relative to the page lifecycle
+    (<code>run_at</code>). Chrome handles all the injection mechanics — you never
+    call an "inject" function yourself from a content script perspective. The script
+    simply starts running when the matching page loads.
+  </p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip — Content Scripts Are Cheap</div>
+    A common misconception is that injecting a content script into every page is
+    expensive. It is not. Chrome injects the script's bytes once per matching page
+    load. If the script is small and fast to execute, the overhead is negligible.
+    NeuralTab's <code>content.js</code> adds roughly 2ms to page load time on a
+    modern machine. The cost only becomes significant if your script does heavy
+    synchronous work on startup — which is why NeuralTab defers all DOM operations
+    until after <code>document_idle</code>.
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     ISOLATED WORLDS
+════════════════════════════════════════════════════════ -->
+<section id="worlds">
+  <h2>Isolated Worlds — The Most Important Concept in This Module</h2>
+
+  <p>
+    Understanding isolated worlds is not optional. Every confusing content script
+    bug you will ever encounter — "why can't I read that variable?", "why did my
+    prototype modification not affect the page?", "why does the page not see my
+    global function?" — has isolated worlds as its root cause. Let's understand
+    it precisely.
+  </p>
+
+  <p>
+    Chrome's JavaScript engine (V8) organises execution using two primitives: an
+    <em>Isolate</em> (a completely independent JavaScript VM with its own heap) and
+    a <em>Context</em> (a sandboxed environment within an Isolate that has its own
+    global object). A tab gets one Isolate. Inside that Isolate, Chrome creates
+    multiple Contexts — one for the page (the <strong>main world</strong>, world 0),
+    one for each content script that injects (each gets its own isolated world,
+    starting at world 1). Each Context has its own global <code>window</code> object,
+    its own prototype chain for built-in types, and its own variable bindings.
+  </p>
+
+  <p>
+    The DOM is not a JavaScript object — it is a C++ object tree maintained by
+    Chrome's Blink rendering engine. Both the main world and isolated worlds hold
+    JavaScript <em>wrappers</em> around the same underlying C++ DOM nodes. When your
+    content script reads <code>document.title</code>, it gets a JS wrapper that calls
+    into Blink to retrieve the title. When the page reads <code>document.title</code>,
+    it gets a different JS wrapper that calls the same Blink getter. Same underlying
+    data. Different wrapper objects in different heaps. That is why both can see the
+    same DOM but neither can see the other's variables.
+  </p>
+
+  <div class="diagram">
+    <pre>
+┌──────────────────────────────────────────────────────────────────┐
+│  V8 Isolate (one per tab)                                        │
+│                                                                  │
+│  ┌──────────────────────────┐  ┌──────────────────────────────┐  │
+│  │  Context: World 0        │  │  Context: World 1            │  │
+│  │  (Page / Main World)     │  │  (content.js Isolated World) │  │
+│  │                          │  │                              │  │
+│  │  window.React = {...}    │  │  window.React = undefined    │  │
+│  │  window.mySecret = "x"  │  │  window.mySecret = undefined │  │
+│  │  Array.prototype.push    │  │  Array.prototype.push ──┐    │  │
+│  │    = 'hijacked' ←page    │  │    = [native] ←clean    │    │  │
+│  │                          │  │                          │    │  │
+│  │  inject.js runs here ✓   │  │  content.js runs here ✓ │    │  │
+│  │  chrome.* = undefined    │  │  chrome.* = full API    │    │  │
+│  │                          │  │                          │    │  │
+│  └──────────────────────────┘  └──────────────────────────┘    │  │
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐    │
+│  │  Blink DOM (C++ objects) — shared, accessible from both  │    │
+│  │  document.body, document.title, all HTML elements...     │    │
+│  └──────────────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────────────┘
+
+  Communication channels that CROSS the world boundary:
+  ├── window.postMessage() — fires in both worlds via the shared window event system
+  └── DOM mutation — writing a data attribute in world 0 is visible in world 1
+    </pre>
+  </div>
+
+  <h3>What Each World Can and Cannot Do</h3>
+
+  <div class="world-box world-0">
+    <div class="wlabel">World 0 — Main World — inject.js runs here</div>
+    <div><span class="yes">✓</span> Read page JS variables: window.React, window.__NEXT_DATA__, window.myVar</div>
+    <div><span class="yes">✓</span> Access the DOM — read and write nodes, attributes, styles</div>
+    <div><span class="yes">✓</span> Run synchronously with page JavaScript — can intercept function calls</div>
+    <div><span class="no">✗</span> Access chrome.* APIs — chrome.runtime, chrome.storage are all undefined</div>
+    <div><span class="no">✗</span> Access content script variables — the other world's heap is invisible</div>
+    <div><span class="no">✗</span> Receive messages from chrome.runtime.sendMessage directly</div>
+  </div>
+
+  <div class="world-box world-1">
+    <div class="wlabel">World 1 — Isolated World — content.js runs here</div>
+    <div><span class="yes">✓</span> Access chrome.* APIs — full chrome.runtime, chrome.storage, chrome.tabs</div>
+    <div><span class="yes">✓</span> Access the DOM — same nodes as world 0, different JS wrappers</div>
+    <div><span class="yes">✓</span> Receive messages via chrome.runtime.onMessage</div>
+    <div><span class="no">✗</span> Read page JS variables — window.React, window.__data__ are undefined</div>
+    <div><span class="no">✗</span> Affect the page's prototype chain — modifications stay in world 1</div>
+    <div><span class="no">✗</span> Access variables set by page scripts in world 0</div>
+  </div>
+
+  <div class="callout insight">
+    <div class="callout-title">Key Insight — Prototype Pollution Cannot Cross Worlds</div>
+    This is V8's security guarantee. If a malicious page runs
+    <code>Object.prototype.toString = () => 'hacked'</code>, your content script's
+    <code>Object.prototype.toString</code> is unaffected — it still works correctly
+    because it references a different prototype object in a different Context. This is
+    why you can trust your content script to behave correctly on any page, no matter
+    how aggressively that page modifies its own JavaScript environment.
+  </div>
+
+  <h3>Crossing the World Boundary</h3>
+
+  <p>
+    There are exactly two ways to move data between world 0 and world 1:
+  </p>
+
+  <table class="cmp-table">
+    <thead><tr><th>Method</th><th>Direction</th><th>How it works</th><th>Limitation</th></tr></thead>
+    <tbody>
+      <tr>
+        <td class="label">window.postMessage()</td>
+        <td>Either direction</td>
+        <td>The <code>window</code> object is shared between worlds (as a DOM concept, not a JS object). Events fired on it propagate to both worlds' event listeners.</td>
+        <td>Anyone on the page can listen — tag your messages with a <code>source</code> field to filter them.</td>
+      </tr>
+      <tr>
+        <td class="label">DOM data attributes</td>
+        <td>Either direction</td>
+        <td>Set <code>element.dataset.myValue = 'x'</code> in world 0 — world 1 can read it via the same DOM node, because both worlds wrap the same C++ element.</td>
+        <td>Page JavaScript can read your data attributes — do not store secrets here.</td>
+      </tr>
+      <tr>
+        <td class="label">Custom DOM events</td>
+        <td>Either direction</td>
+        <td><code>dispatchEvent(new CustomEvent('nt-ready', { detail: data }))</code> on a DOM element — both worlds' listeners receive it.</td>
+        <td>Same visibility issue as postMessage — page scripts can intercept.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    NeuralTab uses <code>window.postMessage</code> for world-0 → world-1 communication.
+    <code>inject.js</code> (world 0) sends a message with
+    <code>source: 'neuraltab-inject'</code>. <code>content.js</code> (world 1) listens
+    and filters by that source field, ignoring all other messages on the window.
+  </p>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     WEB ACCESSIBLE RESOURCES
+════════════════════════════════════════════════════════ -->
+<section id="war">
+  <h2>Web Accessible Resources — Sharing Extension Files With Pages</h2>
+
+  <p>
+    By default, every file inside your extension package is completely hidden from
+    the web. If a content script tries to load a font file using a relative path
+    like <code>./assets/fonts/inter.woff2</code>, it will get a 404 — the page's
+    origin (<code>https://example.com</code>) cannot resolve extension-internal paths.
+  </p>
+
+  <p>
+    <strong>Web Accessible Resources (WAR)</strong> is the solution. It is a
+    <code>manifest.json</code> key that explicitly whitelists specific files for
+    access by specific URL patterns. Chrome generates a unique URL for each listed
+    resource in the format:
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">Generated URL format</span><span class="code-lang">text</span></div>
+    <pre>chrome-extension://[your-extension-id]/[resource-path]
+
+Example:
+chrome-extension://abcdefghijklmnopqrstuvwxyzabcdef/assets/inject.js
+chrome-extension://abcdefghijklmnopqrstuvwxyzabcdef/assets/fonts/inter-regular.woff2</pre>
+  </div>
+
+  <p>
+    Your content script generates this URL by calling
+    <code>chrome.runtime.getURL('assets/inject.js')</code>. This function returns the
+    full <code>chrome-extension://</code> URL for the current extension. The page can
+    then load that URL as a normal web resource — Chrome intercepts the request and
+    serves the file from the extension package.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">manifest.json — web_accessible_resources</span><span class="code-lang">JSON</span></div>
+    <pre><span class="n">"web_accessible_resources"</span><span class="p">: [</span>
+  <span class="p">{</span>
+    <span class="c">// Which files to expose to the web</span>
+    <span class="n">"resources"</span><span class="p">: [</span>
+      <span class="s">"assets/inject.js"</span><span class="p">,</span>
+      <span class="s">"assets/fonts/inter-regular.woff2"</span><span class="p">,</span>
+      <span class="s">"assets/fonts/inter-bold.woff2"</span>
+    <span class="p">],</span>
+
+    <span class="c">// Which pages are allowed to load these resources.
+    // "&lt;all_urls&gt;" means any page can load them.
+    // You can narrow this to specific domains for security:
+    // e.g., ["https://example.com/*"] restricts to one site.</span>
+    <span class="n">"matches"</span><span class="p">: [</span><span class="s">"&lt;all_urls&gt;"</span><span class="p">]</span>
+  <span class="p">}</span>
+<span class="p">]</span></pre>
+  </div>
+
+  <div class="callout warn">
+    <div class="callout-title">Warning — WAR Enables Extension Fingerprinting</div>
+    Every file listed in <code>web_accessible_resources</code> is accessible by any
+    page on the internet at its <code>chrome-extension://</code> URL. A page can
+    probe for the existence of your extension by trying to load one of these files
+    and checking whether it gets a response or a 404. If it loads, the extension is
+    installed. This is <strong>Extension Fingerprinting</strong> — we cover detection
+    and countermeasures in depth in Module 11. For now, understand that WAR is a
+    necessary tradeoff: we need <code>inject.js</code> to be web-accessible so it can
+    run in world 0, but this makes our extension detectable by any site that probes
+    for it.
+  </div>
+
+  <h3>Injecting Fonts Into Web Pages</h3>
+
+  <p>
+    The same mechanism works for fonts. If you want NeuralTab's injected UI to use
+    a specific font that is guaranteed to look correct regardless of what the host
+    page does, you ship the font inside the extension package, list it in WAR, and
+    load it from content.js using a <code>@font-face</code> rule pointing to the
+    <code>chrome-extension://</code> URL. Shadow DOM's style isolation ensures the
+    font applies only inside your panel, not to the rest of the page.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">content.js — loading an extension font into Shadow DOM</span><span class="code-lang">JavaScript</span></div>
+    <pre><span class="c">// chrome.runtime.getURL() converts a relative path to the full
+// chrome-extension:// URL for this extension's package.</span>
+<span class="k">const</span> fontUrl <span class="p">=</span> chrome.runtime.<span class="fn">getURL</span><span class="p">(</span><span class="s">'assets/fonts/inter-regular.woff2'</span><span class="p">);</span>
+
+<span class="k">const</span> style <span class="p">=</span> document.<span class="fn">createElement</span><span class="p">(</span><span class="s">'style'</span><span class="p">);</span>
+style.textContent <span class="p">=</span> <span class="s">`
+  @font-face {
+    font-family: 'Inter';
+    src: url('<span class="p">${</span>fontUrl<span class="p">}</span>') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+  }
+`</span><span class="p">;</span>
+
+<span class="c">// Inject into the Shadow Root — font loads from extension package,
+// applies only inside the shadow tree. Zero impact on the host page.</span>
+shadowRoot.<span class="fn">appendChild</span><span class="p">(</span>style<span class="p">);</span></pre>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     CODE WALKTHROUGH
+════════════════════════════════════════════════════════ -->
+<section id="walkthrough">
+  <h2>Code Walkthrough — Every New File Explained</h2>
+
+  <h3>manifest.json — Three New Keys</h3>
+
+  <p>
+    Module 02 adds three new sections to the manifest. Each one is a declarative
+    instruction that Chrome reads at extension load time — no code needed to trigger
+    the injection itself.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">manifest.json — new additions highlighted</span><span class="code-lang">JSON</span></div>
+    <pre><span class="p">{</span>
+  <span class="n">"manifest_version"</span><span class="p">:</span> <span class="v">3</span><span class="p">,</span>
+  <span class="n">"name"</span><span class="p">:</span> <span class="s">"NeuralTab"</span><span class="p">,</span>
+  <span class="n">"version"</span><span class="p">:</span> <span class="s">"0.2.0"</span><span class="p">,</span>     <span class="c">// ← bumped from 0.1.0</span>
+
+  <span class="c">// ... action and icons same as Module 01 ...</span>
+
+  <span class="c">// ── NEW ─────────────────────────────────────────────────────</span>
+  <span class="c">// Chrome reads this array and automatically injects the listed
+  // files into every page whose URL matches the pattern.
+  // No JavaScript call is needed — this is purely declarative.</span>
+  <span class="n">"content_scripts"</span><span class="p">: [</span>
+    <span class="p">{</span>
+      <span class="c">// "&lt;all_urls&gt;" matches every http://, https://, ftp://, file:// URL.
+      // Chrome automatically excludes chrome://, chrome-extension://,
+      // and the Chrome Web Store regardless of this pattern.</span>
+      <span class="n">"matches"</span><span class="p">: [</span><span class="s">"&lt;all_urls&gt;"</span><span class="p">],</span>
+
+      <span class="c">// JS files to inject — loaded in the order listed.
+      // Each runs in a separate isolated world (world 1).</span>
+      <span class="n">"js"</span><span class="p">: [</span><span class="s">"content.js"</span><span class="p">],</span>
+
+      <span class="c">// CSS to inject into the page's real DOM style scope.
+      // Applied BEFORE content.js runs — no FOUC.</span>
+      <span class="n">"css"</span><span class="p">: [</span><span class="s">"content.css"</span><span class="p">],</span>
+
+      <span class="c">// When to inject relative to page lifecycle:
+      // "document_start"  — before any HTML is parsed (DOM not ready)
+      // "document_end"    — after HTML parsed, before subresources load
+      // "document_idle"   — after DOMContentLoaded AND page is idle ← safest</span>
+      <span class="n">"run_at"</span><span class="p">:</span> <span class="s">"document_idle"</span><span class="p">,</span>
+
+      <span class="c">// false = only inject into the TOP-LEVEL frame.
+      // true  = also inject into iframes (risky — iframes can be anything).
+      // Always start with false.</span>
+      <span class="n">"all_frames"</span><span class="p">:</span> <span class="k">false</span>
+    <span class="p">}</span>
+  <span class="p">],</span>
+
+  <span class="c">// ── NEW ─────────────────────────────────────────────────────
+  // Whitelist specific files for web access.
+  // Without this, inject.js cannot be loaded as a &lt;script src&gt; tag.</span>
+  <span class="n">"web_accessible_resources"</span><span class="p">: [</span>
+    <span class="p">{</span>
+      <span class="n">"resources"</span><span class="p">: [</span><span class="s">"assets/inject.js"</span><span class="p">,</span> <span class="s">"assets/fonts/inter-regular.woff2"</span><span class="p">],</span>
+      <span class="n">"matches"</span><span class="p">: [</span><span class="s">"&lt;all_urls&gt;"</span><span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span></pre>
+  </div>
+
+  <h3>content.js — Shadow DOM Injection and DOM Surgery</h3>
+
+  <p>
+    Let's walk through the four most important functions in <code>content.js</code>,
+    explaining the <em>why</em> behind each decision.
+  </p>
+
+  <h4>Part 1 — Shadow DOM Host Creation</h4>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">content.js — injectFloatingButton()</span><span class="code-lang">JavaScript</span></div>
+    <pre><span class="fn">injectFloatingButton</span><span class="p">() {</span>
+  <span class="c">// Step 1: Create a host element in the REAL DOM.
+  // This element is visible to the page, to DevTools, and to
+  // the page's CSS. We give it a unique ID so we can find it
+  // again if needed (e.g., to hide it from the popup).</span>
+  <span class="k">const</span> host <span class="p">=</span> document.<span class="fn">createElement</span><span class="p">(</span><span class="s">'div'</span><span class="p">);</span>
+  host.id <span class="p">=</span> <span class="s">'neuraltab-host'</span><span class="p">;</span>
+
+  <span class="c">// Step 2: Attach a Shadow DOM to the host.
+  // Everything inside this shadow root is INVISIBLE to the page's CSS.
+  // mode: 'open' allows JS to reach inside via host.shadowRoot.
+  // mode: 'closed' blocks that — use 'closed' in production.</span>
+  <span class="k">this</span>.shadowRoot <span class="p">=</span> host.<span class="fn">attachShadow</span><span class="p">({</span> mode<span class="p">:</span> <span class="s">'open'</span> <span class="p">});</span>
+
+  <span class="c">// Step 3: Inject styles INTO the shadow root.
+  // These styles are completely isolated — they cannot affect
+  // anything outside the shadow boundary.</span>
+  <span class="k">const</span> style <span class="p">=</span> document.<span class="fn">createElement</span><span class="p">(</span><span class="s">'style'</span><span class="p">);</span>
+  style.textContent <span class="p">=</span> <span class="k">this</span>.<span class="fn">getButtonStyles</span><span class="p">();</span>
+  <span class="k">this</span>.shadowRoot.<span class="fn">appendChild</span><span class="p">(</span>style<span class="p">);</span>
+
+  <span class="c">// Step 4: Build the button INSIDE the shadow root.
+  // It is rendered by the browser but styled only by our shadow CSS.</span>
+  <span class="k">this</span>.floatingBtn <span class="p">=</span> document.<span class="fn">createElement</span><span class="p">(</span><span class="s">'button'</span><span class="p">);</span>
+  <span class="k">this</span>.floatingBtn.id <span class="p">=</span> <span class="s">'nt-btn'</span><span class="p">;</span>
+  <span class="k">this</span>.floatingBtn.<span class="fn">addEventListener</span><span class="p">(</span><span class="s">'click'</span><span class="p">,</span>
+    <span class="p">() =&gt;</span> <span class="k">this</span>.<span class="fn">onSummarizeClick</span><span class="p">());</span>
+  <span class="k">this</span>.shadowRoot.<span class="fn">appendChild</span><span class="p">(</span><span class="k">this</span>.floatingBtn<span class="p">);</span>
+
+  <span class="c">// Step 5: Mount the host into the REAL page DOM.
+  // This is the single moment we touch document.body.
+  // content.css handles the host's real-DOM positioning.</span>
+  document.body.<span class="fn">appendChild</span><span class="p">(</span>host<span class="p">);</span>
+<span class="p">}</span></pre>
+  </div>
+
+  <h4>Part 2 — DOM TreeWalker Word Count</h4>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">content.js — countWords()</span><span class="code-lang">JavaScript</span></div>
+    <pre><span class="fn">countWords</span><span class="p">() {</span>
+  <span class="c">// createTreeWalker traverses the DOM tree visiting only the
+  // node types specified by the second argument.
+  // NodeFilter.SHOW_TEXT = visit only text nodes (no elements).
+  // This is faster than recursing the element tree manually.</span>
+  <span class="k">const</span> walker <span class="p">=</span> document.<span class="fn">createTreeWalker</span><span class="p">(</span>
+    document.body<span class="p">,</span>
+    NodeFilter.SHOW_TEXT<span class="p">,</span>
+    <span class="p">{</span>
+      <span class="fn">acceptNode</span><span class="p">(</span>node<span class="p">) {</span>
+        <span class="k">const</span> parent <span class="p">=</span> node.parentElement<span class="p">;</span>
+        <span class="k">if</span> <span class="p">(!</span>parent<span class="p">)</span> <span class="k">return</span> NodeFilter.FILTER_REJECT<span class="p">;</span>
+
+        <span class="c">// FILTER_REJECT skips the node AND its subtree.
+        // FILTER_SKIP skips only the node, not its children.
+        // FILTER_ACCEPT includes the node in results.</span>
+        <span class="k">const</span> tag <span class="p">=</span> parent.tagName.<span class="fn">toLowerCase</span><span class="p">();</span>
+        <span class="k">if</span> <span class="p">([</span><span class="s">'script'</span><span class="p">,</span> <span class="s">'style'</span><span class="p">,</span> <span class="s">'noscript'</span><span class="p">].</span><span class="fn">includes</span><span class="p">(</span>tag<span class="p">))</span>
+          <span class="k">return</span> NodeFilter.FILTER_REJECT<span class="p">;</span>
+
+        <span class="c">// Skip our own injected host element — don't count
+        // the label text inside our Summarize button.</span>
+        <span class="k">if</span> <span class="p">(</span>parent.<span class="fn">closest</span><span class="p">(</span><span class="s">'#neuraltab-host'</span><span class="p">))</span>
+          <span class="k">return</span> NodeFilter.FILTER_REJECT<span class="p">;</span>
+
+        <span class="k">return</span> NodeFilter.FILTER_ACCEPT<span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">);</span>
+
+  <span class="k">let</span> count <span class="p">=</span> <span class="v">0</span><span class="p">;</span>
+  <span class="k">let</span> node<span class="p">;</span>
+  <span class="c">// walker.nextNode() returns the next matching text node
+  // or null when the traversal is complete.</span>
+  <span class="k">while</span> <span class="p">((</span>node <span class="p">=</span> walker.<span class="fn">nextNode</span><span class="p">()))</span> <span class="p">{</span>
+    <span class="c">// Split on whitespace and filter empty strings from
+    // leading/trailing spaces.</span>
+    <span class="k">const</span> words <span class="p">=</span> node.textContent
+      .<span class="fn">trim</span><span class="p">()</span>
+      .<span class="fn">split</span><span class="p">(/</span><span class="v">\s+</span><span class="p">/)</span>
+      .<span class="fn">filter</span><span class="p">(</span>w <span class="p">=&gt;</span> w.length <span class="p">&gt;</span> <span class="v">0</span><span class="p">);</span>
+    count <span class="p">+=</span> words.length<span class="p">;</span>
+  <span class="p">}</span>
+  <span class="k">return</span> count<span class="p">;</span>
+<span class="p">}</span></pre>
+  </div>
+
+  <h4>Part 3 — SPA Navigation Detection</h4>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">content.js — watchForSPANavigation()</span><span class="code-lang">JavaScript</span></div>
+    <pre><span class="fn">watchForSPANavigation</span><span class="p">() {</span>
+  <span class="k">let</span> lastUrl <span class="p">=</span> location.href<span class="p">;</span>
+
+  <span class="c">// MutationObserver fires a callback every time the observed
+  // node's subtree changes. We observe document.body because
+  // SPA frameworks replace large DOM subtrees on navigation.</span>
+  <span class="k">this</span>.observer <span class="p">=</span> <span class="k">new</span> <span class="fn">MutationObserver</span><span class="p">(() =&gt; {</span>
+    <span class="k">const</span> currentUrl <span class="p">=</span> location.href<span class="p">;</span>
+
+    <span class="c">// The URL changed → this is a route change, not just
+    // a DOM update on the same page (e.g., infinite scroll).</span>
+    <span class="k">if</span> <span class="p">(</span>currentUrl <span class="p">!==</span> lastUrl<span class="p">) {</span>
+      lastUrl <span class="p">=</span> currentUrl<span class="p">;</span>
+      <span class="k">this</span>.<span class="fn">onSPANavigate</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+
+  <span class="k">this</span>.observer.<span class="fn">observe</span><span class="p">(</span>document.body<span class="p">, {</span>
+    childList<span class="p">:</span> <span class="k">true</span><span class="p">,</span>   <span class="c">// watch for added/removed child elements</span>
+    subtree<span class="p">:</span>   <span class="k">true</span>    <span class="c">// apply recursively to all descendants</span>
+  <span class="p">});</span>
+<span class="p">}</span></pre>
+  </div>
+
+  <h4>Part 4 — Main World Script Injection</h4>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">content.js — injectMainWorldScript()</span><span class="code-lang">JavaScript</span></div>
+    <pre><span class="fn">injectMainWorldScript</span><span class="p">() {</span>
+  <span class="c">// chrome.runtime.getURL() converts the relative path to the full
+  // chrome-extension://[id]/assets/inject.js URL.
+  // This URL works because we listed "assets/inject.js" in
+  // web_accessible_resources in manifest.json.</span>
+  <span class="k">const</span> scriptUrl <span class="p">=</span> chrome.runtime.<span class="fn">getURL</span><span class="p">(</span><span class="s">'assets/inject.js'</span><span class="p">);</span>
+
+  <span class="k">const</span> script <span class="p">=</span> document.<span class="fn">createElement</span><span class="p">(</span><span class="s">'script'</span><span class="p">);</span>
+  script.src <span class="p">=</span> scriptUrl<span class="p">;</span>
+
+  <span class="c">// Remove the script tag after it executes — no need to keep
+  // it in the DOM. This is cosmetic cleanup only; removing the
+  // element does not stop the script from having run.</span>
+  script.onload <span class="p">=</span> <span class="p">() =&gt;</span> script.<span class="fn">remove</span><span class="p">();</span>
+
+  <span class="c">// Append to documentElement (html), not body.
+  // body may not exist yet at document_start.
+  // documentElement always exists by the time content scripts run.</span>
+  document.documentElement.<span class="fn">appendChild</span><span class="p">(</span>script<span class="p">);</span>
+
+  <span class="c">// Listen for the postMessage that inject.js sends after running.
+  // This crosses the world boundary — world 0 sends, world 1 receives.</span>
+  window.<span class="fn">addEventListener</span><span class="p">(</span><span class="s">'message'</span><span class="p">,</span> <span class="p">(</span>event<span class="p">) =&gt; {</span>
+    <span class="c">// Security: only handle messages from our own window,
+    // not from iframes or other origins.</span>
+    <span class="k">if</span> <span class="p">(</span>event.source <span class="p">!==</span> window<span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(!</span>event.data<span class="p">?.</span>source <span class="p">===</span> <span class="s">'neuraltab-inject'</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+
+    console.<span class="fn">log</span><span class="p">(</span><span class="s">'[NeuralTab] Main world data:'</span><span class="p">,</span> event.data.payload<span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">}</span></pre>
+  </div>
+
+  <h3>assets/inject.js — Running in the Page's Main World</h3>
+
+  <p>
+    This file runs in world 0. It cannot call any <code>chrome.*</code> API. Its only
+    job is to read world-0-only data and report it back to the content script via
+    <code>window.postMessage</code>.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-filename">assets/inject.js — key parts</span><span class="code-lang">JavaScript</span></div>
+    <pre><span class="c">// IIFE wraps everything so we do not pollute window with our locals</span>
+<span class="p">(</span><span class="k">function</span> <span class="p">() {</span>
+  <span class="s">'use strict'</span><span class="p">;</span>
+
+  <span class="k">const</span> payload <span class="p">=</span> <span class="p">{};</span>
+
+  <span class="c">// These variables ARE accessible here because we are in world 0.
+  // The same lines in content.js would return undefined.</span>
+  payload.frameworks <span class="p">= [];</span>
+  <span class="k">if</span> <span class="p">(</span>window.React<span class="p">)</span>         payload.frameworks.<span class="fn">push</span><span class="p">(</span><span class="s">'React'</span><span class="p">);</span>
+  <span class="k">if</span> <span class="p">(</span>window.__NEXT_DATA__<span class="p">)</span>  payload.frameworks.<span class="fn">push</span><span class="p">(</span><span class="s">'Next.js'</span><span class="p">);</span>
+  <span class="c">// ... more framework detection ...</span>
+
+  <span class="c">// Send results back to world 1 (content.js).
+  // The '*' targetOrigin means the message is delivered regardless
+  // of the window's current origin. For a same-page postMessage
+  // this is fine. Passing location.origin is more secure if
+  // you need to prevent cross-origin relay.</span>
+  window.<span class="fn">postMessage</span><span class="p">({</span>
+    source<span class="p">:</span>  <span class="s">'neuraltab-inject'</span><span class="p">,</span>  <span class="c">// filter key for content.js listener</span>
+    payload<span class="p">:</span> payload
+  <span class="p">},</span> <span class="s">'*'</span><span class="p">);</span>
+<span class="p">})();</span></pre>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     BUILD & RUN
+════════════════════════════════════════════════════════ -->
+<section id="build">
+  <h2>Build &amp; Run</h2>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip — Carry Your Icons Forward</div>
+    Every module is a complete, self-contained extension. Copy your
+    <code>icons/icon16.png</code>, <code>icons/icon48.png</code>, and
+    <code>icons/icon128.png</code> from <code>module_01/icons/</code> into
+    <code>module_02/icons/</code>. You do not need to regenerate them.
+  </div>
+
+  <ol class="steps">
+    <li>
+      <div class="step-body">
+        <p>Copy the three PNG icons from <code>module_01/icons/</code> into <code>module_02/icons/</code>.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Go to <code>chrome://extensions</code>. If Module 01 is still loaded, click <strong>Remove</strong> on it — only one NeuralTab version should be active at a time to avoid confusion.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Click <strong>Load unpacked</strong> and select the <code>module_02/</code> folder.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Open <code>module_02/demo/index.html</code> in a new tab. You should see the gold ⚡ Summarize button appear at the bottom-right of the page within 1 second.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Click the Summarize button. A dark panel should appear showing the word count, estimated reading time, and page title.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Click "Highlight long words". All words of 9+ characters should get a gold background highlight. Click "Clear highlights" to remove them.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Open DevTools (F12) on the demo page, go to the Console tab. You should see a <code>[NeuralTab] Main world data:</code> log entry showing the frameworks array (empty for this page) and meta tag data.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Now navigate to any real website — Wikipedia, a news article, a blog post. The Summarize button should appear there too. Test it on a long article and verify the word count looks reasonable.</p>
+      </div>
+    </li>
+  </ol>
+
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="terminal-dot dot-red"></div>
+      <div class="terminal-dot dot-yellow"></div>
+      <div class="terminal-dot dot-green"></div>
+      <span class="terminal-title">Expected console output on demo/index.html</span>
+    </div>
+    <pre>
+<span class="term-ok">[NeuralTab] Main world data:</span> <span class="term-out">{
+  frameworks: [],
+  meta: {
+    description: "A long article page for testing...",
+    viewport: "width=device-width, initial-scale=1.0"
+  },
+  serviceWorkers: 0
+}</span>
+
+<span class="term-ok">✓</span>  <span class="term-out">No errors in the console</span>
+<span class="term-ok">✓</span>  <span class="term-out">No CSP violations</span>
+<span class="term-ok">✓</span>  <span class="term-out">Floating button visible at bottom-right</span>
+<span class="term-ok">✓</span>  <span class="term-out">Word count in panel is close to the real word count</span>
+
+<span class="term-warn">⚠  If you see "inject.js not found" errors:</span>
+<span class="term-out">   → Check that assets/inject.js exists in module_02/
+   → Verify web_accessible_resources lists "assets/inject.js"
+   → Reload the extension on chrome://extensions</span>
+    </pre>
+  </div>
+
+  <h3>Debugging the Content Script</h3>
+
+  <p>
+    The content script runs in its own JavaScript context. To inspect it in DevTools:
+  </p>
+
+  <ol class="steps">
+    <li><div class="step-body"><p>Open DevTools on any page where NeuralTab is injected.</p></div></li>
+    <li><div class="step-body"><p>In the Console tab, find the context selector dropdown (top-left of the console, usually shows "top"). Click it.</p></div></li>
+    <li><div class="step-body"><p>You will see an entry like <strong>"NeuralTab (content script)"</strong> or the extension's name. Select it.</p></div></li>
+    <li><div class="step-body"><p>Now you are in the isolated world context. Type <code>window.NeuralTabContent</code> and press Enter. You should see the NeuralTabContent object. Type <code>window.myPageSecret</code> (defined in the demo page) and see <code>undefined</code> — isolated worlds proven live.</p></div></li>
+  </ol>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     EXERCISES
+════════════════════════════════════════════════════════ -->
+<section id="exercises">
+  <h2>Exercises</h2>
+
+  <!-- EX 1 -->
+  <div class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-tag tag-warmup">Warm-Up</span>
+      <span class="exercise-title">Exercise 1 — Prove Isolated Worlds Live in DevTools</span>
+    </div>
+    <p>This exercise makes isolated worlds tangible rather than theoretical.</p>
+    <ul>
+      <li>Open the demo page in Chrome. Open DevTools → Console.</li>
+      <li>In the <strong>top (page)</strong> context, type: <code>window.myPageSecret</code>. You should see <code>"I am only in world 0"</code>.</li>
+      <li>Switch the console context to <strong>NeuralTab (content script)</strong> using the dropdown.</li>
+      <li>Type the same: <code>window.myPageSecret</code>. You should see <code>undefined</code>.</li>
+      <li>Now type <code>window.__neuraltab_injected__</code> in the content script context. You should see <code>true</code>.</li>
+      <li>Switch back to the top context and type <code>window.__neuraltab_injected__</code>. You should see <code>undefined</code>.</li>
+      <li>Write a short note explaining in your own words why the same variable name returns different values in each context.</li>
+    </ul>
+    <div class="exercise-hint">
+      <strong>What you just proved:</strong> The same <code>window</code> keyword returns
+      a different global object depending on which Context (world) the code runs in.
+      They look the same but they are distinct JavaScript objects in distinct V8 Contexts.
+    </div>
+  </div>
+
+  <!-- EX 2 -->
+  <div class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-tag tag-warmup">Warm-Up</span>
+      <span class="exercise-title">Exercise 2 — Change the run_at and See the Difference</span>
+    </div>
+    <p>
+      <code>run_at: "document_idle"</code> is the safest injection timing, but
+      understanding the alternatives teaches you the page lifecycle.
+    </p>
+    <ul>
+      <li>In <code>manifest.json</code>, change <code>"run_at": "document_idle"</code> to <code>"run_at": "document_start"</code>. Reload the extension.</li>
+      <li>Open the demo page. What happens? Does the button appear? Check the console for errors.</li>
+      <li>Try to explain <em>why</em> it fails (hint: <code>document.body</code> does not exist yet at <code>document_start</code>).</li>
+      <li>Change it to <code>"document_end"</code>. Does the button appear now? Does it appear at the same time as before?</li>
+      <li>Change it back to <code>"document_idle"</code> when you are done.</li>
+    </ul>
+    <div class="exercise-hint">
+      <strong>Expected result at document_start:</strong> <code>TypeError: Cannot read properties of null (reading 'appendChild')</code> — because <code>document.body</code> is null when the HTML has not been parsed yet. This is why we use <code>document_idle</code> for all UI injection.
+    </div>
+  </div>
+
+  <!-- EX 3 -->
+  <div class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-tag tag-core">Core</span>
+      <span class="exercise-title">Exercise 3 — Add a "Reading Progress" Bar</span>
+    </div>
+    <p>
+      Inject a thin progress bar at the very top of any page that fills from 0%
+      to 100% as the user scrolls from the top to the bottom of the article.
+      This must be injected via <code>content.js</code> and must survive across
+      SPA route changes.
+    </p>
+    <ul>
+      <li>In <code>content.js</code>, create a new <code>&lt;div&gt;</code> with <code>id="nt-progress-bar"</code> and append it to <code>document.body</code> (not inside the Shadow DOM — the progress bar should be in the real DOM so it inherits the page's scroll context).</li>
+      <li>Style it with inline styles: <code>position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: #f5c842; z-index: 2147483646; transition: width 0.1s;</code></li>
+      <li>Add a <code>scroll</code> event listener on <code>window</code> that computes: <code>const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100</code></li>
+      <li>Update the bar's <code>style.width</code> to <code>pct + '%'</code> on every scroll event.</li>
+      <li>In <code>onSPANavigate()</code>, reset the bar width to <code>'0%'</code>.</li>
+    </ul>
+    <div class="exercise-hint">
+      <strong>Stretch:</strong> Add a <code>debounce</code> to the scroll listener so it only
+      updates every 50ms instead of on every pixel of scroll. This is a preview of the
+      performance optimisation techniques we cover in Module 20.
+    </div>
+  </div>
+
+  <!-- EX 4 -->
+  <div class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-tag tag-core">Core</span>
+      <span class="exercise-title">Exercise 4 — Detect a React App From inject.js and Report to content.js</span>
+    </div>
+    <p>
+      <code>inject.js</code> already detects <code>window.React</code>. Extend it
+      to also find the root React component's state and pass it to the content script.
+    </p>
+    <ul>
+      <li>Open <code>https://reactjs.org</code> or any React-based site in Chrome with NeuralTab loaded.</li>
+      <li>In the browser console (top/main world context), type: <code>document.querySelector('#root').__reactFiber$</code> followed by Tab to autocomplete — find the React fiber property name (it has a random suffix like <code>__reactFiber$abc123</code>).</li>
+      <li>In <code>assets/inject.js</code>, after detecting React, add code to find the root element's fiber property and extract the <code>type.displayName</code> of the root component.</li>
+      <li>Include this in the payload sent via <code>postMessage</code>.</li>
+      <li>Verify the component name appears in the <code>[NeuralTab] Main world data:</code> console log in your content script context.</li>
+    </ul>
+    <div class="exercise-hint">
+      <strong>Why this matters:</strong> This is exactly how React DevTools works. It
+      reads the <code>__reactFiber</code> property from DOM nodes to reconstruct the
+      component tree — a world-0-only operation that requires being in the main world.
+      You just built the foundation of a React inspector.
+    </div>
+  </div>
+
+  <!-- EX 5 -->
+  <div class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-tag tag-stretch">Stretch</span>
+      <span class="exercise-title">Exercise 5 — Inject a Custom Font and Use It in the Panel</span>
+    </div>
+    <p>
+      Use <code>web_accessible_resources</code> to load a real font file from the
+      extension package into the Shadow DOM panel, guaranteeing it looks identical
+      on every website regardless of what fonts that site uses.
+    </p>
+    <ul>
+      <li>Download <code>Inter-Regular.woff2</code> from <a href="https://fonts.google.com/specimen/Inter" target="_blank">Google Fonts</a> (click "Download family") and place it at <code>assets/fonts/inter-regular.woff2</code>.</li>
+      <li>Verify <code>assets/fonts/inter-regular.woff2</code> is already listed in <code>web_accessible_resources</code> in the manifest (it is).</li>
+      <li>In <code>getButtonStyles()</code> in <code>content.js</code>, add a <code>@font-face</code> rule at the top:
+        <br><code>const fontUrl = chrome.runtime.getURL('assets/fonts/inter-regular.woff2');</code>
+        <br>Then prepend to the style string: <code>@font-face { font-family: 'Inter'; src: url('${fontUrl}') format('woff2'); }</code>
+      </li>
+      <li>Change the <code>font-family</code> in <code>:host</code> inside <code>getButtonStyles()</code> to <code>'Inter', sans-serif</code>.</li>
+      <li>Reload the extension and open the demo page. Verify the panel text renders in Inter font.</li>
+      <li>Visit a site with a very distinctive font (like a news site using a serif font everywhere). Verify the NeuralTab panel still uses Inter regardless of the host page's font.</li>
+    </ul>
+    <div class="exercise-hint">
+      <strong>What you just built:</strong> A font that is guaranteed consistent across
+      every website. No CDN dependency. No page-override risk. Shadow DOM style isolation
+      + web_accessible_resources working together — this is production-grade font injection.
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     SPEC REFERENCE
+════════════════════════════════════════════════════════ -->
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <div class="spec-ref">
+    <span class="spec-ref-icon">📄</span>
+    <div class="spec-ref-body">
+      <strong>Content Scripts</strong> — Official Chrome docs. Covers match patterns,
+      run_at timing, all_frames, isolated worlds, and the full list of APIs available
+      to content scripts vs background workers.<br>
+      <a href="https://developer.chrome.com/docs/extensions/mv3/content_scripts/" target="_blank">developer.chrome.com/docs/extensions/mv3/content_scripts/</a>
+    </div>
+  </div>
+
+  <div class="spec-ref">
+    <span class="spec-ref-icon">📄</span>
+    <div class="spec-ref-body">
+      <strong>Match Patterns</strong> — The complete syntax for URL pattern matching.
+      Learn the difference between <code>&lt;all_urls&gt;</code>,
+      <code>https://*/*</code>, and <code>https://example.com/*</code>.<br>
+      <a href="https://developer.chrome.com/docs/extensions/mv3/match_patterns/" target="_blank">developer.chrome.com/docs/extensions/mv3/match_patterns/</a>
+    </div>
+  </div>
+
+  <div class="spec-ref">
+    <span class="spec-ref-icon">📄</span>
+    <div class="spec-ref-body">
+      <strong>Web Accessible Resources</strong> — The full spec for the
+      <code>web_accessible_resources</code> manifest key. Pay attention to the
+      MV2 vs MV3 syntax difference (MV3 requires the <code>matches</code> field).<br>
+      <a href="https://developer.chrome.com/docs/extensions/mv3/manifest/web_accessible_resources/" target="_blank">developer.chrome.com/docs/extensions/mv3/manifest/web_accessible_resources/</a>
+    </div>
+  </div>
+
+  <div class="spec-ref">
+    <span class="spec-ref-icon">📄</span>
+    <div class="spec-ref-body">
+      <strong>Shadow DOM (MDN)</strong> — The definitive guide to Shadow DOM:
+      open vs closed mode, CSS scoping, <code>:host</code> selector, slotting,
+      and how browsers render shadow trees.<br>
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_components/Using_shadow_DOM" target="_blank">MDN — Using Shadow DOM</a>
+    </div>
+  </div>
+
+  <div class="spec-ref">
+    <span class="spec-ref-icon">📄</span>
+    <div class="spec-ref-body">
+      <strong>TreeWalker (MDN)</strong> — Complete reference for
+      <code>document.createTreeWalker()</code>, all NodeFilter constants, and the
+      <code>acceptNode</code> callback. Used in our word counter.<br>
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/TreeWalker" target="_blank">MDN — TreeWalker</a>
+    </div>
+  </div>
+
+</section>
+
+<!-- ═══════════════════════════════════════════════════════
+     WHAT'S NEXT
+════════════════════════════════════════════════════════ -->
+<section id="next">
+  <div class="next-module">
+    <div class="next-label">Up Next — Module 03 of 25</div>
+    <div class="next-title">Options Page, chrome.storage &amp; Permissions UX Psychology</div>
+    <p class="next-body">
+      NeuralTab now injects into every page, but it has no memory. Close the browser
+      and reopen it — any preference the user had is gone. The Summarize button is always
+      gold even if the user wanted blue. There's no way to configure the highlight colour,
+      disable injection on certain domains, or remember anything between sessions. Module
+      03 fixes all of this by introducing <strong><code>options.html</code></strong> —
+      NeuralTab's settings page — backed by <strong><code>chrome.storage.local</code></strong>,
+      the persistent key-value store that survives browser restarts. You will learn the
+      critical distinction between <code>chrome.storage.local</code> (device-only, 10MB),
+      <code>chrome.storage.sync</code> (syncs across devices, 100KB limit), and
+      <code>chrome.storage.session</code> (cleared on browser restart). Alongside storage,
+      we tackle one of the most overlooked skills in extension development: <strong>Permissions
+      UX Psychology</strong> — the science of why users deny permission requests, the exact
+      moment in the user journey to ask, and how to implement the "warm ask" pattern so that
+      users grant permissions rather than clicking "Block" out of instinct. The new files
+      added in Module 03 are <strong><code>options.html</code></strong>,
+      <strong><code>options.css</code></strong>, <strong><code>options.js</code></strong>,
+      and <strong><code>storage_manager.js</code></strong>.
+    </p>
+  </div>
+</section>
+
+</div>
+</body>
+</html>

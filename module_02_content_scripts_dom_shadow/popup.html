@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">NeuralTab</span>
+    </div>
+    <span class="version-badge">v0.2.0</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="section-label">ACTIVE TAB</div>
+    <div class="url-box">
+      <span class="url-icon">🔗</span>
+      <span id="current-url" class="url-text">Loading...</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">CONTENT SCRIPT STATUS</div>
+    <div class="status-row">
+      <span class="status-dot" id="cs-dot"></span>
+      <span class="status-text" id="cs-status">Checking injection...</span>
+    </div>
+    <div class="status-note" id="cs-note"></div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">PAGE ACTIONS</div>
+    <div class="action-grid">
+      <button class="btn btn-cyan"   id="btn-toggle-btn">Toggle Button</button>
+      <button class="btn btn-purple" id="btn-highlight">Highlight Words</button>
+      <button class="btn btn-red"    id="btn-clear">Clear All</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">EXTENSION INFO</div>
+    <div class="info-grid">
+      <div class="info-row">
+        <span class="info-key">Version</span>
+        <span id="ext-version" class="info-val">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Content script</span>
+        <span class="info-val" style="color: var(--green)">content.js</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Injected into</span>
+        <span class="info-val">&lt;all_urls&gt;</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Module 02 of 25 — Content Scripts &amp; DOM Surgery
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
