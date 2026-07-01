@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "NeuralTab",
+  "version": "0.1.0",
+  "description": "Your AI-powered browser assistant. Module 01: The Foundation.",
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16":  "icons/icon16.png",
+      "48":  "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "NeuralTab — Click to open"
+  },
+
+  "icons": {
+    "16":  "icons/icon16.png",
+    "48":  "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "permissions": [],
+
+  "host_permissions": []
+}

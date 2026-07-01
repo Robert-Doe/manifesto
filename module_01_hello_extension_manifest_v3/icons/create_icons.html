@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NeuralTab Icon Generator</title>
+  <style>
+    body {
+      background: #0b0f1a;
+      color: #e2e8f0;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+      gap: 24px;
+    }
+    h1 { color: #f5c842; font-size: 22px; }
+    p  { color: #7a9bbf; font-size: 14px; text-align: center; max-width: 480px; }
+    .row { display: flex; gap: 32px; align-items: flex-end; }
+    .icon-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    canvas { border: 1px solid #1e3a5f; border-radius: 6px; }
+    button {
+      background: #f5c842;
+      color: #0b0f1a;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    button:hover { opacity: 0.85; }
+    .label { color: #7a9bbf; font-size: 12px; }
+    .instructions {
+      background: #141c2e;
+      border: 1px solid #1e3a5f;
+      border-radius: 8px;
+      padding: 20px 28px;
+      max-width: 500px;
+      font-size: 13px;
+      line-height: 1.8;
+      color: #e2e8f0;
+    }
+    .instructions ol { padding-left: 20px; }
+    .instructions li { margin-bottom: 6px; }
+    code { background: #060d1a; color: #38bdf8; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+  <h1>⚡ NeuralTab Icon Generator</h1>
+  <p>Click each "Download" button to save the PNG. Move the saved files into the <code>icons/</code> folder.</p>
+
+  <div class="row">
+    <div class="icon-wrap">
+      <canvas id="c16"  width="16"  height="16"></canvas>
+      <span class="label">16 × 16</span>
+      <button onclick="download('c16','icon16.png')">Download icon16.png</button>
+    </div>
+    <div class="icon-wrap">
+      <canvas id="c48"  width="48"  height="48"></canvas>
+      <span class="label">48 × 48</span>
+      <button onclick="download('c48','icon48.png')">Download icon48.png</button>
+    </div>
+    <div class="icon-wrap">
+      <canvas id="c128" width="128" height="128"></canvas>
+      <span class="label">128 × 128</span>
+      <button onclick="download('c128','icon128.png')">Download icon128.png</button>
+    </div>
+  </div>
+
+  <div class="instructions">
+    <strong style="color:#f5c842">After downloading:</strong>
+    <ol>
+      <li>Rename the files exactly: <code>icon16.png</code>, <code>icon48.png</code>, <code>icon128.png</code></li>
+      <li>Move all three into the <code>module_01/icons/</code> folder</li>
+      <li>Go to <code>chrome://extensions</code> → click <strong>Reload</strong> on NeuralTab</li>
+      <li>Your toolbar icon will now show the gold ⚡ bolt</li>
+    </ol>
+  </div>
+
+  <script>
+    // Draws the NeuralTab icon on a canvas at any size
+    function drawIcon(canvasId) {
+      const canvas = document.getElementById(canvasId);
+      const size   = canvas.width;
+      const ctx    = canvas.getContext('2d');
+      const cx     = size / 2;
+      const cy     = size / 2;
+      const r      = size / 2;
+
+      // Background — deep navy circle
+      ctx.fillStyle = '#0b0f1a';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Outer ring
+      ctx.strokeStyle = '#1e3a5f';
+      ctx.lineWidth   = Math.max(1, size * 0.04);
+      ctx.beginPath();
+      ctx.arc(cx, cy, r - ctx.lineWidth / 2, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Gold lightning bolt
+      ctx.fillStyle = '#f5c842';
+      const s = size;
+
+      // Scale the bolt path to fit the canvas
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.scale(s / 128, s / 128);  // path was drawn at 128px
+
+      ctx.beginPath();
+      // Lightning bolt points (designed at 128×128, centered at 0,0)
+      ctx.moveTo(  8, -48);   // top-right of upper segment
+      ctx.lineTo(-16, -48);   // top-left
+      ctx.lineTo(-28,   4);   // inner left notch
+      ctx.lineTo( -4,   4);   // center-left
+      ctx.lineTo(-20,  52);   // bottom tip
+      ctx.lineTo( 28,  -8);   // lower-right diagonal
+      ctx.lineTo(  4,  -8);   // inner right notch
+      ctx.lineTo( 20, -48);   // back to top
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function download(canvasId, filename) {
+      const canvas = document.getElementById(canvasId);
+      const link   = document.createElement('a');
+      link.download = filename;
+      link.href     = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // Draw all three on load
+    drawIcon('c16');
+    drawIcon('c48');
+    drawIcon('c128');
+  </script>
+
+</body>
+</html>

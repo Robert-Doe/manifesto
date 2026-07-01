@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">NeuralTab</span>
+    </div>
+    <span class="version-badge">v0.1.0</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="section-label">ACTIVE TAB</div>
+    <div class="url-box">
+      <span class="url-icon">🔗</span>
+      <span id="current-url" class="url-text">Loading...</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">TAB TITLE</div>
+    <div class="title-box">
+      <span id="tab-title" class="tab-title-text">Loading...</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">BADGE CONTROL</div>
+    <div class="badge-controls">
+      <button class="btn btn-green"  data-action="on">Set ON</button>
+      <button class="btn btn-orange" data-action="count">Count</button>
+      <button class="btn btn-red"    data-action="clear">Clear</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">EXTENSION INFO</div>
+    <div class="info-grid">
+      <div class="info-row">
+        <span class="info-key">ID</span>
+        <span id="ext-id" class="info-val">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Version</span>
+        <span id="ext-version" class="info-val">—</span>
+      </div>
+      <div class="info-row">
+        <span class="info-key">Manifest</span>
+        <span id="manifest-ver" class="info-val">—</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Module 01 of 25 — Foundations
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

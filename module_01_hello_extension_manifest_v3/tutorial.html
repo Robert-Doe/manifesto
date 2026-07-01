@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Module 01 — NeuralTab Browser Extension Course</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@300;400;700&family=Source+Code+Pro:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Design tokens ─────────────────────────────────────── */
+    :root {
+      --bg:      #0b0f1a;
+      --bg2:     #111827;
+      --bg3:     #1a2235;
+      --card:    #141c2e;
+      --border:  #1e3a5f;
+      --gold:    #f5c842;
+      --cyan:    #38bdf8;
+      --purple:  #a78bfa;
+      --red:     #f87171;
+      --green:   #4ade80;
+      --teal:    #0d9488;
+      --orange:  #fb923c;
+      --text:    #e2e8f0;
+      --muted:   #7a9bbf;
+      --code-bg: #060d1a;
+    }
+
+    /* ── Reset ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Base ──────────────────────────────────────────────── */
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Lato', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.75;
+      min-height: 100vh;
+    }
+
+    /* ── Layout ────────────────────────────────────────────── */
+    .page-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 28px 100px;
+    }
+
+    /* ── Top nav bar ───────────────────────────────────────── */
+    .topbar {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-brand {
+      font-family: 'Lato', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+    }
+
+    .topbar-nav {
+      display: flex;
+      gap: 20px;
+      list-style: none;
+    }
+
+    .topbar-nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.2s;
+    }
+
+    .topbar-nav a:hover { color: var(--cyan); }
+
+    /* ── Hero ──────────────────────────────────────────────── */
+    .hero {
+      padding: 64px 0 48px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 56px;
+    }
+
+    .module-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 6px 18px;
+      margin-bottom: 28px;
+    }
+
+    .module-badge-number {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
+
+    .module-badge-divider {
+      width: 1px;
+      height: 14px;
+      background: var(--border);
+    }
+
+    .module-badge-label {
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 900;
+      color: var(--gold);
+      line-height: 1.15;
+      margin-bottom: 18px;
+    }
+
+    .subtitle {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 640px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    /* ── Prerequisites bar ─────────────────────────────────── */
+    .prereq-bar {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--teal);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+
+    .prereq-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+
+    .prereq-content {}
+
+    .prereq-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--teal);
+      margin-bottom: 6px;
+    }
+
+    .prereq-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .prereq-list li {
+      font-size: 14px;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .prereq-list li::before {
+      content: '✓';
+      color: var(--teal);
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    /* ── "What you will build" ─────────────────────────────── */
+    .deliverables {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin-bottom: 56px;
+    }
+
+    .deliverables-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 16px;
+    }
+
+    .deliverable-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .deliverable-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 15px;
+    }
+
+    .deliverable-num {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gold);
+      margin-top: 2px;
+    }
+
+    /* ── Section headings ──────────────────────────────────── */
+    h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--cyan);
+      margin: 56px 0 20px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    h3 {
+      font-family: 'Lato', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--purple);
+      margin: 32px 0 12px;
+    }
+
+    h4 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--orange);
+      letter-spacing: 0.5px;
+      margin: 24px 0 10px;
+      text-transform: uppercase;
+    }
+
+    p {
+      margin-bottom: 16px;
+      font-size: 15.5px;
+      color: var(--text);
+    }
+
+    p:last-child { margin-bottom: 0; }
+
+    strong { color: var(--gold); font-weight: 700; }
+    em { color: var(--cyan); font-style: normal; font-weight: 400; }
+
+    a { color: var(--cyan); text-decoration: underline; text-underline-offset: 3px; }
+
+    /* ── Callout boxes ─────────────────────────────────────── */
+    .callout {
+      border-radius: 0 10px 10px 0;
+      padding: 18px 22px;
+      margin: 28px 0;
+      font-size: 14.5px;
+      line-height: 1.65;
+    }
+
+    .callout-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .callout.tip    { background: #091a10; border-left: 4px solid var(--green);  }
+    .callout.tip    .callout-title { color: var(--green); }
+
+    .callout.warn   { background: #1a1000; border-left: 4px solid var(--orange); }
+    .callout.warn   .callout-title { color: var(--orange); }
+
+    .callout.danger { background: #1a0808; border-left: 4px solid var(--red);    }
+    .callout.danger .callout-title { color: var(--red); }
+
+    .callout.insight { background: #0d0d1f; border-left: 4px solid var(--purple); }
+    .callout.insight .callout-title { color: var(--purple); }
+
+    .callout.spec   { background: #091518; border-left: 4px solid var(--cyan);   }
+    .callout.spec   .callout-title { color: var(--cyan); }
+
+    /* ── Code blocks ───────────────────────────────────────── */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin: 24px 0;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .code-filename {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 12px;
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    .code-lang {
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-family: 'Source Code Pro', monospace;
+    }
+
+    pre {
+      padding: 22px 24px;
+      overflow-x: auto;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      color: var(--text);
+      tab-size: 2;
+    }
+
+    code {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 13px;
+      background: var(--code-bg);
+      color: var(--cyan);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+    }
+
+    /* Syntax colors inside pre blocks */
+    .k  { color: #c792ea; }  /* keyword */
+    .s  { color: #c3e88d; }  /* string  */
+    .c  { color: #546e7a; font-style: italic; } /* comment */
+    .n  { color: #82aaff; }  /* name / property */
+    .v  { color: #f78c6c; }  /* value / number */
+    .fn { color: #82aaff; }  /* function name */
+    .p  { color: var(--text); } /* punctuation */
+
+    /* ── Terminal / shell output ───────────────────────────── */
+    .terminal {
+      background: #010409;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 24px 0;
+    }
+
+    .terminal-bar {
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .terminal-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .dot-red    { background: #ff5f57; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green  { background: #28c840; }
+
+    .terminal-title {
+      font-size: 12px;
+      color: #8b949e;
+      margin-left: 8px;
+      font-family: 'Source Code Pro', monospace;
+    }
+
+    .terminal pre {
+      padding: 18px 22px;
+      color: #c9d1d9;
+      font-size: 13px;
+    }
+
+    .term-prompt { color: #4ade80; }
+    .term-cmd    { color: #e2e8f0; }
+    .term-out    { color: #8b949e; }
+    .term-ok     { color: #4ade80; }
+    .term-warn   { color: #fb923c; }
+
+    /* ── Architecture diagram ──────────────────────────────── */
+    .diagram {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px 24px;
+      margin: 28px 0;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 13px;
+      color: var(--text);
+      line-height: 2;
+      overflow-x: auto;
+    }
+
+    .diagram .box      { color: var(--cyan); }
+    .diagram .arrow    { color: var(--muted); }
+    .diagram .label    { color: var(--gold); }
+    .diagram .sublabel { color: var(--purple); }
+
+    /* ── Step-by-step instructions ─────────────────────────── */
+    .steps {
+      counter-reset: step-counter;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin: 24px 0;
+    }
+
+    .steps li {
+      counter-increment: step-counter;
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    .steps li::before {
+      content: counter(step-counter);
+      flex-shrink: 0;
+      width: 30px;
+      height: 30px;
+      background: var(--bg3);
+      border: 2px solid var(--cyan);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--cyan);
+      margin-top: 2px;
+    }
+
+    .steps li .step-body { flex: 1; }
+    .steps li .step-body p { margin-bottom: 8px; }
+    .steps li .step-body p:last-child { margin-bottom: 0; }
+
+    /* ── Exercises ─────────────────────────────────────────── */
+    .exercise {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px 28px;
+      margin: 24px 0;
+    }
+
+    .exercise-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .exercise-tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 4px;
+    }
+
+    .tag-warmup  { background: #0d3320; color: var(--green);  border: 1px solid var(--green);  }
+    .tag-core    { background: #1a1500; color: var(--gold);   border: 1px solid var(--gold);   }
+    .tag-stretch { background: #1a0820; color: var(--purple); border: 1px solid var(--purple); }
+
+    .exercise-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .exercise p   { font-size: 14.5px; margin-bottom: 12px; }
+    .exercise ul  { padding-left: 20px; color: var(--text); font-size: 14.5px; }
+    .exercise li  { margin-bottom: 6px; }
+
+    .exercise-hint {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+
+    .exercise-hint strong { color: var(--orange); }
+
+    /* ── File tree ─────────────────────────────────────────── */
+    .file-tree {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 13px;
+      line-height: 2;
+      margin: 24px 0;
+    }
+
+    .file-tree .dir  { color: var(--cyan); font-weight: 600; }
+    .file-tree .file { color: var(--text); }
+    .file-tree .new  { color: var(--green); font-weight: 600; }
+    .file-tree .note { color: var(--muted); font-size: 12px; }
+
+    /* ── Two-column concept grid ───────────────────────────── */
+    .concept-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    @media (max-width: 600px) {
+      .concept-grid { grid-template-columns: 1fr; }
+    }
+
+    .concept-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 18px 20px;
+    }
+
+    .concept-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 8px;
+    }
+
+    .concept-card p {
+      font-size: 13.5px;
+      color: var(--muted);
+      margin-bottom: 0;
+    }
+
+    /* ── Key/value annotation table ───────────────────────────*/
+    .annotation-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+
+    .annotation-table th {
+      text-align: left;
+      padding: 10px 16px;
+      background: var(--bg3);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .annotation-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .annotation-table tr:last-child td { border-bottom: none; }
+
+    .annotation-table .key {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 13px;
+      color: var(--cyan);
+      white-space: nowrap;
+      width: 200px;
+    }
+
+    .annotation-table .required {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--red);
+      background: #1a0808;
+      border: 1px solid var(--red);
+      border-radius: 3px;
+      padding: 1px 5px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .annotation-table .optional {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--teal);
+      background: #081518;
+      border: 1px solid var(--teal);
+      border-radius: 3px;
+      padding: 1px 5px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .annotation-table .desc {
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── Progress tracker ──────────────────────────────────── */
+    .progress-track {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin: 40px 0 48px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      min-width: 80px;
+    }
+
+    .progress-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Source Code Pro', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+    }
+
+    .progress-dot.done    { background: var(--teal);   color: #fff; border: 2px solid var(--teal);   }
+    .progress-dot.current { background: var(--gold);   color: #000; border: 2px solid var(--gold);   }
+    .progress-dot.future  { background: var(--bg3);    color: var(--muted); border: 2px solid var(--border); }
+
+    .progress-label {
+      font-size: 10px;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 6px;
+      line-height: 1.3;
+    }
+
+    .progress-line {
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+      margin: 0 -4px;
+      margin-bottom: 24px;
+    }
+
+    /* ── What's next ───────────────────────────────────────── */
+    .next-module {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-top: 3px solid var(--cyan);
+      border-radius: 0 0 10px 10px;
+      padding: 28px 32px;
+      margin-top: 56px;
+    }
+
+    .next-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 12px;
+    }
+
+    .next-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+
+    .next-body {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    .next-body strong { color: var(--text); }
+
+    /* ── Spec reference ────────────────────────────────────── */
+    .spec-ref {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .spec-ref-body a { color: var(--cyan); }
+
+    /* ── Horizontal rule ───────────────────────────────────── */
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 40px 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     TOP NAV
+════════════════════════════════════════════════════════════ -->
+<nav class="topbar">
+  <span class="topbar-brand">⚡ NeuralTab Course</span>
+  <ul class="topbar-nav">
+    <li><a href="#concepts">Concepts</a></li>
+    <li><a href="#walkthrough">Code</a></li>
+    <li><a href="#build">Build</a></li>
+    <li><a href="#exercises">Exercises</a></li>
+    <li><a href="#next">Next</a></li>
+  </ul>
+</nav>
+
+<div class="page-wrap">
+
+<!-- ══════════════════════════════════════════════════════════
+     HERO
+════════════════════════════════════════════════════════════ -->
+<section class="hero">
+
+  <div class="module-badge">
+    <span class="module-badge-number">MODULE 01 OF 25</span>
+    <div class="module-badge-divider"></div>
+    <span class="module-badge-label">Foundations</span>
+  </div>
+
+  <h1>Hello, Extension World &amp; Manifest&nbsp;V3 Deep Dive</h1>
+
+  <p class="subtitle">
+    Build your first Chrome extension from an empty folder, understand every
+    single line of <code>manifest.json</code>, and ship the first version of
+    <strong>NeuralTab</strong> — the AI browser assistant you will grow across
+    all 25 modules until it is a real, published SaaS product.
+  </p>
+
+  <div class="prereq-bar">
+    <span class="prereq-icon">🎓</span>
+    <div class="prereq-content">
+      <div class="prereq-title">Prerequisites — What You Must Already Know</div>
+      <ul class="prereq-list">
+        <li>You can write a basic HTML page with a &lt;div&gt;, &lt;button&gt;, and a &lt;script&gt; tag</li>
+        <li>You understand that JavaScript runs in the browser and can access the DOM</li>
+        <li>You have used CSS at least once — you know what a class selector and a property value are</li>
+        <li>You have Chrome installed (version 88 or later — any modern Chrome is fine)</li>
+        <li>You do NOT need Node.js, npm, a build tool, or any prior extension experience</li>
+      </ul>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     WHAT YOU WILL BUILD
+════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="deliverables">
+    <div class="deliverables-title">What You Will Build in This Module</div>
+    <ul class="deliverable-list">
+      <li>
+        <span class="deliverable-num">1</span>
+        <span>A fully working Chrome extension that appears in your browser toolbar — your first extension, from scratch, no frameworks</span>
+      </li>
+      <li>
+        <span class="deliverable-num">2</span>
+        <span>A dark-themed popup that reads the URL and title of the current tab and displays them in real time</span>
+      </li>
+      <li>
+        <span class="deliverable-num">3</span>
+        <span>A badge controller — buttons in the popup that change the text and colour of the icon badge in the toolbar</span>
+      </li>
+      <li>
+        <span class="deliverable-num">4</span>
+        <span>A deep understanding of every key in <code>manifest.json</code> — what it does, why it exists, and what happens if you remove it</span>
+      </li>
+      <li>
+        <span class="deliverable-num">5</span>
+        <span>The <strong>NeuralTab</strong> v0.1.0 foundation — the exact project you will keep building across all 25 modules</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     CONCEPT — SECTION 1: WHAT IS A BROWSER EXTENSION?
+════════════════════════════════════════════════════════════ -->
+<section id="concepts">
+
+  <h2>What Is a Browser Extension — Really?</h2>
+
+  <p>
+    Most people think of a browser extension as a small app that adds a button
+    to the toolbar. That is the visible surface, but it is not the definition.
+    A browser extension is a <strong>privileged web application</strong> that
+    runs inside the browser process with elevated access to browser internals —
+    access that normal web pages are explicitly forbidden from having.
+  </p>
+
+  <p>
+    A normal webpage running at <code>https://example.com</code> cannot see what
+    other tabs are open. It cannot read your bookmarks. It cannot intercept a
+    network request made by a different page. It cannot modify what you see on
+    another website. These restrictions exist because the web's security model
+    assumes pages are untrusted — served by strangers over the internet.
+  </p>
+
+  <p>
+    An extension is different. You <em>install</em> an extension deliberately,
+    which is an act of explicit trust. In exchange for that trust, the browser
+    grants the extension capabilities far beyond what any web page can do. An
+    extension can read every tab's URL and title. It can intercept and block
+    network requests. It can inject JavaScript into any page you visit. It can
+    read and write your bookmarks and history. It can listen to every keystroke
+    in every tab. This power is why extension security matters enormously — and
+    why the Chrome Web Store vets every extension before publishing it.
+  </p>
+
+  <p>
+    Structurally, an extension is a directory of files — HTML, CSS, JavaScript,
+    images, and one special file called <code>manifest.json</code>. The manifest
+    is the single file that Chrome reads first. It tells Chrome everything about
+    what your extension is, what it wants to do, and what permissions it needs
+    to do it. Without a valid manifest, Chrome will refuse to load your extension
+    entirely. With a valid manifest, your directory becomes a living part of the
+    browser.
+  </p>
+
+  <div class="callout insight">
+    <div class="callout-title">Key Insight</div>
+    Extensions are not installed from a web server at runtime — they are installed
+    once and then live inside Chrome's profile directory on your hard drive. When
+    you open a new tab or visit a page, Chrome reads the extension's files directly
+    from disk. This is why extensions load instantly and work offline.
+  </div>
+
+  <h3>The Four Contexts of a Chrome Extension</h3>
+
+  <p>
+    One of the most confusing things about extension development is that your
+    code runs in multiple separate JavaScript environments simultaneously, each
+    with different capabilities and different lifetimes. Before you write a single
+    line of code, you need to have a mental model of these four contexts.
+  </p>
+
+  <div class="concept-grid">
+    <div class="concept-card">
+      <div class="concept-card-title">1. Popup Page</div>
+      <p>The HTML page that appears when you click the toolbar icon. It has full access to Chrome APIs. It exists only while the popup is open — the moment you click away, it is destroyed and all its JavaScript variables are gone.</p>
+    </div>
+    <div class="concept-card">
+      <div class="concept-card-title">2. Background Service Worker</div>
+      <p>A JavaScript file that runs in the background, responding to browser events (a tab being created, an alarm firing, a network request). It is ephemeral — Chrome kills it after 5 minutes of idle time. Introduced in Module 05.</p>
+    </div>
+    <div class="concept-card">
+      <div class="concept-card-title">3. Content Script</div>
+      <p>JavaScript injected into web pages you visit. It can read and modify the page's DOM. It runs in an "isolated world" — it shares the DOM with the page but has its own separate JavaScript heap. Introduced in Module 02.</p>
+    </div>
+    <div class="concept-card">
+      <div class="concept-card-title">4. Options / Side Panel Page</div>
+      <p>Full HTML pages hosted by the extension. The options page is for settings. The Side Panel (Module 16) is a persistent panel that stays open as you navigate. Both have full API access like the popup.</p>
+    </div>
+  </div>
+
+  <div class="diagram">
+    <pre>
+  ┌─────────────────────────────────────────────────────────────┐
+  │                     CHROME BROWSER                          │
+  │                                                             │
+  │  ┌─────────────────┐          ┌──────────────────────────┐  │
+  │  │  WEB PAGE TAB   │          │   EXTENSION CONTEXTS     │  │
+  │  │                 │          │                          │  │
+  │  │  page JS        │◄────────►│  content script          │  │
+  │  │  (world 0)      │  DOM     │  (world 1, isolated)     │  │
+  │  │                 │  access  │                          │  │
+  │  └─────────────────┘          │  ┌────────────────────┐  │  │
+  │                               │  │ background worker  │  │  │
+  │                               │  │ (no DOM access)    │  │  │
+  │                               │  └────────┬───────────┘  │  │
+  │                               │           │ messages      │  │
+  │                               │  ┌────────▼───────────┐  │  │
+  │                               │  │  popup / options   │  │  │
+  │                               │  │  (full chrome API) │  │  │
+  │                               │  └────────────────────┘  │  │
+  │                               └──────────────────────────┘  │
+  └─────────────────────────────────────────────────────────────┘
+    </pre>
+  </div>
+
+  <p>
+    In Module 01, we only use the <strong>Popup Page</strong> context. We add the
+    content script in Module 02, the background service worker in Module 05, and
+    the Side Panel in Module 16. By learning one context at a time, you build a
+    clear mental model before layering in complexity.
+  </p>
+
+  <h2>Manifest V3 vs Manifest V2 — Why It Matters</h2>
+
+  <p>
+    If you search for browser extension tutorials online, you will find two kinds:
+    ones that use <code>"manifest_version": 2</code> and ones that use
+    <code>"manifest_version": 3</code>. This distinction is critical. <strong>MV2
+    is dead.</strong> Google began force-disabling MV2 extensions in Chrome Stable
+    in June 2024. By the time you finish this course, attempting to install an MV2
+    extension in Chrome will fail silently.
+  </p>
+
+  <p>
+    MV3 was introduced in Chrome 88 (January 2021) and is now mandatory. The key
+    differences that affect real-world development are:
+  </p>
+
+  <table class="annotation-table">
+    <thead>
+      <tr>
+        <th>Area</th>
+        <th>Manifest V2 (dead)</th>
+        <th>Manifest V3 (current)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="key">Background</td>
+        <td class="desc">Persistent <code>background.html</code> page — stays alive forever</td>
+        <td class="desc">Ephemeral <strong>service worker</strong> — killed after 5 min idle</td>
+      </tr>
+      <tr>
+        <td class="key">Network interception</td>
+        <td class="desc"><code>webRequest</code> blocking — can modify request/response bodies</td>
+        <td class="desc"><code>declarativeNetRequest</code> — rules-based, cannot read bodies</td>
+      </tr>
+      <tr>
+        <td class="key">Remote code</td>
+        <td class="desc">Could load JS from external CDN at runtime</td>
+        <td class="desc">Strictly forbidden — all code must be in the extension package</td>
+      </tr>
+      <tr>
+        <td class="key">CSP</td>
+        <td class="desc">Relaxed — inline scripts allowed with <code>unsafe-inline</code></td>
+        <td class="desc">Strict — no inline scripts, no <code>eval()</code>, no <code>unsafe-eval</code></td>
+      </tr>
+      <tr>
+        <td class="key">Host permissions</td>
+        <td class="desc">Mixed into <code>permissions</code> array</td>
+        <td class="desc">Separate <code>host_permissions</code> array — clearer model</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <div class="callout-title">Warning — Ignore MV2 Tutorials</div>
+    You will encounter MV2 code on Stack Overflow, YouTube, and older blog posts.
+    The APIs look similar but the behaviour is different. If a tutorial uses
+    <code>background.page</code>, <code>chrome.extension.getBackgroundPage()</code>,
+    or blocking <code>webRequest</code>, it is MV2 and will not work in your
+    extension. Always check the manifest version before following any guide.
+  </div>
+
+  <h2>Anatomy of manifest.json — Every Key Explained</h2>
+
+  <p>
+    The manifest is a JSON file. JSON does not allow comments, which makes it
+    unfriendly for learning. Below we walk through NeuralTab's manifest key by key,
+    with a full explanation of what each one does and what Chrome does when it reads it.
+  </p>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip — Chrome Validates Your Manifest</div>
+    If your <code>manifest.json</code> has a typo, a missing required key, or an
+    invalid value, Chrome will refuse to load your extension and show a red error
+    on the <code>chrome://extensions</code> page. This is your first debugging tool —
+    always check that page when your extension fails to load.
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     CODE WALKTHROUGH — manifest.json
+════════════════════════════════════════════════════════════ -->
+<section id="walkthrough">
+
+  <h2>Code Walkthrough — Every File Explained</h2>
+
+  <h3>manifest.json — The Extension's Identity Card</h3>
+
+  <p>
+    This is the <em>only</em> file Chrome reads directly. Everything else —
+    popup.html, popup.js, content scripts, icons — is referenced from here.
+    Chrome will not load a file unless it is reachable from a chain starting
+    at <code>manifest.json</code>.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-filename">manifest.json</span>
+      <span class="code-lang">JSON</span>
+    </div>
+    <pre>{
+  <span class="c">// ① The ONLY valid value in 2024+. MV2 is disabled by Chrome.</span>
+  <span class="n">"manifest_version"</span><span class="p">:</span> <span class="v">3</span><span class="p">,</span>
+
+  <span class="c">// ② Shown in the Chrome Web Store and on chrome://extensions</span>
+  <span class="n">"name"</span><span class="p">:</span> <span class="s">"NeuralTab"</span><span class="p">,</span>
+
+  <span class="c">// ③ Semantic version. Chrome Web Store requires you to increment</span>
+  <span class="c">//    this every time you publish an update. Format: major.minor.patch</span>
+  <span class="n">"version"</span><span class="p">:</span> <span class="s">"0.1.0"</span><span class="p">,</span>
+
+  <span class="c">// ④ Shown below the name in the Web Store and extensions page</span>
+  <span class="n">"description"</span><span class="p">:</span> <span class="s">"Your AI-powered browser assistant. Module 01: The Foundation."</span><span class="p">,</span>
+
+  <span class="c">// ⑤ "action" defines the toolbar button behaviour.</span>
+  <span class="c">//    default_popup: the HTML file that opens when user clicks the icon.</span>
+  <span class="c">//    If you omit default_popup, clicking the icon fires the</span>
+  <span class="c">//    chrome.action.onClicked event in the background worker instead.</span>
+  <span class="n">"action"</span><span class="p">: {</span>
+    <span class="n">"default_popup"</span><span class="p">:</span> <span class="s">"popup.html"</span><span class="p">,</span>
+
+    <span class="c">// ⑥ Three sizes required: 16px (toolbar), 48px (extensions page),</span>
+    <span class="c">//    128px (Chrome Web Store). Chrome picks the best size for context.</span>
+    <span class="n">"default_icon"</span><span class="p">: {</span>
+      <span class="n">"16"</span><span class="p">:</span>  <span class="s">"icons/icon16.png"</span><span class="p">,</span>
+      <span class="n">"48"</span><span class="p">:</span>  <span class="s">"icons/icon48.png"</span><span class="p">,</span>
+      <span class="n">"128"</span><span class="p">:</span> <span class="s">"icons/icon128.png"</span>
+    <span class="p">},</span>
+
+    <span class="c">// ⑦ Tooltip shown when user hovers over the toolbar icon</span>
+    <span class="n">"default_title"</span><span class="p">:</span> <span class="s">"NeuralTab — Click to open"</span>
+  <span class="p">},</span>
+
+  <span class="c">// ⑧ "icons" is separate from action.default_icon.</span>
+  <span class="c">//    This one is used on the chrome://extensions page and in the</span>
+  <span class="c">//    Web Store listing. They can differ from the toolbar icon,</span>
+  <span class="c">//    but in practice you use the same files.</span>
+  <span class="n">"icons"</span><span class="p">: {</span>
+    <span class="n">"16"</span><span class="p">:</span>  <span class="s">"icons/icon16.png"</span><span class="p">,</span>
+    <span class="n">"48"</span><span class="p">:</span>  <span class="s">"icons/icon48.png"</span><span class="p">,</span>
+    <span class="n">"128"</span><span class="p">:</span> <span class="s">"icons/icon128.png"</span>
+  <span class="p">},</span>
+
+  <span class="c">// ⑨ Chrome API permissions your extension needs.</span>
+  <span class="c">//    We declare ZERO right now. Chrome.tabs.query with</span>
+  <span class="c">//    {active:true, currentWindow:true} works WITHOUT "tabs" permission.</span>
+  <span class="c">//    We add permissions only when we need them — not upfront.</span>
+  <span class="n">"permissions"</span><span class="p">: [],</span>
+
+  <span class="c">// ⑩ Domains your extension can access via fetch() or XMLHttpRequest.</span>
+  <span class="c">//    Also controls which pages your content scripts can inject into.</span>
+  <span class="c">//    Empty for now — we add these in Module 09 when we hit real APIs.</span>
+  <span class="n">"host_permissions"</span><span class="p">: []</span>
+<span class="p">}</span></pre>
+  </div>
+
+  <table class="annotation-table">
+    <thead>
+      <tr><th>Key</th><th>Required?</th><th>What Chrome does with it</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="key">manifest_version<span class="required">required</span></td>
+        <td class="desc">Rejects the extension if not 3</td>
+      </tr>
+      <tr>
+        <td class="key">name<span class="required">required</span></td>
+        <td class="desc">Shown in toolbar tooltip, extensions page, Web Store</td>
+      </tr>
+      <tr>
+        <td class="key">version<span class="required">required</span></td>
+        <td class="desc">Used by CWS to detect new uploads; must increment on every publish</td>
+      </tr>
+      <tr>
+        <td class="key">description<span class="optional">optional</span></td>
+        <td class="desc">Shown on chrome://extensions and in the Web Store listing</td>
+      </tr>
+      <tr>
+        <td class="key">action<span class="optional">optional</span></td>
+        <td class="desc">Defines toolbar button. Omit it and no icon appears at all</td>
+      </tr>
+      <tr>
+        <td class="key">icons<span class="optional">optional</span></td>
+        <td class="desc">Extension page + Web Store images. Chrome shows grey puzzle piece if absent</td>
+      </tr>
+      <tr>
+        <td class="key">permissions<span class="optional">optional</span></td>
+        <td class="desc">Gates which <code>chrome.*</code> APIs you can call</td>
+      </tr>
+      <tr>
+        <td class="key">host_permissions<span class="optional">optional</span></td>
+        <td class="desc">Gates which URLs your extension can access or inject into</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>popup.html — The Extension's UI Shell</h3>
+
+  <p>
+    The popup is an ordinary HTML page with one critical constraint: <strong>no
+    inline JavaScript is allowed.</strong> This is enforced by the extension's
+    Content Security Policy, which MV3 applies automatically. Every
+    <code>&lt;script&gt;</code> tag must use a <code>src</code> attribute pointing
+    to a separate file. Inline event handlers like <code>onclick="fn()"</code> are
+    also blocked. This is not a bug — it is a deliberate security feature that
+    prevents injected content from executing code in your privileged extension context.
+  </p>
+
+  <div class="callout danger">
+    <div class="callout-title">Danger — This Will Silently Fail</div>
+    Writing <code>&lt;script&gt;alert('hello')&lt;/script&gt;</code> inside
+    popup.html will produce a CSP violation error in the DevTools console and do
+    nothing. Your JavaScript must always live in a <code>.js</code> file referenced
+    via <code>&lt;script src="popup.js"&gt;&lt;/script&gt;</code>.
+    The same rule applies to options.html, sidepanel.html, and any other
+    extension-owned HTML page.
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-filename">popup.html</span>
+      <span class="code-lang">HTML</span>
+    </div>
+    <pre><span class="k">&lt;!DOCTYPE html&gt;</span>
+<span class="k">&lt;html</span> <span class="n">lang</span>=<span class="s">"en"</span><span class="k">&gt;</span>
+<span class="k">&lt;head&gt;</span>
+  <span class="c">&lt;!-- charset must be UTF-8. Chrome enforces this for extension pages. --&gt;</span>
+  <span class="k">&lt;meta</span> <span class="n">charset</span>=<span class="s">"UTF-8"</span> <span class="k">/&gt;</span>
+  <span class="k">&lt;title&gt;</span>NeuralTab<span class="k">&lt;/title&gt;</span>
+  <span class="c">&lt;!-- External stylesheet is allowed. Only inline &lt;style&gt; blocks and
+       inline JS are blocked by CSP. --&gt;</span>
+  <span class="k">&lt;link</span> <span class="n">rel</span>=<span class="s">"stylesheet"</span> <span class="n">href</span>=<span class="s">"popup.css"</span> <span class="k">/&gt;</span>
+<span class="k">&lt;/head&gt;</span>
+<span class="k">&lt;body&gt;</span>
+
+  <span class="c">&lt;!-- All sections with IDs so popup.js can target them --&gt;</span>
+  <span class="k">&lt;div</span> <span class="n">class</span>=<span class="s">"header"</span><span class="k">&gt;</span> ... <span class="k">&lt;/div&gt;</span>
+
+  <span class="c">&lt;!-- #current-url and #tab-title filled by popup.js at runtime --&gt;</span>
+  <span class="k">&lt;span</span> <span class="n">id</span>=<span class="s">"current-url"</span><span class="k">&gt;</span>Loading...<span class="k">&lt;/span&gt;</span>
+
+  <span class="c">&lt;!-- Buttons use data-action attributes, not onclick handlers --&gt;</span>
+  <span class="k">&lt;button</span> <span class="n">class</span>=<span class="s">"btn btn-green"</span> <span class="n">data-action</span>=<span class="s">"on"</span><span class="k">&gt;</span>Set ON<span class="k">&lt;/button&gt;</span>
+
+  <span class="c">&lt;!-- Script is ALWAYS at the bottom, ALWAYS in a separate file --&gt;</span>
+  <span class="k">&lt;script</span> <span class="n">src</span>=<span class="s">"popup.js"</span><span class="k">&gt;&lt;/script&gt;</span>
+<span class="k">&lt;/body&gt;</span>
+<span class="k">&lt;/html&gt;</span></pre>
+  </div>
+
+  <h3>popup.js — Reading the Active Tab and Controlling the Badge</h3>
+
+  <p>
+    This is where the interesting logic lives. There are three things happening:
+    reading the current tab, filling in extension metadata, and handling button clicks.
+    Let's walk through each one.
+  </p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-filename">popup.js — Part 1: Reading the active tab</span>
+      <span class="code-lang">JavaScript</span>
+    </div>
+    <pre><span class="k">'use strict'</span><span class="p">;</span>  <span class="c">// Catch accidental globals and undeclared variables</span>
+
+<span class="c">// Grab DOM references once at startup.
+// We store them in constants so we do not re-query on every event.</span>
+<span class="k">const</span> <span class="n">elUrl</span>  <span class="p">=</span> document<span class="p">.</span><span class="fn">getElementById</span><span class="p">(</span><span class="s">'current-url'</span><span class="p">);</span>
+<span class="k">const</span> <span class="n">elTitle</span><span class="p">=</span> document<span class="p">.</span><span class="fn">getElementById</span><span class="p">(</span><span class="s">'tab-title'</span><span class="p">);</span>
+
+<span class="c">// chrome.tabs.query() returns a Promise in MV3.
+// The filter narrows results to exactly the one active tab.
+//
+// WHY no "tabs" permission?
+// The "tabs" permission gates access to tab.url and tab.title for
+// background tabs (tabs the user is not on). The active tab in the
+// CURRENT WINDOW is always readable without any permission — Chrome
+// considers this low-risk because the user is already looking at it.</span>
+chrome<span class="p">.</span>tabs<span class="p">.</span><span class="fn">query</span><span class="p">({</span> active<span class="p">:</span> <span class="k">true</span><span class="p">,</span> currentWindow<span class="p">:</span> <span class="k">true</span> <span class="p">})</span>
+  <span class="p">.</span><span class="fn">then</span><span class="p">(([</span>tab<span class="p">]) =&gt; {</span>
+
+    <span class="c">// tab may be undefined on chrome:// or edge:// internal pages</span>
+    <span class="k">if</span> <span class="p">(!</span>tab<span class="p">) {</span>
+      elUrl<span class="p">.</span>textContent   <span class="p">=</span> <span class="s">'No active tab found'</span><span class="p">;</span>
+      elTitle<span class="p">.</span>textContent <span class="p">=</span> <span class="s">'—'</span><span class="p">;</span>
+      <span class="k">return</span><span class="p">;</span>
+    <span class="p">}</span>
+
+    <span class="c">// tab.url is empty for restricted pages (chrome://, file://) when
+    // the "tabs" permission is absent. We handle that gracefully.</span>
+    elUrl<span class="p">.</span>textContent   <span class="p">=</span> tab<span class="p">.</span>url   <span class="p">||</span> <span class="s">'(restricted — no URL access)'</span><span class="p">;</span>
+    elTitle<span class="p">.</span>textContent <span class="p">=</span> tab<span class="p">.</span>title <span class="p">||</span> <span class="s">'(no title)'</span><span class="p">;</span>
+
+    <span class="c">// Update the badge immediately when popup opens</span>
+    chrome<span class="p">.</span>action<span class="p">.</span><span class="fn">setBadgeText</span><span class="p">({</span> text<span class="p">:</span> <span class="s">'✓'</span><span class="p">,</span> tabId<span class="p">:</span> tab<span class="p">.</span>id <span class="p">});</span>
+    chrome<span class="p">.</span>action<span class="p">.</span><span class="fn">setBadgeBackgroundColor</span><span class="p">({</span> color<span class="p">:</span> <span class="s">'#4ade80'</span><span class="p">,</span> tabId<span class="p">:</span> tab<span class="p">.</span>id <span class="p">});</span>
+  <span class="p">})</span>
+  <span class="p">.</span><span class="fn">catch</span><span class="p">((</span>err<span class="p">) =&gt; {</span>
+    elUrl<span class="p">.</span>textContent <span class="p">=</span> <span class="s">`Error: <span class="p">${</span>err<span class="p">.</span>message<span class="p">}</span>`</span><span class="p">;</span>
+  <span class="p">});</span></pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-filename">popup.js — Part 2: Extension metadata</span>
+      <span class="code-lang">JavaScript</span>
+    </div>
+    <pre><span class="c">// chrome.runtime.getManifest() returns YOUR manifest.json as a JS object.
+// Chrome parses and caches it — this call is synchronous and instant.
+// It is the only way to read your own manifest at runtime without fetch().</span>
+<span class="k">const</span> manifest <span class="p">=</span> chrome<span class="p">.</span>runtime<span class="p">.</span><span class="fn">getManifest</span><span class="p">();</span>
+
+document<span class="p">.</span><span class="fn">getElementById</span><span class="p">(</span><span class="s">'ext-id'</span><span class="p">).</span>textContent
+  <span class="p">=</span> chrome<span class="p">.</span>runtime<span class="p">.</span>id<span class="p">;</span>      <span class="c">// 32-char string like "abcdefghijklmnopqrstuvwxyzabcdef"</span>
+
+document<span class="p">.</span><span class="fn">getElementById</span><span class="p">(</span><span class="s">'ext-version'</span><span class="p">).</span>textContent
+  <span class="p">=</span> manifest<span class="p">.</span>version<span class="p">;</span>       <span class="c">// "0.1.0" — read from manifest.json</span>
+
+document<span class="p">.</span><span class="fn">getElementById</span><span class="p">(</span><span class="s">'manifest-ver'</span><span class="p">).</span>textContent
+  <span class="p">=</span> <span class="s">`v<span class="p">${</span>manifest<span class="p">.</span>manifest_version<span class="p">}</span>`</span><span class="p">;</span>  <span class="c">// "v3"</span></pre>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-filename">popup.js — Part 3: Badge control buttons</span>
+      <span class="code-lang">JavaScript</span>
+    </div>
+    <pre><span class="k">let</span> clickCount <span class="p">=</span> <span class="v">0</span><span class="p">;</span>  <span class="c">// lives in popup.js memory — reset when popup closes</span>
+
+<span class="c">// Query ALL buttons at once, loop over them.
+// Each button has data-action="on|count|clear" — avoids writing
+// three separate event listeners for three nearly identical handlers.</span>
+document<span class="p">.</span><span class="fn">querySelectorAll</span><span class="p">(</span><span class="s">'.btn'</span><span class="p">).</span><span class="fn">forEach</span><span class="p">((</span>btn<span class="p">) =&gt; {</span>
+  btn<span class="p">.</span><span class="fn">addEventListener</span><span class="p">(</span><span class="s">'click'</span><span class="p">,</span> <span class="p">() =&gt; {</span>
+    <span class="k">const</span> action <span class="p">=</span> btn<span class="p">.</span>dataset<span class="p">.</span>action<span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span>action <span class="p">===</span> <span class="s">'on'</span><span class="p">) {</span>
+      <span class="c">// Omitting tabId means the badge applies to ALL tabs globally</span>
+      chrome<span class="p">.</span>action<span class="p">.</span><span class="fn">setBadgeText</span><span class="p">({</span> text<span class="p">:</span> <span class="s">'ON'</span> <span class="p">});</span>
+      chrome<span class="p">.</span>action<span class="p">.</span><span class="fn">setBadgeBackgroundColor</span><span class="p">({</span> color<span class="p">:</span> <span class="s">'#4ade80'</span> <span class="p">});</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span>action <span class="p">===</span> <span class="s">'count'</span><span class="p">) {</span>
+      clickCount<span class="p">++;</span>
+      chrome<span class="p">.</span>action<span class="p">.</span><span class="fn">setBadgeText</span><span class="p">({</span> text<span class="p">:</span> <span class="fn">String</span><span class="p">(</span>clickCount<span class="p">) });</span>
+      chrome<span class="p">.</span>action<span class="p">.</span><span class="fn">setBadgeBackgroundColor</span><span class="p">({</span> color<span class="p">:</span> <span class="s">'#fb923c'</span> <span class="p">});</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="p">(</span>action <span class="p">===</span> <span class="s">'clear'</span><span class="p">) {</span>
+      clickCount <span class="p">=</span> <span class="v">0</span><span class="p">;</span>
+      <span class="c">// Empty string removes the badge overlay entirely</span>
+      chrome<span class="p">.</span>action<span class="p">.</span><span class="fn">setBadgeText</span><span class="p">({</span> text<span class="p">:</span> <span class="s">''</span> <span class="p">});</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+<span class="p">});</span></pre>
+  </div>
+
+  <div class="callout insight">
+    <div class="callout-title">Key Insight — The Badge Persists, The Variable Does Not</div>
+    Notice that <code>clickCount</code> is a JavaScript variable in <code>popup.js</code>.
+    When you close the popup, that variable is destroyed. If you reopen the popup,
+    <code>clickCount</code> resets to 0. However, the <strong>badge itself persists</strong>
+    — it is stored by Chrome in the extension's action state, not in your JS memory.
+    This is the fundamental lesson of extension development: anything stored in a
+    JavaScript variable dies when the context closes. Anything stored via a
+    <code>chrome.*</code> API (badge, storage, alarm) persists. We will use
+    <code>chrome.storage</code> from Module 03 onward to solve exactly this problem.
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     BUILD & RUN
+════════════════════════════════════════════════════════════ -->
+<section id="build">
+
+  <h2>Build &amp; Run — Loading Your Extension Into Chrome</h2>
+
+  <p>
+    Unlike a website, you do not run a server to develop an extension. Chrome
+    loads extension files directly from your hard drive. The workflow during
+    development is: edit a file → reload the extension → test. No build step
+    is needed until Module 18 when we introduce the Vite/TypeScript toolchain.
+  </p>
+
+  <h3>Step 1 — Generate Your Icons</h3>
+
+  <p>
+    Before loading the extension, you need three PNG icon files. We generate
+    them in-browser to avoid any tooling dependency.
+  </p>
+
+  <ol class="steps">
+    <li>
+      <div class="step-body">
+        <p>Open <code>module_01/icons/create_icons.html</code> in Chrome by dragging it into a new tab, or by going to <code>File → Open File</code> in Chrome.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Click <strong>Download icon16.png</strong>, then <strong>Download icon48.png</strong>, then <strong>Download icon128.png</strong>.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Move all three downloaded files into the <code>module_01/icons/</code> folder. The filenames must match exactly: <code>icon16.png</code>, <code>icon48.png</code>, <code>icon128.png</code>.</p>
+      </div>
+    </li>
+  </ol>
+
+  <h3>Step 2 — Load the Extension as Unpacked</h3>
+
+  <ol class="steps">
+    <li>
+      <div class="step-body">
+        <p>Open a new Chrome tab and navigate to <code>chrome://extensions</code></p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Toggle <strong>Developer mode</strong> ON — it is the switch in the top-right corner of the page. The page will refresh and show three new buttons.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Click <strong>Load unpacked</strong>. A file picker opens. Navigate to and select your <code>module_01/</code> folder — the folder that contains <code>manifest.json</code> directly inside it.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>If everything is correct, a NeuralTab card appears on the extensions page. If there is a red error message, read it carefully — it tells you exactly what is wrong in your manifest.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Click the <strong>puzzle-piece icon</strong> in the Chrome toolbar, find NeuralTab in the list, and click the pin icon to make it permanently visible in the toolbar.</p>
+      </div>
+    </li>
+  </ol>
+
+  <h3>Step 3 — Test It</h3>
+
+  <ol class="steps">
+    <li>
+      <div class="step-body">
+        <p>Open <code>module_01/demo/index.html</code> in Chrome (drag it into a new tab).</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Click the NeuralTab ⚡ icon in the toolbar. The popup opens.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Verify the popup shows the demo page's URL and title. Both should match what you see in the browser's address bar and title bar.</p>
+      </div>
+    </li>
+    <li>
+      <div class="step-body">
+        <p>Click <strong>Set ON</strong> — the toolbar icon badge should immediately show "ON" in green. Click <strong>Count</strong> three times — should show 1, 2, 3. Click <strong>Clear</strong> — badge disappears.</p>
+      </div>
+    </li>
+  </ol>
+
+  <h3>Expected Output</h3>
+
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="terminal-dot dot-red"></div>
+      <div class="terminal-dot dot-yellow"></div>
+      <div class="terminal-dot dot-green"></div>
+      <span class="terminal-title">chrome://extensions — after loading unpacked</span>
+    </div>
+    <pre>
+<span class="term-ok">✓</span>  NeuralTab appears as a card on chrome://extensions
+<span class="term-ok">✓</span>  Card shows: Name "NeuralTab" · Version "0.1.0"
+<span class="term-ok">✓</span>  Card shows: ID — a 32-character alphanumeric string
+<span class="term-ok">✓</span>  No red error banner beneath the card
+<span class="term-ok">✓</span>  ⚡ icon visible in toolbar after pinning
+
+    Popup content when viewing demo/index.html:
+<span class="term-ok">✓</span>  ACTIVE TAB → file:///path/to/module_01/demo/index.html
+<span class="term-ok">✓</span>  TAB TITLE  → NeuralTab — Module 01 Demo Page
+<span class="term-ok">✓</span>  Extension Info → ID: [your 32-char id]
+<span class="term-ok">✓</span>  Extension Info → Version: 0.1.0
+<span class="term-ok">✓</span>  Extension Info → Manifest: v3
+    </pre>
+  </div>
+
+  <h3>Step 4 — Reload After Every Edit</h3>
+
+  <p>
+    Chrome does not automatically detect file changes in unpacked extensions.
+    Every time you edit a file, you must tell Chrome to reload. There are
+    two ways:
+  </p>
+
+  <div class="terminal">
+    <div class="terminal-bar">
+      <div class="terminal-dot dot-red"></div>
+      <div class="terminal-dot dot-yellow"></div>
+      <div class="terminal-dot dot-green"></div>
+      <span class="terminal-title">How to reload after editing</span>
+    </div>
+    <pre>
+<span class="term-prompt">Option A (faster):</span>
+<span class="term-out">  Go to chrome://extensions → find NeuralTab → click the ↺ reload button</span>
+<span class="term-out">  Then close and reopen the popup.</span>
+
+<span class="term-prompt">Option B (keyboard):</span>
+<span class="term-out">  Navigate to chrome://extensions, then press R while the NeuralTab card is focused.</span>
+
+<span class="term-warn">Note: Changes to popup.html and popup.js take effect immediately after
+reload. Changes to manifest.json ALWAYS require a reload — Chrome only
+reads the manifest when the extension loads, not on every popup open.</span>
+    </pre>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-title">Tip — Open the Popup's DevTools</div>
+    To debug the popup, right-click anywhere inside the open popup and select
+    <strong>Inspect</strong>. This opens a dedicated DevTools window for the
+    popup page — you can see console logs, the DOM, network requests, and
+    errors exactly as you would for any web page. This is your primary
+    debugging tool for all popup-context code.
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     EXERCISES
+════════════════════════════════════════════════════════════ -->
+<section id="exercises">
+
+  <h2>Exercises</h2>
+
+  <p>
+    Do not skip these. Each exercise is carefully designed to surface an
+    insight that the prose cannot convey — only by breaking something and
+    fixing it do you actually understand it.
+  </p>
+
+  <!-- EXERCISE 1 -->
+  <div class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-tag tag-warmup">Warm-Up</span>
+      <span class="exercise-title">Exercise 1 — Break the Manifest and Read the Error</span>
+    </div>
+    <p>
+      The goal is to see Chrome's manifest validation in action and learn to
+      read its error messages — a skill you will use constantly.
+    </p>
+    <ul>
+      <li>Open <code>manifest.json</code> and delete the <code>"name"</code> key entirely. Save the file.</li>
+      <li>Go to <code>chrome://extensions</code> and click the ↺ reload button on NeuralTab.</li>
+      <li>Read the red error message that appears. Notice exactly what Chrome says is missing.</li>
+      <li>Now restore the <code>"name"</code> key and reload again — the error disappears.</li>
+      <li>Repeat this experiment: remove <code>"manifest_version"</code> and observe the error.</li>
+      <li>Try changing <code>"manifest_version": 3</code> to <code>"manifest_version": 2</code>. What happens?</li>
+    </ul>
+    <div class="exercise-hint">
+      <strong>What to notice:</strong> Chrome's error messages name the exact key that is
+      missing or invalid. Reading them carefully saves hours of debugging. Also notice that
+      changing to manifest_version 2 does NOT give an error — Chrome still loads it, but
+      marks the extension as "deprecated" and it will stop working in future Chrome versions.
+    </div>
+  </div>
+
+  <!-- EXERCISE 2 -->
+  <div class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-tag tag-warmup">Warm-Up</span>
+      <span class="exercise-title">Exercise 2 — Prove the Inline Script Block</span>
+    </div>
+    <p>
+      The MV3 Content Security Policy block on inline scripts is not obvious until
+      you see it fail. Let's see it fail deliberately.
+    </p>
+    <ul>
+      <li>Open <code>popup.html</code> and add this line just before the closing <code>&lt;/body&gt;</code> tag:<br>
+        <code>&lt;script&gt;console.log('inline test');&lt;/script&gt;</code>
+      </li>
+      <li>Reload the extension and open the popup.</li>
+      <li>Open the popup's DevTools (right-click → Inspect inside the popup).</li>
+      <li>Check the Console tab. You should see a CSP violation error — the inline script was blocked.</li>
+      <li>Now move that console.log into <code>popup.js</code> instead. Reload and verify it works.</li>
+    </ul>
+    <div class="exercise-hint">
+      <strong>What to notice:</strong> The CSP error message mentions "unsafe-inline" and
+      names the policy that blocked it. This is the exact same error you will see if you
+      accidentally paste inline JS into an extension page later in the course — now you
+      will recognise it immediately.
+    </div>
+  </div>
+
+  <!-- EXERCISE 3 -->
+  <div class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-tag tag-core">Core</span>
+      <span class="exercise-title">Exercise 3 — Add a "Tab Count" Feature</span>
+    </div>
+    <p>
+      Modify <code>popup.js</code> to display how many tabs are currently open in all
+      Chrome windows. Add a new section to <code>popup.html</code> to show this number.
+    </p>
+    <ul>
+      <li>Call <code>chrome.tabs.query({})</code> — empty filter object returns ALL tabs across ALL windows.</li>
+      <li>The promise resolves with an array of tab objects. Use <code>.length</code> to get the count.</li>
+      <li>Add a new <code>&lt;div class="section"&gt;</code> block in popup.html with a label "OPEN TABS" and a span with id <code>"tab-count"</code>.</li>
+      <li>In popup.js, fill in <code>tab-count</code> with the result.</li>
+      <li>Open 5 new tabs, then open the popup again. Verify the count updates.</li>
+    </ul>
+    <div class="exercise-hint">
+      <strong>Hint:</strong> You do NOT need to add any permission to the manifest for this.
+      <code>chrome.tabs.query({})</code> returns a count of all tabs but the URL and title
+      fields will be empty for tabs you are not currently on — that is the tabs permission
+      gate in action.
+    </div>
+  </div>
+
+  <!-- EXERCISE 4 -->
+  <div class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-tag tag-core">Core</span>
+      <span class="exercise-title">Exercise 4 — Persist the Badge Across Popup Opens</span>
+    </div>
+    <p>
+      The <code>clickCount</code> variable in popup.js resets to 0 every time the popup
+      closes. Your task is to make the count survive popup opens and closes using
+      <code>chrome.storage.local</code> — even though we cover storage formally in Module 03,
+      the API is simple enough to use now. This is the most important exercise in Module 01.
+    </p>
+    <ul>
+      <li>At the top of popup.js, load the saved count when the popup opens:
+        <br><code>chrome.storage.local.get('clickCount', (data) => { clickCount = data.clickCount || 0; });</code>
+      </li>
+      <li>After incrementing <code>clickCount</code> in the "count" button handler, save it back:
+        <br><code>chrome.storage.local.set({ clickCount });</code>
+      </li>
+      <li>Also update <code>chrome.action.setBadgeText</code> inside the storage.get callback so the badge reflects the loaded count on popup open.</li>
+      <li>Test: click Count 3 times → close popup → reopen popup → count should resume at 3, not reset to 0.</li>
+    </ul>
+    <div class="exercise-hint">
+      <strong>What you just learned:</strong> You used a Chrome API to persist state across
+      context lifecycles. This is the core discipline of extension development.
+      The popup dies. The badge state lives in Chrome. The count now lives in
+      chrome.storage. In Module 07 we build a full storage abstraction layer around this pattern.
+    </div>
+  </div>
+
+  <!-- EXERCISE 5 -->
+  <div class="exercise">
+    <div class="exercise-header">
+      <span class="exercise-tag tag-stretch">Stretch</span>
+      <span class="exercise-title">Exercise 5 — Build a "Permissions Explorer" Popup</span>
+    </div>
+    <p>
+      Create a second HTML page called <code>permissions.html</code> with a link
+      from the main popup. This page should dynamically list every permission
+      that NeuralTab is currently granted, and for each one, show a one-line
+      explanation of what it allows.
+    </p>
+    <ul>
+      <li>Add a small link at the bottom of popup.html: <code>&lt;a href="permissions.html" target="_blank"&gt;View permissions&lt;/a&gt;</code></li>
+      <li>Create <code>permissions.html</code> with a linked <code>permissions.js</code></li>
+      <li>In permissions.js, call <code>chrome.runtime.getManifest()</code> and read the <code>permissions</code> array</li>
+      <li>Build a hardcoded lookup object that maps permission name → human explanation, for example:<br>
+        <code>"tabs": "Read the URL and title of all open tabs"</code><br>
+        <code>"storage": "Store data in the browser that survives restarts"</code><br>
+        <code>"alarms": "Schedule timers that wake up the service worker"</code><br>
+        (include at least 10 common ones)
+      </li>
+      <li>Render the list dynamically. Currently NeuralTab has zero permissions — the page should say "No permissions declared".</li>
+      <li>Add <code>"storage"</code> to the manifest permissions array, reload, and verify the page now shows it.</li>
+    </ul>
+    <div class="exercise-hint">
+      <strong>Why this matters:</strong> In Module 03 you will implement the full Optional
+      Permissions flow. Understanding what each permission means before you request it is
+      the foundation of good permissions UX design.
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     SPEC REFERENCE
+════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>
+    Masters read specs, not just tutorials. Every claim in this tutorial is
+    backed by one of these documents. When something does not work as expected,
+    the spec is your ground truth.
+  </p>
+
+  <div class="spec-ref">
+    <span class="spec-ref-icon">📄</span>
+    <div class="spec-ref-body">
+      <strong>Manifest V3 Overview</strong> — The official Chrome developer documentation
+      covering every manifest key, MV2→MV3 migration, and the rationale behind each
+      change.<br>
+      <a href="https://developer.chrome.com/docs/extensions/mv3/intro/" target="_blank">developer.chrome.com/docs/extensions/mv3/intro/</a>
+    </div>
+  </div>
+
+  <div class="spec-ref">
+    <span class="spec-ref-icon">📄</span>
+    <div class="spec-ref-body">
+      <strong>chrome.action API Reference</strong> — Every method and event for controlling
+      the toolbar button: setBadgeText, setBadgeBackgroundColor, setIcon, setTitle,
+      setPopup, onClicked.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/action/" target="_blank">developer.chrome.com/docs/extensions/reference/action/</a>
+    </div>
+  </div>
+
+  <div class="spec-ref">
+    <span class="spec-ref-icon">📄</span>
+    <div class="spec-ref-body">
+      <strong>chrome.tabs API Reference</strong> — The full Tab object schema, query
+      filter options, and every method. Pay special attention to the permissions
+      column — it tells you which calls need "tabs" and which do not.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/tabs/" target="_blank">developer.chrome.com/docs/extensions/reference/tabs/</a>
+    </div>
+  </div>
+
+  <div class="spec-ref">
+    <span class="spec-ref-icon">📄</span>
+    <div class="spec-ref-body">
+      <strong>Chrome Web Store Developer Program Policies</strong> — The legal document
+      that governs what extensions can and cannot do. Reading it now saves you from
+      a surprise removal letter later. Pay special attention to the sections on
+      user data, permissions, and deceptive installation.<br>
+      <a href="https://developer.chrome.com/docs/webstore/program-policies/" target="_blank">developer.chrome.com/docs/webstore/program-policies/</a>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     WHAT'S NEXT
+════════════════════════════════════════════════════════════ -->
+<section id="next">
+  <div class="next-module">
+    <div class="next-label">Up Next — Module 02 of 25</div>
+    <div class="next-title">Content Scripts, DOM Surgery &amp; Web Accessible Resources</div>
+    <p class="next-body">
+      Right now NeuralTab lives entirely inside its own popup. It can read tab metadata,
+      but it cannot touch the actual web page — its DOM, its text, its structure.
+      In Module 02 we fix that by introducing <strong>content scripts</strong>, the
+      mechanism that lets your extension reach into any webpage and modify what the
+      user sees. We will inject a floating "Summarize" button onto every article page
+      the user visits — the first visible, in-page feature of NeuralTab. Along the way
+      you will learn why content scripts run in an "isolated world" (they share the DOM
+      but cannot touch the page's JavaScript variables), and you will master
+      <strong>web_accessible_resources</strong> — the manifest key that lets you inject
+      your own fonts, images, and scripts into third-party pages without being blocked
+      by their Content Security Policy. The new file added in Module 02 is
+      <strong><code>content.js</code></strong>, which is the script Chrome automatically
+      injects into every page you declare as a match pattern — and understanding
+      <em>how</em> Chrome decides when to inject it, and into which frame, is the
+      core lesson of that module.
+    </p>
+  </div>
+</section>
+
+</div><!-- /page-wrap -->
+
+</body>
+</html>

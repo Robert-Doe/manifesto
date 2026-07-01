@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab — Module 01 Demo Page</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Source+Code+Pro&display=swap');
+
+    :root {
+      --bg:     #0b0f1a;
+      --bg2:    #111827;
+      --card:   #141c2e;
+      --border: #1e3a5f;
+      --gold:   #f5c842;
+      --cyan:   #38bdf8;
+      --purple: #a78bfa;
+      --green:  #4ade80;
+      --text:   #e2e8f0;
+      --muted:  #7a9bbf;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Lato', system-ui, sans-serif;
+      padding: 48px 24px;
+      max-width: 760px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--muted);
+      padding: 4px 14px;
+      margin-bottom: 20px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 32px;
+      color: var(--gold);
+      margin-bottom: 10px;
+      font-family: 'Lato', sans-serif;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 16px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card h2 {
+      color: var(--cyan);
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      font-size: 12px;
+    }
+
+    .card p {
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .card p:last-child { margin-bottom: 0; }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-key { color: var(--muted); }
+    .info-val { font-family: 'Source Code Pro', monospace; color: var(--purple); font-size: 12px; }
+
+    .checklist { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+    }
+    .check { color: var(--green); font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .pending { color: var(--muted); font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    .tip {
+      background: #0d1f0f;
+      border-left: 3px solid var(--green);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px;
+      font-size: 13px;
+      color: var(--text);
+      margin-top: 16px;
+    }
+    .tip strong { color: var(--green); }
+
+    .url-display {
+      font-family: 'Source Code Pro', monospace;
+      font-size: 12px;
+      color: var(--cyan);
+      background: #060d1a;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      word-break: break-all;
+      margin-top: 10px;
+    }
+
+    footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="badge">Module 01 Demo Page</div>
+
+  <h1>⚡ NeuralTab is watching</h1>
+  <p class="subtitle">
+    This page exists so you can see your extension working on a real URL.
+    Load NeuralTab as an unpacked extension, then click the toolbar icon
+    while viewing this page.
+  </p>
+
+  <div class="card">
+    <h2>This page's URL</h2>
+    <p>When you open the NeuralTab popup on this page, you should see the URL below appear inside the popup's "Active Tab" section.</p>
+    <div class="url-display" id="self-url">Loading…</div>
+  </div>
+
+  <div class="card">
+    <h2>What to verify</h2>
+    <ul class="checklist">
+      <li>
+        <span class="check">✓</span>
+        <span>The NeuralTab icon appears in the Chrome toolbar (you may need to pin it from the puzzle-piece menu)</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span>Clicking the icon opens a dark popup — not a blank page or an error</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span>The popup shows this page's full URL in the "Active Tab" section</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span>The popup shows this page's title ("NeuralTab — Module 01 Demo Page")</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span>The "Extension Info" section shows a real extension ID (a 32-character string)</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span>Clicking "Set ON" turns the toolbar badge green with the text ON</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span>Clicking "Count" repeatedly increments the badge number</span>
+      </li>
+      <li>
+        <span class="check">✓</span>
+        <span>Clicking "Clear" removes the badge entirely</span>
+      </li>
+      <li>
+        <span class="pending">○</span>
+        <span>After completing the exercises in tutorial.html, the badge also updates on page load automatically</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Page metadata (what the extension reads)</h2>
+    <div class="info-row">
+      <span class="info-key">document.title</span>
+      <span class="info-val" id="doc-title">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">location.href</span>
+      <span class="info-val" id="doc-href">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">location.protocol</span>
+      <span class="info-val" id="doc-protocol">—</span>
+    </div>
+    <div class="info-row">
+      <span class="info-key">location.hostname</span>
+      <span class="info-val" id="doc-host">—</span>
+    </div>
+
+    <div class="tip">
+      <strong>Why does the extension see the same values?</strong>
+      chrome.tabs.query() returns the same URL and title that this page
+      exposes as <code>location.href</code> and <code>document.title</code>.
+      The extension does not need to inject a content script to read these —
+      Chrome exposes them as tab metadata.
+    </div>
+  </div>
+
+  <footer>
+    NeuralTab · Module 01 of 25 · Foundations &amp; Manifest V3 Deep Dive
+  </footer>
+
+  <script>
+    document.getElementById('self-url').textContent     = location.href;
+    document.getElementById('doc-title').textContent    = document.title;
+    document.getElementById('doc-href').textContent     = location.href;
+    document.getElementById('doc-protocol').textContent = location.protocol;
+    document.getElementById('doc-host').textContent     = location.hostname || '(local file)';
+  </script>
+
+</body>
+</html>
