@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 10 — V8 Engine & Isolated Worlds</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--bg2:#0f1623;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .warning{border-color:var(--red);}
+    .warning .label{color:var(--red);}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+    table{width:100%;border-collapse:collapse;margin:16px 0;}
+    th{background:var(--card);color:var(--gold);padding:10px 14px;text-align:left;border:1px solid var(--border);font-size:13px;}
+    td{padding:10px 14px;border:1px solid var(--border);color:var(--muted);font-size:13px;}
+    .yes{color:var(--green);font-weight:700;}
+    .no{color:var(--red);font-weight:700;}
+  </style>
+</head>
+<body>
+  <h1>Module 10 — V8 Engine & Isolated Worlds</h1>
+  <div class="byline">NeuralTab Curriculum · Head First Publication Style · Module 10 of 25</div>
+
+  <h2>The Most Misunderstood Feature in Extension Development</h2>
+  <p>Every experienced Chrome extension developer has hit this bug: their content script tries to call a function defined by the page, or read a variable the page set on <code>window</code>, and gets <code>undefined</code>. The code looks right. The page clearly has the variable. The console shows it. But the extension cannot see it.</p>
+  <p>The reason is <strong>isolated worlds</strong> — one of Chrome's most important and least understood architectural decisions. This module will give you a complete mental model so you never hit this surprise again.</p>
+
+  <h2>V8 Contexts and Heaps</h2>
+  <p>V8, Chrome's JavaScript engine, runs code inside <strong>contexts</strong>. Each context has its own JavaScript heap — its own set of global objects, its own <code>window</code>, its own prototype chain. When you assign <code>window.foo = 1</code>, that assignment is local to the current context's heap. Other contexts cannot see it.</p>
+  <p>Chrome runs multiple V8 contexts per tab:</p>
+  <ul style="color:var(--muted);padding-left:24px;margin-bottom:16px;">
+    <li style="margin-bottom:8px;"><strong style="color:var(--text);">The page context</strong> — runs the website's own JavaScript. Called the MAIN world.</li>
+    <li style="margin-bottom:8px;"><strong style="color:var(--text);">One or more extension contexts</strong> — run content scripts. Called isolated worlds. Each extension gets its own.</li>
+  </ul>
+  <p>Both contexts point at the same DOM tree. <code>document.getElementById('foo')</code> returns the same element from both worlds. But <code>window.myVar</code> in the page context and <code>window.myVar</code> in the isolated world are in different heaps — completely separate objects.</p>
+
+  <div class="callout">
+    <div class="label">Key Mental Model</div>
+    <p>Think of the DOM as a database that both worlds can read and write. The JavaScript heap is a local variable store that neither world can access from the other. DOM: shared. JS variables: private to each world.</p>
+  </div>
+
+  <h2>Why Chrome Built Isolation</h2>
+  <p>The fundamental threat model: a page might be malicious, or might be running third-party scripts that have been compromised. If extension content scripts shared a heap with the page, an attacker could poison the environment before the extension runs:</p>
+  <pre>// Malicious page code — runs before content script
+Object.defineProperty(Array.prototype, 'push', {
+  value: function() { sendDataToAttacker(this); }
+});
+// Now every array.push() in the extension leaks data to the attacker</pre>
+  <p>With isolation, the extension's <code>Array.prototype</code> is in a different heap and cannot be affected. The extension's code is safe from page-level prototype pollution, redefined globals, or overridden built-ins.</p>
+  <p>The secondary benefit: extensions cannot accidentally break page behavior by setting <code>window.onload</code> or redefining global functions. Isolation is a two-way protection.</p>
+
+  <h2>What Each World Can Access</h2>
+  <table>
+    <tr><th>Capability</th><th>ISOLATED (content scripts)</th><th>MAIN (page context)</th></tr>
+    <tr><td>chrome.* APIs</td><td class="yes">✅ Yes</td><td class="no">❌ No</td></tr>
+    <tr><td>Page window variables</td><td class="no">❌ No</td><td class="yes">✅ Yes</td></tr>
+    <tr><td>document / DOM</td><td class="yes">✅ Yes (shared)</td><td class="yes">✅ Yes (shared)</td></tr>
+    <tr><td>Page function calls</td><td class="no">❌ No</td><td class="yes">✅ Yes</td></tr>
+    <tr><td>Extension storage</td><td class="yes">✅ Yes</td><td class="no">❌ No</td></tr>
+    <tr><td>XHR to any origin</td><td class="yes">✅ Yes (with permission)</td><td class="no">❌ CORS-restricted</td></tr>
+  </table>
+
+  <h2>Crossing the Boundary: chrome.scripting.executeScript</h2>
+  <p>The deliberate escape hatch is <code>chrome.scripting.executeScript</code> with the <code>world</code> parameter. This runs a function in the target world of a specific tab, from your background service worker:</p>
+  <pre>// From background.js — inject into page's JS heap
+const results = await chrome.scripting.executeScript({
+  target: { tabId: someTabId },
+  world: 'MAIN',          // ← enter page context
+  func: () => {
+    return window.__pageSecret;   // can read page variables
+  }
+});
+const value = results[0].result;  // returned to background</pre>
+  <p>You can also inject into <code>world: 'ISOLATED'</code> to add code to your extension's context dynamically — useful for injecting helper libraries after the fact.</p>
+
+  <h3>The Closure Trap (Memorize This)</h3>
+  <p>This is the mistake every developer makes exactly once:</p>
+  <pre>// ❌ WRONG — closures don't work across serialization
+const userId = '12345';
+chrome.scripting.executeScript({
+  target: { tabId },
+  func: () => console.log(userId)  // ReferenceError: userId not defined
+});</pre>
+  <p>The <code>func</code> is serialized to its source code text, sent to the target tab, and re-evaluated. The closure binding to <code>userId</code> does not survive this process. The function arrives in the target context as a standalone function with no access to the outer scope.</p>
+  <pre>// ✅ CORRECT — use args for data
+chrome.scripting.executeScript({
+  target: { tabId },
+  func: (id) => console.log(id),   // parameter, not closure
+  args: ['12345']                  // serialized and passed explicitly
+});</pre>
+  <p><code>args</code> are JSON-serialized and passed as function parameters. They survive the round-trip because they're explicit data, not implicit scope.</p>
+
+  <h2>world: 'MAIN' Without chrome.scripting</h2>
+  <p>In your manifest, you can declare content scripts to run in MAIN world directly:</p>
+  <pre>{
+  "content_scripts": [{
+    "matches": ["&lt;all_urls&gt;"],
+    "js": ["inject.js"],
+    "world": "MAIN"      // ← runs in page heap, no chrome.* access
+  }]
+}</pre>
+  <p>Use this when you need to hook page functions (intercept <code>fetch</code>, wrap <code>XMLHttpRequest</code>, observe framework internals) but don't need chrome APIs. The tradeoff: no extension API access, meaning your injected script must communicate back to the isolated world via DOM events or <code>window.postMessage</code>.</p>
+
+  <div class="callout warning">
+    <div class="label">Security Warning</div>
+    <p>Code running in MAIN world is fully exposed to the page. A compromised page can call your functions, overwrite your variables, and intercept your DOM events. Never put sensitive logic (auth tokens, user data, extension secrets) in MAIN world scripts.</p>
+  </div>
+
+  <h2>The Messaging Bridge Pattern</h2>
+  <p>The most robust architecture when you need data from the page heap inside your extension:</p>
+  <pre>// inject.js — runs in MAIN world (no chrome.* access)
+window.addEventListener('message', e => {
+  if (e.data.type !== 'NEURALTAB_REQUEST') return;
+  const data = window.__frameworkState;   // reads page variable
+  window.postMessage({ type: 'NEURALTAB_RESPONSE', data }, '*');
+});
+
+// content.js — runs in ISOLATED world
+window.postMessage({ type: 'NEURALTAB_REQUEST' }, '*');
+window.addEventListener('message', e => {
+  if (e.data.type !== 'NEURALTAB_RESPONSE') return;
+  chrome.runtime.sendMessage({ type: 'pageData', data: e.data.data });
+});
+
+// background.js
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg.type === 'pageData') {
+    // msg.data came from page heap, safely bridged to extension
+  }
+});</pre>
+  <p>The DOM event system is the shared communication bus between worlds. Both worlds can dispatch and listen to DOM events — they're part of the shared DOM, not the private heap.</p>
+
+  <h2>Exercises</h2>
+
+  <div class="exercise">
+    <div class="ex-label">Exercise 10-A — The Isolation Test</div>
+    <p>Open the World Demo page from NeuralTab's popup. Navigate to any page in another tab, then get that tab's ID. Click "Set window.__pageSecret = 'secret123'" in the MAIN world panel. Then click "Read window.__pageSecret" in the ISOLATED world panel. What value does the isolated world return?</p>
+    <p>Now explain to yourself why, in terms of V8 heaps. Write one sentence that would explain it to another developer.</p>
+  </div>
+
+  <div class="exercise">
+    <div class="ex-label">Exercise 10-B — DOM Proof</div>
+    <p>From the World Demo, click "Read document.title" in the ISOLATED panel. Then set a new page title from MAIN world (<code>document.title = 'HACKED'</code>) and read it again from ISOLATED. Confirm both worlds see the same DOM mutation. This is the proof that DOM is shared.</p>
+  </div>
+
+  <div class="exercise">
+    <div class="ex-label">Exercise 10-C — Fix the Closure Bug</div>
+    <p>In <code>world_demo.js</code>, <code>execInWorld</code> uses <code>new Function('return ' + code)</code>. This works for simple expressions but is a code injection risk in production. Refactor it to accept a static function and an <code>args</code> array instead. Keep the same UI but replace the dynamic string approach with typed functions for each specific button action.</p>
+  </div>
+
+  <div class="exercise">
+    <div class="ex-label">Exercise 10-D — The Bridge</div>
+    <p>Build a minimal bridge: add a MAIN-world content script declaration to the manifest for <code>assets/inject.js</code>. In that file, listen for <code>window.postMessage({ type: 'PING' })</code> and respond with the current <code>window.location.href</code> (which the isolated world could also read, but this demonstrates the pattern). In <code>content.js</code>, send the PING and log the response. Verify it works by checking the console on any page.</p>
+  </div>
+</body>
+</html>

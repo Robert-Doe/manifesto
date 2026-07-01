@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab — Message Lab</title>
+  <link rel="stylesheet" href="message_lab.css"/>
+</head>
+<body>
+  <div class="lab-header">
+    <span class="bolt">⚡</span><span class="lab-title">Message Lab</span>
+    <span class="lab-sub">4 Communication Patterns</span>
+    <span class="lab-module">Module 07</span>
+  </div>
+  <div class="lab-grid">
+    <!-- Pattern 1 -->
+    <div class="panel p1">
+      <div class="panel-tag">Pattern 1</div>
+      <div class="panel-name">Fire &amp; Forget</div>
+      <div class="panel-desc">sendMessage — no response, no await</div>
+      <textarea class="lab-input" id="p1-text" placeholder="Message text to log…">Hello background</textarea>
+      <button class="btn p1-btn" id="p1-send">Send One-Way →</button>
+      <div class="panel-result" id="p1-result"></div>
+    </div>
+    <!-- Pattern 2 -->
+    <div class="panel p2">
+      <div class="panel-tag">Pattern 2</div>
+      <div class="panel-name">Request / Response</div>
+      <div class="panel-desc">await sendMessage — requires return true</div>
+      <textarea class="lab-input" id="p2-payload" placeholder="Payload to echo…">{"hello":"world"}</textarea>
+      <div style="display:flex;gap:8px;">
+        <button class="btn p2-btn" id="p2-echo">Echo →</button>
+        <button class="btn p2-btn" id="p2-stats">Get Stats →</button>
+      </div>
+      <div class="panel-result" id="p2-result"></div>
+    </div>
+    <!-- Pattern 3 -->
+    <div class="panel p3">
+      <div class="panel-tag">Pattern 3</div>
+      <div class="panel-name">Port Streaming</div>
+      <div class="panel-desc">connect() + port.postMessage()</div>
+      <div class="stream-controls">
+        <label>Chunks <input type="number" id="p3-chunks" value="10" min="1" max="100"/></label>
+        <label>Delay ms <input type="number" id="p3-delay" value="150" min="50" max="2000"/></label>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn p3-btn" id="p3-start">▶ Start</button>
+        <button class="btn p3-btn-stop" id="p3-stop" disabled>■ Stop</button>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" id="p3-progress"></div></div>
+      <div class="stream-feed" id="p3-feed"></div>
+    </div>
+    <!-- Pattern 4 -->
+    <div class="panel p4">
+      <div class="panel-tag">Pattern 4</div>
+      <div class="panel-name">Storage Pub/Sub</div>
+      <div class="panel-desc">storage.set → storage.onChanged in all tabs</div>
+      <div class="counter-display" id="p4-counter">0</div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button class="btn p4-btn" id="p4-dec">−</button>
+        <button class="btn p4-btn" id="p4-inc">+</button>
+        <button class="btn p4-btn-reset" id="p4-reset">Reset</button>
+      </div>
+      <div class="p4-note">Open 2 tabs — watch counter sync live via storage.onChanged</div>
+    </div>
+  </div>
+  <div class="log-section">
+    <div class="log-header">
+      <span>Message Log</span>
+      <button class="btn btn-sm-ghost" id="btn-clear-log">Clear</button>
+    </div>
+    <div class="log-entries" id="log-entries"></div>
+  </div>
+  <script src="storage_manager.js"></script>
+  <script src="message_lab.js"></script>
+</body>
+</html>

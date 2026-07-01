@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 10 Demo — V8 Isolated Worlds</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:960px;margin:0 auto;}
+    h1{color:var(--gold);font-size:36px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:40px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;overflow-x:auto;color:var(--text);margin:16px 0;}
+    .diagram{display:grid;grid-template-columns:1fr 40px 1fr;gap:0;margin:24px 0;}
+    .world{border-radius:10px;padding:20px;}
+    .iso-world{background:#040e14;border:2px solid var(--cyan);}
+    .main-world{background:#0a0414;border:2px solid var(--purple);}
+    .w-label{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+    .iso-world .w-label{color:var(--cyan);}
+    .main-world .w-label{color:var(--purple);}
+    .w-contents{font-family:'Source Code Pro',monospace;font-size:12px;color:var(--muted);line-height:1.8;}
+    .middle{display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--gold);}
+    .dom-shared{background:var(--card);border:2px dashed var(--gold);border-radius:8px;padding:16px;text-align:center;margin:16px 0;font-family:'Source Code Pro',monospace;font-size:13px;color:var(--gold);}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+  <h1>Module 10 — V8 Isolated Worlds</h1>
+  <p class="sub">Two separate V8 heaps. One shared DOM. The most misunderstood part of Chrome extension architecture.</p>
+
+  <h2>The Mental Model</h2>
+  <div class="diagram">
+    <div class="world iso-world">
+      <div class="w-label">Isolated World</div>
+      <div class="w-contents">
+        chrome.* API: ✅<br>
+        page window vars: ❌<br>
+        own window.x = 1 → private<br>
+        document.title: ✅ (shared DOM)
+      </div>
+    </div>
+    <div class="middle">⬌</div>
+    <div class="world main-world">
+      <div class="w-label">MAIN World (page)</div>
+      <div class="w-contents">
+        chrome.* API: ❌<br>
+        page window vars: ✅<br>
+        window.__secret readable<br>
+        document.title: ✅ (shared DOM)
+      </div>
+    </div>
+  </div>
+  <div class="dom-shared">📄 document (DOM) — shared between both worlds</div>
+
+  <h2>Crossing the Boundary</h2>
+  <pre>// Execute in page's JavaScript heap from extension background
+await chrome.scripting.executeScript({
+  target: { tabId },
+  world: 'MAIN',   // ← key: enter page's V8 context
+  func: () => window.__pageSecret
+});
+
+// Content scripts run in ISOLATED world automatically
+// No chrome.scripting needed — just write your content.js</pre>
+
+  <h2>Why Isolation Matters</h2>
+  <p>Imagine a page that does <code>Array.prototype.push = () => null</code> before your content script loads. Without isolation, your extension code calling <code>arr.push(x)</code> would silently do nothing. With isolation, your content script's <code>Array.prototype</code> is untouched — it lives in a different heap.</p>
+
+  <p>This is why Chrome chose isolation: <strong>extension code should not be corruptible by page content.</strong> Crossing to MAIN world (via <code>executeScript</code>) is an explicit, auditable escalation — not the default.</p>
+
+  <h2>The Closure Trap</h2>
+  <pre>// ❌ WRONG — closure variable `myData` is NOT captured
+const myData = { secret: 'abc' };
+chrome.scripting.executeScript({
+  target: { tabId },
+  func: () => console.log(myData)  // ReferenceError in page context
+});
+
+// ✅ CORRECT — pass data via `args`
+chrome.scripting.executeScript({
+  target: { tabId },
+  func: (data) => console.log(data),
+  args: [myData]
+});</pre>
+  <p>The function is serialized to its <strong>source text</strong> and re-evaluated in a different V8 context. Closures don't survive serialization. Always use <code>args</code> for data.</p>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab — World Demo</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--bg2:#0f1623;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:32px;max-width:900px;margin:0 auto;}
+    h1{color:var(--gold);font-size:28px;font-weight:900;margin-bottom:6px;}
+    .sub{color:var(--muted);margin-bottom:24px;}
+    .demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+    .world-card{border-radius:10px;padding:20px;border:2px solid;}
+    .isolated{background:#040e14;border-color:var(--cyan);}
+    .main-w{background:#0a0414;border-color:var(--purple);}
+    .w-title{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+    .isolated .w-title{color:var(--cyan);}
+    .main-w .w-title{color:var(--purple);}
+    .w-desc{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6;}
+    .btn{border:none;cursor:pointer;border-radius:6px;font-family:'Lato',sans-serif;font-weight:700;font-size:12px;padding:7px 14px;margin-bottom:8px;display:block;width:100%;}
+    .btn-iso{background:var(--cyan);color:#000;}
+    .btn-main{background:var(--purple);color:#fff;}
+    .result{background:#060a12;border:1px solid var(--border);border-radius:6px;padding:10px;font-family:'Source Code Pro',monospace;font-size:12px;color:var(--muted);min-height:80px;white-space:pre-wrap;}
+    h2{color:var(--cyan);font-size:18px;font-weight:900;margin:24px 0 10px;}
+    .log{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'Source Code Pro',monospace;font-size:12px;max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;}
+    .log-row{padding:3px 6px;border-radius:3px;background:#060a12;}
+    .log-iso{color:var(--cyan);}
+    .log-main{color:var(--purple);}
+    .log-err{color:var(--red);}
+    .tab-input{background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;padding:7px 10px;width:100%;margin-bottom:8px;font-family:'Lato',sans-serif;}
+    .tab-input:focus{outline:none;border-color:var(--cyan);}
+  </style>
+</head>
+<body>
+  <h1>⚡ Isolated World vs MAIN World</h1>
+  <p class="sub">Two V8 heaps. Same DOM. Zero shared JavaScript state. Experiment with the boundary here.</p>
+
+  <p style="color:var(--muted);font-size:13px;margin-bottom:16px;">
+    Select a target tab ID (or use current), then run scripts in either world.
+  </p>
+  <div style="display:flex;gap:8px;margin-bottom:16px;">
+    <input class="tab-input" id="tab-id" placeholder="Tab ID (leave blank for active tab)" style="max-width:260px;"/>
+    <button class="btn btn-iso" id="btn-get-tab" style="width:auto;padding:7px 14px;">Get Active Tab ID</button>
+  </div>
+
+  <div class="demo-grid">
+    <div class="world-card isolated">
+      <div class="w-title">Isolated World (ISOLATED)</div>
+      <div class="w-desc">This is where content scripts run. Has chrome.* API access. Cannot read page's JS variables.</div>
+      <button class="btn btn-iso" id="iso-read-var">Read window.__pageSecret</button>
+      <button class="btn btn-iso" id="iso-write-var">Write window.__fromExtension = 42</button>
+      <button class="btn btn-iso" id="iso-dom">Read document.title</button>
+      <div class="result" id="iso-result">Results appear here…</div>
+    </div>
+    <div class="world-card main-w">
+      <div class="w-title">MAIN World (page context)</div>
+      <div class="w-desc">Scripts injected with world:'MAIN'. Shares V8 heap with the page. No chrome.* access.</div>
+      <button class="btn btn-main" id="main-read-var">Read window.__pageSecret</button>
+      <button class="btn btn-main" id="main-write-var">Write window.__pageSecret = 'pwned'</button>
+      <button class="btn btn-main" id="main-set-seed">Set window.__pageSecret = 'secret123'</button>
+      <div class="result" id="main-result">Results appear here…</div>
+    </div>
+  </div>
+
+  <h2>Execution Log</h2>
+  <div class="log" id="exec-log"></div>
+
+  <script src="world_demo.js"></script>
+</body>
+</html>
