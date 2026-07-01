@@ -1,0 +1,11 @@
+/* NeuralTab — content.css (Module 05 — cumulative, unchanged from M04) */
+
+#neuraltab-host {
+  position: fixed;
+  bottom: 0; right: 0;
+  width: 0; height: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+  overflow: visible;
+}
+#neuraltab-host * { pointer-events: auto; }

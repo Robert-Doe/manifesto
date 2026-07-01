@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Module 05 Demo — Service Worker Internals</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root {
+      --bg:#0b0f1a; --bg2:#0f1623; --card:#141c2e; --card2:#1a2540; --border:#1e3a5f;
+      --gold:#f5c842; --cyan:#38bdf8; --purple:#a78bfa; --green:#4ade80;
+      --red:#f87171; --orange:#fb923c; --text:#e2e8f0; --muted:#7a9bbf;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;line-height:1.7;}
+    .hero{background:linear-gradient(135deg,#0b0f1a 0%,#0d1a30 60%,#091020 100%);border-bottom:1px solid var(--border);padding:60px 40px 50px;text-align:center;}
+    .hero-badge{display:inline-block;background:#0d1a30;border:1px solid var(--gold);color:var(--gold);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:18px;}
+    .hero h1{font-size:42px;font-weight:900;color:var(--gold);margin-bottom:12px;}
+    .hero h1 span{color:var(--cyan);}
+    .hero p{font-size:17px;color:var(--muted);max-width:680px;margin:0 auto 28px;}
+    .hero-pills{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+    .pill{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 16px;font-size:13px;color:var(--muted);}
+    .pill span{color:var(--gold);}
+    .section{max-width:1100px;margin:0 auto;padding:50px 40px;}
+    .section-title{font-size:28px;font-weight:900;color:var(--gold);margin-bottom:8px;}
+    .section-sub{color:var(--muted);font-size:15px;margin-bottom:32px;}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:40px;}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:40px;}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;}
+    .card-icon{font-size:32px;margin-bottom:12px;}
+    .card h3{font-size:16px;font-weight:900;color:var(--cyan);margin-bottom:8px;}
+    .card p{font-size:13px;color:var(--muted);line-height:1.6;}
+    .card ul{font-size:13px;color:var(--muted);padding-left:18px;line-height:1.8;}
+    .card ul li{margin-bottom:4px;}
+    .card ul li strong{color:var(--text);}
+    .callout{background:var(--card2);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;font-size:14px;color:var(--muted);}
+    .callout strong{color:var(--gold);}
+    .code-block{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:20px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;overflow-x:auto;margin:16px 0;white-space:pre;}
+    .kw{color:var(--purple);} .fn{color:var(--cyan);} .str{color:var(--green);}
+    .cm{color:#3d5970;} .num{color:var(--orange);}
+    .lifecycle-diagram{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;text-align:center;margin-bottom:32px;}
+    .lc-row{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;margin:16px 0;}
+    .lc-box{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 18px;font-size:13px;font-weight:700;min-width:110px;text-align:center;}
+    .lc-box.install{border-color:var(--green);color:var(--green);}
+    .lc-box.active{border-color:var(--cyan);color:var(--cyan);}
+    .lc-box.idle{border-color:var(--gold);color:var(--gold);}
+    .lc-box.dead{border-color:var(--red);color:var(--red);}
+    .lc-box.wake{border-color:var(--purple);color:var(--purple);}
+    .lc-arrow{color:var(--muted);font-size:20px;padding:0 6px;}
+    .lc-note{font-size:12px;color:var(--muted);margin-top:6px;}
+    .lc-time{font-size:14px;font-weight:900;color:var(--orange);margin:8px 0;}
+    .two-counter{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;}
+    .counter-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;}
+    .counter-card.ephemeral{border-color:var(--orange);}
+    .counter-card.persistent{border-color:var(--green);}
+    .counter-num{font-size:48px;font-weight:900;}
+    .counter-card.ephemeral .counter-num{color:var(--orange);}
+    .counter-card.persistent .counter-num{color:var(--green);}
+    .counter-label{font-size:12px;color:var(--muted);margin-top:6px;}
+    .counter-note{font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+    .feature-list{list-style:none;padding:0;display:flex;flex-direction:column;gap:10px;}
+    .feature-list li{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;display:flex;gap:12px;align-items:flex-start;}
+    .feature-list li .fi{font-size:18px;flex-shrink:0;margin-top:2px;}
+    .feature-list li .ft{font-size:13px;}
+    .feature-list li .ft strong{color:var(--text);display:block;margin-bottom:3px;}
+    .feature-list li .ft span{color:var(--muted);}
+    .keepalive-demo{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin:24px 0;}
+    .kl-title{font-size:13px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;}
+    .kl-timeline{display:flex;flex-direction:column;gap:8px;}
+    .kl-row{display:flex;align-items:center;gap:12px;font-size:12px;}
+    .kl-ts{color:var(--muted);min-width:50px;font-family:'Source Code Pro',monospace;}
+    .kl-bar-wrap{flex:1;position:relative;height:24px;background:var(--bg);border-radius:4px;overflow:hidden;}
+    .kl-bar{position:absolute;top:0;left:0;height:100%;border-radius:4px;}
+    .kl-bar.active{background:var(--green);opacity:0.3;}
+    .kl-bar.ping{background:var(--purple);opacity:0.6;width:4px;}
+    .kl-label{min-width:100px;color:var(--muted);}
+    .cta-section{background:var(--bg2);border-top:1px solid var(--border);padding:50px 40px;text-align:center;}
+    .cta-grid{max-width:800px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:32px;}
+    .cta-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;text-decoration:none;color:var(--text);transition:border-color 0.15s,transform 0.15s;}
+    .cta-card:hover{border-color:var(--gold);transform:translateY(-3px);}
+    .cta-icon{font-size:24px;margin-bottom:8px;}
+    .cta-name{font-weight:700;font-size:13px;color:var(--gold);}
+    .cta-desc{font-size:11px;color:var(--muted);margin-top:4px;}
+    .divider{border:none;border-top:1px solid var(--border);margin:0;}
+    @media(max-width:700px){.grid-3,.grid-2,.cta-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">Module 05 · NeuralTab Curriculum</div>
+  <h1>Service Worker <span>Internals</span></h1>
+  <p>Understand the 5-minute kill, keepalive port pattern, heartbeat alarms, and real-time lifecycle monitoring. Never lose state again.</p>
+  <div class="hero-pills">
+    <div class="pill"><span>importScripts()</span></div>
+    <div class="pill"><span>onConnect keepalive</span></div>
+    <div class="pill"><span>25-sec ping loop</span></div>
+    <div class="pill"><span>in-memory vs persistent counter</span></div>
+    <div class="pill"><span>sw_monitor.html</span></div>
+    <div class="pill"><span>logSwEvent()</span></div>
+  </div>
+</div>
+
+<!-- LIFECYCLE DIAGRAM -->
+<div class="section">
+  <div class="section-title">The Service Worker Lifecycle</div>
+  <div class="section-sub">Every MV3 extension background script lives and dies on this exact path.</div>
+
+  <div class="lifecycle-diagram">
+    <div class="lc-row">
+      <div class="lc-box install">Install / Update</div>
+      <div class="lc-arrow">→</div>
+      <div class="lc-box active">Active (running)</div>
+      <div class="lc-arrow">→</div>
+      <div class="lc-box idle">No events for ~30s</div>
+      <div class="lc-arrow">→</div>
+      <div class="lc-time">⏱ 5-minute countdown begins</div>
+    </div>
+    <div class="lc-row">
+      <div class="lc-box dead">KILLED by Chrome</div>
+      <div class="lc-arrow">←</div>
+      <div class="lc-box idle">Idle timeout reached</div>
+    </div>
+    <div class="lc-row">
+      <div class="lc-box wake">Wakes on next event</div>
+      <div class="lc-arrow">→</div>
+      <div class="lc-box active">Active again</div>
+    </div>
+    <div class="lc-note">Every restart: all module-level variables reset to initial values. Only chrome.storage survives.</div>
+  </div>
+
+  <div class="callout">
+    <strong>The Critical Insight:</strong> MV3 service workers are <em>event-driven</em>, not persistent. The browser terminates them to save RAM and battery. You must treat every wake-up as a cold start — re-read state from chrome.storage.local at the top of every handler.
+  </div>
+
+  <!-- TWO COUNTERS VISUALIZATION -->
+  <div class="two-counter">
+    <div class="counter-card ephemeral">
+      <div class="counter-num">0</div>
+      <div class="counter-label">inMemoryEventCounter</div>
+      <div class="counter-note">Module-level variable. Resets to 0 every time Chrome kills and restarts the worker. This is <em>ephemeral</em> state.</div>
+    </div>
+    <div class="counter-card persistent">
+      <div class="counter-num">47</div>
+      <div class="counter-label">swStartCount (storage)</div>
+      <div class="counter-note">Stored in chrome.storage.local. Increments on every restart. Survives kills. This is <em>persistent</em> state.</div>
+    </div>
+  </div>
+  <p style="font-size:13px;color:var(--muted);text-align:center;margin-top:-16px;">Open SW Monitor and watch inMemoryEventCounter stay at 0 after a restart while swStartCount keeps climbing.</p>
+</div>
+
+<hr class="divider" />
+
+<!-- WHAT'S NEW IN MODULE 05 -->
+<div class="section">
+  <div class="section-title">What Module 05 Builds</div>
+  <div class="section-sub">Four major additions on top of the M04 foundation.</div>
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-icon">🔌</div>
+      <h3>importScripts() — Shared Code</h3>
+      <p>Module 04's background.js duplicated StorageManager logic inline. Module 05 fixes this with <code style="color:var(--cyan)">importScripts('storage_manager.js')</code> as the very first line of background.js. Classic-mode service workers (no <code>type:"module"</code>) support this synchronous import, making StorageManager a true global shared between the background and every extension page.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🧠</div>
+      <h3>logSwEvent() — Lifecycle Audit Trail</h3>
+      <p>A new method on StorageManager writes timestamped events to <code style="color:var(--cyan)">swLifecycleLog[]</code> (capped at 50 entries). Event types include START, HEARTBEAT, ALARM, PORT_OPEN, PORT_CLOSE. Both the SW Monitor page and the Options page read and render this log with color-coded event types, giving you a full audit trail across worker restarts.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏓</div>
+      <h3>Keepalive Port + 25-Second Ping</h3>
+      <p>An open <code style="color:var(--cyan)">chrome.runtime.connect()</code> port counts as an active event, preventing the idle countdown from starting. The SW Monitor page connects a named port (<code>'neuraltab-keepalive'</code>) and sends a ping every 25 seconds. The background responds with pong. As long as the port is open, the worker stays alive indefinitely.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📺</div>
+      <h3>SW Monitor Page — Live Visualization</h3>
+      <p>A new full-page dashboard (<code style="color:var(--cyan)">sw_monitor.html</code>) polls getWorkerState every 2 seconds and renders: animated status dot, in-memory counter, uptime, total wakes, keepalive toggle, next alarm time, and a color-coded lifecycle event log. New entries flash with a fade-in animation. The log auto-scrolls if you're near the bottom.</p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- KEEPALIVE DEMO -->
+<div class="section">
+  <div class="section-title">The Keepalive Port Pattern Visualized</div>
+  <div class="section-sub">How a 25-second ping loop defeats the idle timer.</div>
+  <div class="keepalive-demo">
+    <div class="kl-title">Worker Timeline (with keepalive port open)</div>
+    <div class="kl-timeline">
+      <div class="kl-row"><div class="kl-ts">0:00</div><div class="kl-bar-wrap"><div class="kl-bar active" style="width:100%"></div></div><div class="kl-label">Port opened</div></div>
+      <div class="kl-row"><div class="kl-ts">0:25</div><div class="kl-bar-wrap"><div class="kl-bar ping" style="left:0%"></div></div><div class="kl-label">Ping → Pong</div></div>
+      <div class="kl-row"><div class="kl-ts">0:50</div><div class="kl-bar-wrap"><div class="kl-bar ping" style="left:0%"></div></div><div class="kl-label">Ping → Pong</div></div>
+      <div class="kl-row"><div class="kl-ts">1:15</div><div class="kl-bar-wrap"><div class="kl-bar ping" style="left:0%"></div></div><div class="kl-label">Ping → Pong</div></div>
+      <div class="kl-row"><div class="kl-ts">∞</div><div class="kl-bar-wrap"><div class="kl-bar active" style="width:100%"></div></div><div class="kl-label">Still alive</div></div>
+    </div>
+    <div style="margin-top:16px;font-size:12px;color:var(--muted);">
+      Without the port: idle for 30s → Chrome starts the 5-minute countdown → worker killed → all in-memory state lost.
+      <br>With the port open: every ping resets the idle timer. Worker lives as long as the port lives.
+    </div>
+  </div>
+
+  <div class="code-block"><span class="cm">// sw_monitor.js — keepalive port pattern</span>
+<span class="kw">let</span> port = <span class="kw">null</span>;
+<span class="kw">let</span> pingInterval = <span class="kw">null</span>;
+
+<span class="kw">function</span> <span class="fn">openKeepalivePort</span>() {
+  port = chrome.runtime.<span class="fn">connect</span>({ name: <span class="str">'neuraltab-keepalive'</span> });
+  port.onMessage.<span class="fn">addListener</span>(msg => {
+    <span class="kw">if</span> (msg.type === <span class="str">'pong'</span>) <span class="fn">updateLastHeartbeat</span>();
+  });
+  port.onDisconnect.<span class="fn">addListener</span>(() => { port = <span class="kw">null</span>; });
+
+  pingInterval = <span class="fn">setInterval</span>(() => {
+    <span class="kw">if</span> (port) port.<span class="fn">postMessage</span>({ type: <span class="str">'ping'</span> });
+  }, <span class="num">25000</span>); <span class="cm">// safely under the ~30s idle threshold</span>
+}
+
+<span class="cm">// background.js — port handler</span>
+chrome.runtime.onConnect.<span class="fn">addListener</span>(port => {
+  <span class="kw">if</span> (port.name !== <span class="str">'neuraltab-keepalive'</span>) <span class="kw">return</span>;
+  keepalivePorts.<span class="fn">add</span>(port);
+  StorageManager.<span class="fn">logSwEvent</span>(<span class="str">'PORT_OPEN'</span>, <span class="str">`ports: ${keepalivePorts.size}`</span>);
+  port.onMessage.<span class="fn">addListener</span>(msg => {
+    <span class="kw">if</span> (msg.type === <span class="str">'ping'</span>) port.<span class="fn">postMessage</span>({ type: <span class="str">'pong'</span> });
+  });
+  port.onDisconnect.<span class="fn">addListener</span>(() => {
+    keepalivePorts.<span class="fn">delete</span>(port);
+    StorageManager.<span class="fn">logSwEvent</span>(<span class="str">'PORT_CLOSE'</span>, <span class="str">`ports: ${keepalivePorts.size}`</span>);
+  });
+});</div>
+</div>
+
+<hr class="divider" />
+
+<!-- HOW importScripts WORKS -->
+<div class="section">
+  <div class="section-title">importScripts() — The Shared Code Bridge</div>
+  <div class="section-sub">How background.js gets StorageManager without copying code.</div>
+
+  <div class="code-block"><span class="cm">// background.js — MUST be the very first line</span>
+<span class="fn">importScripts</span>(<span class="str">'storage_manager.js'</span>);
+
+<span class="cm">// After this line, StorageManager is a global — exactly like on pages</span>
+<span class="kw">const</span> s = <span class="kw">await</span> StorageManager.<span class="fn">get</span>([<span class="str">'swStartCount'</span>]);
+<span class="kw">await</span> StorageManager.<span class="fn">set</span>({ swStartCount: (s.swStartCount || <span class="num">0</span>) + <span class="num">1</span> });</div>
+
+  <div class="callout">
+    <strong>Why classic mode?</strong> Chrome extension service workers default to "classic" module format (no <code>type:"module"</code> in manifest.json). Classic workers support the synchronous <code>importScripts()</code> call. If you want ES module <code>import</code> statements you must add <code>"type":"module"</code> to the background entry — but that breaks <code>importScripts()</code> and requires a bundler for multi-file setups. For NeuralTab, classic mode is the right choice: simple, synchronous, no build step.
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <h3>Why NOT copy-paste?</h3>
+      <p>If you duplicate StorageManager in background.js, both copies must be updated every time you add a new DEFAULTS key. With 8+ keys in M05, that's two places to maintain. One source file means one place to edit.</p>
+    </div>
+    <div class="card">
+      <h3>Why NOT ES modules?</h3>
+      <p>ES module service workers (<code>type:"module"</code>) require every import to be a static URL. They work but add complexity: you need relative paths, and Chrome has had minor bugs with module SW re-imports. Classic + importScripts() has zero sharp edges for this use case.</p>
+    </div>
+    <div class="card">
+      <h3>Why NOT a bundler?</h3>
+      <p>Webpack/Rollup would bundle everything into one file, eliminating the need for importScripts(). That's the right call for a production extension. For a learning curriculum, keeping files separate makes debugging easier — you can read each file in isolation.</p>
+    </div>
+  </div>
+</div>
+
+<hr class="divider" />
+
+<!-- FILES OVERVIEW -->
+<div class="section">
+  <div class="section-title">Module 05 Files</div>
+  <div class="section-sub">21 files. Cumulative from M01 — every prior feature still works.</div>
+  <ul class="feature-list">
+    <li><div class="fi">📋</div><div class="ft"><strong>manifest.json</strong><span>v0.5.0 — same permissions as M04. No new manifest keys needed.</span></div></li>
+    <li><div class="fi">🗄️</div><div class="ft"><strong>storage_manager.js</strong><span>Adds swStartCount, swLastStart, swLastIdle, swKeepAlive, swLifecycleLog[], tabAccessTimes{}. New logSwEvent(event, detail) method writes timestamped entries (capped at 50).</span></div></li>
+    <li><div class="fi">⚙️</div><div class="ft"><strong>background.js</strong><span>importScripts() at top. inMemoryEventCounter (resets on restart) + SW_START_TIME. onWorkerStart() writes swStartCount. keepalivePorts Set. onConnect handler. getWorkerState message. tabAccessTimes tracking via onActivated.</span></div></li>
+    <li><div class="fi">📺</div><div class="ft"><strong>sw_monitor.html / .css / .js</strong><span>New dedicated page. Live metrics sidebar, lifecycle log, keepalive toggle, ping/trigger/clear controls. Polls every 2 seconds via sendMessage.</span></div></li>
+    <li><div class="fi">🪟</div><div class="ft"><strong>popup.html / .css / .js</strong><span>Adds SW status dot + wakes counter + Open SW Monitor button. pingServiceWorker() on load.</span></div></li>
+    <li><div class="fi">⚙️</div><div class="ft"><strong>options.html / .css / .js</strong><span>New "Service Worker" section: status row, detail box, wake count, idle alerts, lifecycle log viewer, Clear log button, Open SW Monitor button. Live updates via StorageManager.onChange.</span></div></li>
+    <li><div class="fi">📋</div><div class="ft"><strong>tab_manager.html / .css / .js</strong><span>Adds last-access timestamps from tabAccessTimes. buildTabEl() shows "Last active Xm ago" with orange .stale class for tabs idle >30 minutes.</span></div></li>
+    <li><div class="fi">🌐</div><div class="ft"><strong>content.js / content.css / assets/inject.js</strong><span>Unchanged from M04. All content script features carry forward.</span></div></li>
+  </ul>
+</div>
+
+<hr class="divider" />
+
+<!-- INSTALL CTA -->
+<div class="cta-section">
+  <h2 style="font-size:28px;font-weight:900;color:var(--gold);margin-bottom:10px;">Load Module 05</h2>
+  <p style="color:var(--muted);font-size:15px;">Run build.sh, load the dist/ folder as an unpacked extension, then explore each page.</p>
+  <div class="cta-grid">
+    <div class="cta-card">
+      <div class="cta-icon">📺</div>
+      <div class="cta-name">SW Monitor</div>
+      <div class="cta-desc">Watch the worker die and restart in real time</div>
+    </div>
+    <div class="cta-card">
+      <div class="cta-icon">⚡</div>
+      <div class="cta-name">Popup</div>
+      <div class="cta-desc">SW status dot, wakes counter, uptime</div>
+    </div>
+    <div class="cta-card">
+      <div class="cta-icon">⚙️</div>
+      <div class="cta-name">Options → SW</div>
+      <div class="cta-desc">Persistent log, wake count, idle alerts</div>
+    </div>
+    <div class="cta-card">
+      <div class="cta-icon">📋</div>
+      <div class="cta-name">Tab Manager</div>
+      <div class="cta-desc">Last-access timestamps from background</div>
+    </div>
+  </div>
+  <div style="margin-top:24px;font-size:13px;color:var(--muted);">
+    <strong style="color:var(--cyan);">To prove the 5-minute kill:</strong> Open SW Monitor → disable keepalive → wait 5–6 minutes → watch inMemoryEventCounter reset to 0 when you next click anything.
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Module 05 — Service Worker Internals · NeuralTab Tutorial</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root {
+      --bg:#0b0f1a; --bg2:#0f1623; --card:#141c2e; --card2:#1a2540; --border:#1e3a5f;
+      --gold:#f5c842; --cyan:#38bdf8; --purple:#a78bfa; --green:#4ade80;
+      --red:#f87171; --orange:#fb923c; --text:#e2e8f0; --muted:#7a9bbf;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;line-height:1.8;font-size:16px;}
+    a{color:var(--cyan);text-decoration:none;}
+    a:hover{text-decoration:underline;}
+
+    /* LAYOUT */
+    .layout{display:flex;min-height:100vh;}
+    .toc{width:260px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);padding:28px 0;position:sticky;top:0;height:100vh;overflow-y:auto;}
+    .toc-brand{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:12px;}
+    .toc-brand-bolt{color:var(--gold);font-size:22px;}
+    .toc-brand-name{font-weight:900;color:var(--gold);font-size:15px;}
+    .toc-module{font-size:11px;color:var(--muted);margin-top:2px;}
+    .toc-link{display:block;padding:7px 20px;color:var(--muted);font-size:13px;font-weight:700;border-left:3px solid transparent;transition:all 0.12s;}
+    .toc-link:hover{color:var(--text);background:var(--card);text-decoration:none;}
+    .toc-link.sub{font-weight:400;font-size:12px;padding-left:32px;}
+    .toc-section{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--border);padding:14px 20px 4px;}
+    .main{flex:1;max-width:860px;padding:60px 64px;overflow-y:auto;}
+
+    /* TYPOGRAPHY */
+    h1{font-size:46px;font-weight:900;color:var(--gold);line-height:1.15;margin-bottom:16px;}
+    h1 span{color:var(--cyan);}
+    h2{font-size:30px;font-weight:900;color:var(--gold);margin:56px 0 14px;padding-top:56px;border-top:1px solid var(--border);}
+    h3{font-size:20px;font-weight:900;color:var(--cyan);margin:32px 0 12px;}
+    h4{font-size:16px;font-weight:700;color:var(--purple);margin:20px 0 8px;}
+    p{margin-bottom:16px;color:var(--text);}
+    strong{color:var(--gold);}
+    em{color:var(--cyan);font-style:normal;}
+    ul,ol{padding-left:24px;margin-bottom:16px;}
+    li{margin-bottom:8px;color:var(--text);}
+    code{background:#060a12;border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-family:'Source Code Pro',monospace;font-size:13px;color:var(--cyan);}
+
+    /* HERO META */
+    .hero-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px;}
+    .badge{display:inline-block;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;}
+    .badge-module{background:#0d1a30;border:1px solid var(--gold);color:var(--gold);}
+    .badge-time{background:#0a1a2e;border:1px solid var(--cyan);color:var(--cyan);}
+    .badge-level{background:#1a0f2e;border:1px solid var(--purple);color:var(--purple);}
+
+    /* INTRO BOX */
+    .intro-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:40px;}
+    .intro-box p{margin:0;font-size:16px;line-height:1.8;}
+
+    /* CODE BLOCKS */
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:22px 24px;font-family:'Source Code Pro',monospace;font-size:13px;line-height:1.9;overflow-x:auto;margin:20px 0;}
+    .kw{color:var(--purple);}
+    .fn{color:var(--cyan);}
+    .str{color:var(--green);}
+    .cm{color:#3d5970;}
+    .num{color:var(--orange);}
+    .cls{color:var(--gold);}
+
+    /* CALLOUTS */
+    .callout{border-radius:0 8px 8px 0;padding:18px 22px;margin:24px 0;font-size:14px;line-height:1.7;}
+    .callout-gold{background:#1a1205;border-left:4px solid var(--gold);}
+    .callout-cyan{background:#051218;border-left:4px solid var(--cyan);}
+    .callout-red{background:#150505;border-left:4px solid var(--red);}
+    .callout-purple{background:#120a1e;border-left:4px solid var(--purple);}
+    .callout-green{background:#051208;border-left:4px solid var(--green);}
+    .callout .label{font-weight:900;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;}
+    .callout-gold .label{color:var(--gold);}
+    .callout-cyan .label{color:var(--cyan);}
+    .callout-red .label{color:var(--red);}
+    .callout-purple .label{color:var(--purple);}
+    .callout-green .label{color:var(--green);}
+
+    /* DIAGRAMS */
+    .diagram{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;margin:24px 0;}
+    .diagram-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+    .lc-row{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin:10px 0;}
+    .lc-box{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:700;text-align:center;min-width:120px;}
+    .lc-box.green{border-color:var(--green);color:var(--green);}
+    .lc-box.cyan{border-color:var(--cyan);color:var(--cyan);}
+    .lc-box.gold{border-color:var(--gold);color:var(--gold);}
+    .lc-box.red{border-color:var(--red);color:var(--red);}
+    .lc-box.purple{border-color:var(--purple);color:var(--purple);}
+    .lc-arrow{color:var(--muted);font-size:20px;padding:0 8px;}
+    .lc-note{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.6;}
+    .lc-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+    /* COMPARISON TABLE */
+    table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+    th{background:var(--card2);color:var(--gold);font-weight:700;padding:10px 14px;text-align:left;border:1px solid var(--border);}
+    td{padding:10px 14px;border:1px solid var(--border);vertical-align:top;}
+    tr:nth-child(even) td{background:var(--card);}
+    .yes{color:var(--green);font-weight:700;}
+    .no{color:var(--red);font-weight:700;}
+    .ok{color:var(--gold);font-weight:700;}
+
+    /* EXERCISE BOX */
+    .exercise{background:var(--card);border:2px solid var(--gold);border-radius:12px;padding:26px 28px;margin:36px 0;}
+    .exercise-num{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+    .exercise h3{font-size:18px;color:var(--gold);margin:0 0 12px;border:none;padding:0;}
+    .exercise ol{margin:12px 0 0;}
+    .exercise ol li{margin-bottom:10px;font-size:14px;}
+    .exercise .hint{background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:10px 14px;margin-top:14px;font-size:13px;color:var(--muted);}
+    .exercise .hint strong{color:var(--cyan);}
+
+    /* TWO-COUNTER VIS */
+    .two-counter{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;}
+    .counter-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;text-align:center;}
+    .counter-card.ephemeral{border-color:var(--orange);}
+    .counter-card.persistent{border-color:var(--green);}
+    .counter-num{font-size:56px;font-weight:900;line-height:1;}
+    .counter-card.ephemeral .counter-num{color:var(--orange);}
+    .counter-card.persistent .counter-num{color:var(--green);}
+    .counter-label{font-size:13px;font-weight:700;color:var(--text);margin-top:8px;}
+    .counter-sub{font-size:11px;color:var(--muted);margin-top:6px;}
+
+    /* KEY INSIGHT */
+    .key-insight{background:linear-gradient(135deg,#0d1a05,#051208);border:2px solid var(--green);border-radius:12px;padding:22px 26px;margin:24px 0;}
+    .key-insight .ki-label{font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:var(--green);margin-bottom:8px;}
+    .key-insight p{margin:0;font-size:15px;color:var(--text);}
+
+    /* SUMMARY BOX */
+    .summary-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;margin-top:48px;}
+    .summary-box h3{color:var(--gold);font-size:18px;margin:0 0 16px;}
+    .summary-box ul{margin:0;padding-left:20px;}
+    .summary-box li{margin-bottom:8px;font-size:14px;}
+
+    @media(max-width:700px){.layout{flex-direction:column;}.toc{width:100%;height:auto;position:static;}.main{padding:32px 20px;}.two-counter{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<div class="layout">
+
+<!-- TABLE OF CONTENTS -->
+<nav class="toc">
+  <div class="toc-brand">
+    <div><span class="toc-brand-bolt">⚡</span> <span class="toc-brand-name">NeuralTab</span></div>
+    <div class="toc-module">Module 05 Tutorial</div>
+  </div>
+  <div class="toc-section">Core Concepts</div>
+  <a class="toc-link" href="#the-kill">The 5-Minute Kill</a>
+  <a class="toc-link sub" href="#lifecycle">Lifecycle Diagram</a>
+  <a class="toc-link sub" href="#what-survives">What Survives Restarts</a>
+  <a class="toc-link" href="#importscripts">importScripts()</a>
+  <a class="toc-link sub" href="#why-classic">Classic vs Module Mode</a>
+  <a class="toc-link" href="#keepalive">Keepalive Port Pattern</a>
+  <a class="toc-link sub" href="#port-mechanics">Port Mechanics</a>
+  <a class="toc-link sub" href="#ping-loop">25-Second Ping Loop</a>
+  <div class="toc-section">Implementation</div>
+  <a class="toc-link" href="#background">background.js Deep Dive</a>
+  <a class="toc-link sub" href="#onworkerstart">onWorkerStart()</a>
+  <a class="toc-link sub" href="#logswevet">logSwEvent()</a>
+  <a class="toc-link" href="#sw-monitor">SW Monitor Page</a>
+  <a class="toc-link sub" href="#poll-strategy">Poll Strategy</a>
+  <a class="toc-link sub" href="#log-render">Log Rendering</a>
+  <a class="toc-link" href="#tab-access">Tab Last-Access Tracking</a>
+  <div class="toc-section">Practice</div>
+  <a class="toc-link" href="#exercises">5 Exercises</a>
+  <a class="toc-link" href="#summary">Module Summary</a>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- HERO -->
+  <div class="hero-meta">
+    <span class="badge badge-module">Module 05 of 25</span>
+    <span class="badge badge-time">~3 hours</span>
+    <span class="badge badge-level">Intermediate → Advanced</span>
+  </div>
+  <h1>Service Worker <span>Internals</span></h1>
+  <h1 style="font-size:22px;font-weight:400;color:var(--muted);margin-top:-8px;">The 5-Minute Kill &amp; Keepalive Patterns</h1>
+
+  <div class="intro-box">
+    <p>Module 04 gave your extension a background script that runs tab analysis, fires alarms, and relays messages. But it had a dirty secret: Chrome kills that script after about five minutes of inactivity, wiping all in-memory state. In this module you will understand exactly <em>why</em> that happens, <em>when</em> it happens, and <em>how to work with it</em> — or, when necessary, how to prevent it. You will build the <strong>SW Monitor page</strong>: a live dashboard that makes the worker's lifecycle visible in real time, proving with numbers that the restart actually happened.</p>
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="the-kill">The 5-Minute Kill</h2>
+
+  <p>When Google designed Manifest V3, they replaced the persistent background page with a <strong>service worker</strong>. The decision was driven by battery life and memory: persistent background pages kept code running 24/7 even when the extension had nothing to do. On a laptop with 30 extensions, that meant 30 JavaScript environments consuming RAM constantly. MV3's service worker is <em>event-driven</em> — it wakes up, handles an event, and goes back to sleep.</p>
+
+  <p>The lifecycle works like this:</p>
+
+  <div class="diagram" id="lifecycle">
+    <div class="diagram-title">Chrome MV3 Service Worker Lifecycle</div>
+    <div class="lc-row">
+      <div class="lc-box green">Install / Update</div>
+      <div class="lc-arrow">→</div>
+      <div class="lc-box cyan">Active (running)</div>
+      <div class="lc-arrow">→</div>
+      <div class="lc-box gold">No events ~30s</div>
+      <div class="lc-arrow">→</div>
+      <div class="lc-box red">5-min countdown</div>
+    </div>
+    <div class="lc-row" style="margin-top:8px;">
+      <div class="lc-box red">KILLED by Chrome</div>
+      <div class="lc-arrow">←</div>
+      <div class="lc-box gold">Countdown expires</div>
+    </div>
+    <div class="lc-row" style="margin-top:8px;">
+      <div class="lc-box purple">Next event arrives</div>
+      <div class="lc-arrow">→</div>
+      <div class="lc-box cyan">Wake from cold start</div>
+      <div class="lc-arrow">→</div>
+      <div class="lc-box green">Active again</div>
+    </div>
+    <div class="lc-note">Every cold start: all module-level variables reset to their initial values. Only <code>chrome.storage</code> survives a restart.</div>
+  </div>
+
+  <p>The specific timing is: Chrome starts a 5-minute idle countdown after your worker has had no active events for approximately 30 seconds. If you keep firing events (messages, alarm callbacks, storage reads), the countdown resets. If you go quiet, Chrome terminates the process when the countdown hits zero.</p>
+
+  <div class="callout callout-red">
+    <div class="label">Critical Misconception</div>
+    The 5-minute timer does <em>not</em> start the moment your last handler completes. It starts after a period of inactivity, roughly 30 seconds. The exact threshold is implementation-defined and has changed across Chrome versions. Do not hardcode assumptions about 5 minutes — design your extension to handle a restart at <em>any</em> time.
+  </div>
+
+  <h3 id="what-survives">What Survives a Restart</h3>
+
+  <p>This is the most important table in the entire module. Before you write any background code, ask: "Does this state need to survive a worker restart?" If yes, it must go in storage. If no, a module-level variable is fine.</p>
+
+  <table>
+    <tr><th>State type</th><th>Survives restart?</th><th>Where to store it</th></tr>
+    <tr><td>Module-level variable (<code>let x = 0</code>)</td><td class="no">No — resets to 0</td><td>Only if you don't need it after restart</td></tr>
+    <tr><td><code>chrome.storage.local</code></td><td class="yes">Yes</td><td>Tab data, user settings, history, large blobs</td></tr>
+    <tr><td><code>chrome.storage.sync</code></td><td class="yes">Yes (+ cross-device)</td><td>User preferences ≤ 8 KB</td></tr>
+    <tr><td><code>chrome.storage.session</code></td><td class="ok">Session only</td><td>Temporary cross-context state (Chrome 102+)</td></tr>
+    <tr><td><code>chrome.alarms</code></td><td class="yes">Yes</td><td>Scheduled work — alarms survive restarts</td></tr>
+    <tr><td>Open <code>chrome.runtime.connect()</code> port</td><td class="no">No — port closes on kill</td><td>Used as keepalive, not for data</td></tr>
+    <tr><td>WebSocket / fetch in-flight</td><td class="no">No — killed</td><td>Must be re-opened after restart</td></tr>
+  </table>
+
+  <div class="key-insight">
+    <div class="ki-label">The Golden Rule of MV3 Background Code</div>
+    <p>Every handler in your service worker must be <strong>re-entrant</strong>. It must work correctly even if the worker has just restarted from a cold start. Read the values you need from <code>chrome.storage</code> at the start of every handler. Never assume in-memory state from a previous invocation is still there.</p>
+  </div>
+
+  <h3>Proving a Restart With Numbers</h3>
+
+  <p>The way NeuralTab Module 05 makes restarts <em>tangible</em> is with two counters that diverge after every restart:</p>
+
+  <div class="two-counter">
+    <div class="counter-card ephemeral">
+      <div class="counter-num">0</div>
+      <div class="counter-label">inMemoryEventCounter</div>
+      <div class="counter-sub">Module-level variable. Resets to 0 on every worker kill. Counts messages since this worker instance started.</div>
+    </div>
+    <div class="counter-card persistent">
+      <div class="counter-num">47</div>
+      <div class="counter-label">swStartCount</div>
+      <div class="counter-sub">Stored in chrome.storage.local. Increments on every onWorkerStart(). Never resets. Counts total lifetime restarts.</div>
+    </div>
+  </div>
+
+  <p>When you open the SW Monitor page with keepalive disabled and wait 5–6 minutes, you will see: <code>inMemoryEventCounter</code> jumps back to 0 the next time you interact with the extension, while <code>swStartCount</code> increments by 1. Those two numbers together prove, with no ambiguity, that a cold-start restart just happened.</p>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="importscripts">importScripts() — The Code Sharing Bridge</h2>
+
+  <p>Module 04 had a serious maintainability problem: <code>storage_manager.js</code> had one copy of the <code>DEFAULTS</code> object, and <code>background.js</code> had another copy (partially duplicated). Every time you added a new storage key, you had to remember to update both files. That's how bugs get born.</p>
+
+  <p>The solution in MV3 classic-mode service workers is <code>importScripts()</code>:</p>
+
+<pre><span class="cm">// background.js — this MUST be the very first statement</span>
+<span class="fn">importScripts</span>(<span class="str">'storage_manager.js'</span>);
+
+<span class="cm">// After this line, StorageManager is a global — just like in popup.js</span>
+<span class="kw">const</span> SW_START_TIME = Date.<span class="fn">now</span>();
+<span class="kw">let</span> inMemoryEventCounter = <span class="num">0</span>;
+
+<span class="kw">async function</span> <span class="fn">onWorkerStart</span>() {
+  <span class="kw">const</span> s = <span class="kw">await</span> StorageManager.<span class="fn">get</span>([<span class="str">'swStartCount'</span>]);
+  <span class="kw">await</span> StorageManager.<span class="fn">set</span>({
+    swStartCount: (s.swStartCount || <span class="num">0</span>) + <span class="num">1</span>,
+    swLastStart: Date.<span class="fn">now</span>(),
+  });
+  StorageManager.<span class="fn">logSwEvent</span>(<span class="str">'START'</span>, <span class="str">`wake #${s.swStartCount + 1}`</span>);
+}
+
+<span class="fn">onWorkerStart</span>();</pre>
+
+  <h3 id="why-classic">Classic Mode vs ES Module Mode</h3>
+
+  <p>Chrome extension service workers support two module formats. The choice affects everything about how you share code:</p>
+
+  <table>
+    <tr><th>Feature</th><th>Classic mode (default)</th><th>Module mode (<code>type:"module"</code>)</th></tr>
+    <tr><td><code>importScripts()</code></td><td class="yes">Works</td><td class="no">Not available</td></tr>
+    <tr><td><code>import</code> / <code>export</code></td><td class="no">Not available</td><td class="yes">Works</td></tr>
+    <tr><td>Top-level <code>await</code></td><td class="no">No</td><td class="yes">Yes</td></tr>
+    <tr><td>Shared globals</td><td class="yes">importScripts() imports become globals</td><td class="no">Must export/import explicitly</td></tr>
+    <tr><td>Build step required</td><td class="yes">No</td><td class="ok">Only if bundling; single-file works</td></tr>
+    <tr><td>Dev experience</td><td class="ok">Simple, classic</td><td class="ok">Modern, same as web</td></tr>
+    <tr><td>Manifest setting</td><td class="ok"><code>"service_worker":"bg.js"</code></td><td class="ok"><code>"service_worker":"bg.js","type":"module"</code></td></tr>
+  </table>
+
+  <p>NeuralTab uses classic mode throughout modules 01–17 because it requires zero tooling, files remain individually readable in DevTools, and <code>importScripts()</code> is a direct mental model of what's happening. Module 18 (React + Vite + TypeScript) migrates to a bundler and ES modules for the production build.</p>
+
+  <div class="callout callout-cyan">
+    <div class="label">Why importScripts() must be first</div>
+    <code>importScripts()</code> is synchronous — it runs the imported file's code immediately and blocks until complete. If you place it after some async code, you risk a race condition where a message handler fires before StorageManager is defined. Always put it on the first line of background.js.
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="keepalive">The Keepalive Port Pattern</h2>
+
+  <p>Sometimes you genuinely need the service worker to stay alive — for example, while a user has the SW Monitor page open and is actively watching the worker metrics. The established pattern for this in MV3 is the <strong>keepalive port</strong>.</p>
+
+  <p>The mechanism: <code>chrome.runtime.connect()</code> creates a persistent message channel (a <code>Port</code>) between a page and the background worker. While a port is open, Chrome counts it as an active connection and holds off the idle timeout. When the port closes (the page closes, or you call <code>port.disconnect()</code>), the idle countdown resumes.</p>
+
+  <h3 id="port-mechanics">Port Mechanics</h3>
+
+<pre><span class="cm">// background.js — onConnect handler</span>
+<span class="kw">const</span> keepalivePorts = <span class="kw">new</span> <span class="cls">Set</span>();
+
+chrome.runtime.onConnect.<span class="fn">addListener</span>(port => {
+  <span class="kw">if</span> (port.name !== <span class="str">'neuraltab-keepalive'</span>) <span class="kw">return</span>;
+
+  keepalivePorts.<span class="fn">add</span>(port);
+  StorageManager.<span class="fn">logSwEvent</span>(<span class="str">'PORT_OPEN'</span>, <span class="str">`total ports: ${keepalivePorts.size}`</span>);
+
+  port.onMessage.<span class="fn">addListener</span>(msg => {
+    <span class="kw">if</span> (msg.type === <span class="str">'ping'</span>) {
+      inMemoryEventCounter++;
+      port.<span class="fn">postMessage</span>({ type: <span class="str">'pong'</span>, counter: inMemoryEventCounter });
+    }
+  });
+
+  port.onDisconnect.<span class="fn">addListener</span>(() => {
+    keepalivePorts.<span class="fn">delete</span>(port);
+    StorageManager.<span class="fn">logSwEvent</span>(<span class="str">'PORT_CLOSE'</span>, <span class="str">`total ports: ${keepalivePorts.size}`</span>);
+  });
+});</pre>
+
+  <p>A few things to notice:</p>
+  <ul>
+    <li>The <code>Set</code> means multiple pages can simultaneously hold keepalive ports. The worker stays alive until all ports close.</li>
+    <li>The port name <code>'neuraltab-keepalive'</code> is a convention. The <code>onConnect</code> listener receives <em>all</em> connect calls from all extension pages. The <code>if (port.name !== ...)</code> guard ensures unrelated ports (from other features) don't accidentally enter the keepalive Set.</li>
+    <li><code>port.onDisconnect</code> fires automatically when the connecting page is closed — you don't need to manually call <code>disconnect()</code> for cleanup (though you can).</li>
+  </ul>
+
+  <h3 id="ping-loop">The 25-Second Ping Loop</h3>
+
+  <p>An open port alone is not enough. Chrome has been observed closing "idle" ports (ports that receive no messages) after a period of inactivity. To ensure the port stays active, the SW Monitor page sends a <em>ping message</em> every 25 seconds:</p>
+
+<pre><span class="cm">// sw_monitor.js — keepalive port with ping loop</span>
+<span class="kw">let</span> port = <span class="kw">null</span>;
+<span class="kw">let</span> pingInterval = <span class="kw">null</span>;
+
+<span class="kw">function</span> <span class="fn">openKeepalivePort</span>() {
+  port = chrome.runtime.<span class="fn">connect</span>({ name: <span class="str">'neuraltab-keepalive'</span> });
+
+  port.onMessage.<span class="fn">addListener</span>(msg => {
+    <span class="kw">if</span> (msg.type === <span class="str">'pong'</span>) {
+      document.getElementById(<span class="str">'last-heartbeat'</span>).textContent = <span class="kw">new</span> Date().<span class="fn">toLocaleTimeString</span>();
+    }
+  });
+
+  port.onDisconnect.<span class="fn">addListener</span>(() => {
+    port = <span class="kw">null</span>;
+    <span class="fn">clearInterval</span>(pingInterval);
+    <span class="cm">// Port closed — the worker may have been killed. UI shows "Dead".</span>
+  });
+
+  pingInterval = <span class="fn">setInterval</span>(() => {
+    <span class="kw">if</span> (port) port.<span class="fn">postMessage</span>({ type: <span class="str">'ping'</span> });
+  }, <span class="num">25000</span>); <span class="cm">// 25s — safely under the ~30s idle threshold</span>
+}
+
+<span class="kw">function</span> <span class="fn">closeKeepalivePort</span>() {
+  <span class="kw">if</span> (port) { port.<span class="fn">disconnect</span>(); port = <span class="kw">null</span>; }
+  <span class="fn">clearInterval</span>(pingInterval); pingInterval = <span class="kw">null</span>;
+}</pre>
+
+  <div class="callout callout-gold">
+    <div class="label">Why 25 seconds and not 30?</div>
+    Chrome's idle threshold is approximately 30 seconds. If you ping every 30 seconds, timer jitter and CPU scheduling delays could occasionally push the ping to second 31 — after the idle window has already started. A 25-second interval provides a 5-second safety margin that absorbs all practical variation.
+  </div>
+
+  <div class="callout callout-red">
+    <div class="label">Keepalive is not unconditional</div>
+    Keeping the worker alive burns memory and prevents Chrome from reclaiming resources when the extension is idle. Only open the keepalive port when the user is actively looking at the SW Monitor page. Disconnect it the moment the page closes (handled automatically by <code>port.onDisconnect</code> when the page unloads).
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="background">background.js Deep Dive</h2>
+
+  <p>Module 05's background.js has three new responsibilities beyond what Module 04 built. Let's read each one carefully.</p>
+
+  <h3 id="onworkerstart">onWorkerStart() — Registering Every Wake</h3>
+
+  <p>This function runs unconditionally at the top level of background.js, so it executes on every single cold start. It does three things:</p>
+
+<pre><span class="kw">async function</span> <span class="fn">onWorkerStart</span>() {
+  <span class="kw">const</span> s = <span class="kw">await</span> StorageManager.<span class="fn">get</span>([<span class="str">'swStartCount'</span>]);
+  <span class="kw">await</span> StorageManager.<span class="fn">set</span>({
+    swStartCount: (s.swStartCount || <span class="num">0</span>) + <span class="num">1</span>,  <span class="cm">// lifetime counter</span>
+    swLastStart:  Date.<span class="fn">now</span>(),                  <span class="cm">// timestamp for uptime calc</span>
+  });
+  StorageManager.<span class="fn">logSwEvent</span>(<span class="str">'START'</span>, <span class="str">`wake #${(s.swStartCount || 0) + 1}`</span>);
+}
+
+<span class="fn">onWorkerStart</span>(); <span class="cm">// called at module level, not inside any handler</span></pre>
+
+  <p>The fact that this call is at the <em>module level</em> is intentional. Module-level code in a service worker runs once when the worker starts — whether that start is due to install, update, alarm, message, or any other event. This is the correct place to record "the worker just woke up."</p>
+
+  <h3>The Heartbeat Alarm</h3>
+
+  <p>Alongside the existing <code>'tab-analysis'</code> alarm, Module 05 adds a second alarm:</p>
+
+<pre>chrome.runtime.onInstalled.<span class="fn">addListener</span>(() => {
+  chrome.alarms.<span class="fn">create</span>(<span class="str">'tab-analysis'</span>, { periodInMinutes: <span class="num">30</span> });
+  chrome.alarms.<span class="fn">create</span>(<span class="str">'sw-heartbeat'</span>,  { periodInMinutes: <span class="num">0.5</span> }); <span class="cm">// 30s minimum</span>
+});
+
+chrome.alarms.onAlarm.<span class="fn">addListener</span>(alarm => {
+  inMemoryEventCounter++;
+  <span class="kw">if</span> (alarm.name === <span class="str">'sw-heartbeat'</span>) {
+    StorageManager.<span class="fn">logSwEvent</span>(<span class="str">'HEARTBEAT'</span>, <span class="str">`counter: ${inMemoryEventCounter}`</span>);
+    <span class="kw">return</span>;
+  }
+  <span class="kw">if</span> (alarm.name === <span class="str">'tab-analysis'</span>) <span class="fn">runTabAnalysis</span>();
+});</pre>
+
+  <p>The heartbeat alarm serves two purposes: (1) It wakes the worker every 30 seconds even without a keepalive port, ensuring the background can process storage changes. (2) It generates a visible "HEARTBEAT" event in the lifecycle log, letting you watch the worker's rhythm in the SW Monitor page.</p>
+
+  <h3 id="logswevet">logSwEvent() — Persistent Audit Trail</h3>
+
+  <p>This new StorageManager method writes timestamped events to <code>swLifecycleLog[]</code> in storage. The cap at 50 entries prevents unbounded storage growth:</p>
+
+<pre><span class="cm">// storage_manager.js addition</span>
+<span class="kw">async</span> logSwEvent(event, detail = <span class="str">''</span>) {
+  <span class="kw">const</span> s = <span class="kw">await</span> <span class="kw">this</span>.<span class="fn">get</span>([<span class="str">'swLifecycleLog'</span>]);
+  <span class="kw">const</span> log = s.swLifecycleLog || [];
+  log.<span class="fn">push</span>({ ts: Date.<span class="fn">now</span>(), event, detail });
+  <span class="kw">if</span> (log.length > <span class="num">50</span>) log.<span class="fn">splice</span>(<span class="num">0</span>, log.length - <span class="num">50</span>); <span class="cm">// keep newest 50</span>
+  <span class="kw">await</span> <span class="kw">this</span>.<span class="fn">set</span>({ swLifecycleLog: log });
+},</pre>
+
+  <p>Every event is typed so the UI can color-code them: <code>START</code> (green), <code>HEARTBEAT</code> (cyan), <code>ALARM</code> (gold), <code>PORT_OPEN</code> (purple), <code>PORT_CLOSE</code> (orange). The Options page and the SW Monitor both read this log and render the same color scheme, giving you a consistent audit trail wherever you look.</p>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="sw-monitor">The SW Monitor Page</h2>
+
+  <p>The SW Monitor is a full-page developer tool built into the extension. You open it from the popup or Options page. It is a live, continuously updating view of the service worker's internal state.</p>
+
+  <h3 id="poll-strategy">The Polling Strategy: Why 2 Seconds</h3>
+
+  <p>The SW Monitor uses a 2-second <code>setInterval</code> to call <code>sendMessage({ action: 'getWorkerState' })</code> and update the live metrics panel. You might wonder: why not use <code>StorageManager.onChange()</code> like the Options page does?</p>
+
+  <p>The answer is that the most important metrics are <em>in-memory</em>:</p>
+  <ul>
+    <li><code>inMemoryEventCounter</code> — a module-level variable, not in storage</li>
+    <li><code>uptime</code> — calculated as <code>Date.now() - SW_START_TIME</code> each time it's read</li>
+    <li><code>keepalivePorts</code> — a <code>Set</code> of live port objects, not serializable to storage</li>
+  </ul>
+
+  <p>These cannot trigger <code>storage.onChanged</code> because they never touch storage. The only way to read them is to send a message to the live worker and ask. So the SW Monitor uses a hybrid approach: <code>storage.onChange</code> for the lifecycle log and <code>swStartCount</code>, plus a 2-second poll for everything ephemeral.</p>
+
+<pre><span class="cm">// sw_monitor.js — polling loop</span>
+<span class="fn">setInterval</span>(<span class="kw">async</span> () => {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> resp = <span class="kw">await</span> chrome.runtime.<span class="fn">sendMessage</span>({ action: <span class="str">'getWorkerState'</span> });
+    <span class="kw">if</span> (resp) {
+      <span class="fn">setWorkerAlive</span>(<span class="kw">true</span>);
+      document.getElementById(<span class="str">'counter'</span>).textContent   = resp.inMemoryEventCounter;
+      document.getElementById(<span class="str">'uptime'</span>).textContent     = <span class="fn">formatUptime</span>(resp.uptime);
+      document.getElementById(<span class="str">'kl-ports'</span>).textContent   = resp.keepalivePorts;
+    }
+  } <span class="kw">catch</span> {
+    <span class="cm">// sendMessage throws if the worker is dead — show "Dead" status</span>
+    <span class="fn">setWorkerAlive</span>(<span class="kw">false</span>);
+  }
+}, <span class="num">2000</span>);</pre>
+
+  <div class="callout callout-purple">
+    <div class="label">Reading the worker status from the UI</div>
+    When <code>sendMessage</code> throws (the worker is dead), the catch block sets the status to "Dead." When it succeeds, the worker is alive. This is a clean liveness check: if the worker can respond to a message, it's alive; if it can't, it's dead. No other mechanism is needed.
+  </div>
+
+  <h3 id="log-render">Log Rendering — Delta Updates</h3>
+
+  <p>The lifecycle log can have up to 50 entries. Re-rendering all 50 every 2 seconds would cause DOM thrashing. Instead, the SW Monitor tracks <code>lastLogLength</code> and only renders new entries:</p>
+
+<pre><span class="kw">let</span> lastLogLength = <span class="num">0</span>;
+
+<span class="kw">async function</span> <span class="fn">refreshLog</span>() {
+  <span class="kw">const</span> s = <span class="kw">await</span> StorageManager.<span class="fn">get</span>([<span class="str">'swLifecycleLog'</span>]);
+  <span class="kw">const</span> log = s.swLifecycleLog || [];
+  <span class="kw">if</span> (log.length === lastLogLength) <span class="kw">return</span>; <span class="cm">// nothing new</span>
+
+  <span class="kw">const</span> newEntries = log.<span class="fn">slice</span>(lastLogLength);
+  lastLogLength = log.length;
+
+  <span class="kw">const</span> container = document.<span class="fn">getElementById</span>(<span class="str">'log-container'</span>);
+  <span class="kw">for</span> (<span class="kw">const</span> entry <span class="kw">of</span> newEntries) {
+    <span class="kw">const</span> el = <span class="fn">buildLogEntry</span>(entry);
+    el.classList.<span class="fn">add</span>(<span class="str">'event-NEW'</span>); <span class="cm">// flashes gold, fades after 800ms</span>
+    container.<span class="fn">appendChild</span>(el);
+    <span class="fn">setTimeout</span>(() => el.classList.<span class="fn">remove</span>(<span class="str">'event-NEW'</span>), <span class="num">800</span>);
+  }
+  <span class="cm">// Auto-scroll if user is near the bottom</span>
+  <span class="kw">if</span> (container.scrollHeight - container.scrollTop < container.clientHeight + <span class="num">80</span>) {
+    container.scrollTop = container.scrollHeight;
+  }
+}</pre>
+
+  <p>The <code>.event-NEW</code> CSS class applies a brief gold background that fades to transparent over 800ms, drawing the eye to new log entries without requiring the user to scan the entire list.</p>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="tab-access">Tab Last-Access Tracking</h2>
+
+  <p>Module 04's Tab Manager labeled tabs as "idle" using a proxy metric: <code>!tab.active && !tab.audible</code>. That's a rough approximation — a tab could have been active 2 seconds ago and still look "idle" by that definition.</p>
+
+  <p>Module 05 fixes this with <em>true last-access timestamps</em> recorded in the background:</p>
+
+<pre><span class="cm">// background.js — record exact timestamp when each tab becomes active</span>
+chrome.tabs.onActivated.<span class="fn">addListener</span>(<span class="kw">async</span> ({ tabId }) => {
+  inMemoryEventCounter++;
+  <span class="kw">const</span> s = <span class="kw">await</span> StorageManager.<span class="fn">get</span>([<span class="str">'tabAccessTimes'</span>]);
+  <span class="kw">const</span> times = s.tabAccessTimes || {};
+  times[tabId] = Date.<span class="fn">now</span>();
+
+  <span class="cm">// Cap at 200 entries — evict oldest</span>
+  <span class="kw">const</span> entries = Object.<span class="fn">entries</span>(times).<span class="fn">sort</span>(([,a],[,b]) => a - b);
+  <span class="kw">while</span> (entries.length > <span class="num">200</span>) entries.<span class="fn">shift</span>();
+  <span class="kw">await</span> StorageManager.<span class="fn">set</span>({ tabAccessTimes: Object.<span class="fn">fromEntries</span>(entries) });
+});</pre>
+
+  <p>In <code>tab_manager.js</code>, <code>buildTabEl()</code> reads this map and displays the elapsed time:</p>
+
+<pre><span class="kw">const</span> lastAccess = tabAccessTimes[tab.id];
+<span class="kw">const</span> agoMin = lastAccess ? Math.<span class="fn">floor</span>((Date.<span class="fn">now</span>() - lastAccess) / <span class="num">60000</span>) : <span class="kw">null</span>;
+<span class="kw">const</span> isStale = agoMin !== <span class="kw">null</span> && agoMin > <span class="num">30</span>; <span class="cm">// orange warning at 30+ minutes</span>
+
+lastAccessHtml = lastAccess
+  ? <span class="str">`&lt;div class="tab-last-access${isStale ? ' stale' : ''}"&gt;
+       Last active: ${agoMin === 0 ? 'just now' : agoMin + 'm ago'}
+     &lt;/div&gt;`</span>
+  : <span class="str">''</span>; <span class="cm">// no data yet — tab was never activated during this session</span></pre>
+
+  <p>The "stale" threshold is 30 minutes, shown in orange. This is configurable in a future module — for now it's hardcoded to match the tab-analysis alarm period.</p>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="exercises">Exercises</h2>
+
+  <div class="exercise">
+    <div class="exercise-num">Exercise 01</div>
+    <h3>Prove the 5-Minute Kill</h3>
+    <ol>
+      <li>Load the Module 05 extension. Open the SW Monitor page (<code>sw_monitor.html</code>).</li>
+      <li>Disable the keepalive toggle. Note the current <code>inMemoryEventCounter</code> value.</li>
+      <li>Go to <code>chrome://extensions</code>, find NeuralTab, and click the "Service Worker" link to open the background inspector. Note the "Alive" indicator.</li>
+      <li>Wait 5–7 minutes without interacting with the extension. The background inspector should show the worker going offline.</li>
+      <li>Click anywhere in the NeuralTab popup. The worker wakes from a cold start. Open SW Monitor again — <code>inMemoryEventCounter</code> should have reset to 0 or 1, while <code>swStartCount</code> incremented.</li>
+    </ol>
+    <div class="hint"><strong>What to look for:</strong> The exact moment inMemoryEventCounter resets is the exact moment a new worker instance started. Every instance starts at 0.</div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-num">Exercise 02</div>
+    <h3>Add a PORT_MULTI_OPEN Log Event</h3>
+    <ol>
+      <li>Modify <code>background.js</code>'s <code>onConnect</code> handler to log a special <code>'PORT_MULTI'</code> event when <code>keepalivePorts.size > 1</code>.</li>
+      <li>Open SW Monitor in two separate browser tabs. Verify <code>PORT_MULTI</code> appears in the log.</li>
+      <li>Close one tab. Verify <code>PORT_CLOSE</code> appears and <code>keepalivePorts.size</code> drops to 1.</li>
+    </ol>
+    <div class="hint"><strong>Why this matters:</strong> Multi-page extensions (several sidebars, options, and popups all open simultaneously) all connect ports. Tracking the Set size tells you how many "active users" the worker has right now.</div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-num">Exercise 03</div>
+    <h3>Add an ALARM_MISSED Detection</h3>
+    <ol>
+      <li>In <code>background.js</code>, read <code>swLastStart</code> and <code>swLastHeartbeat</code> (a new storage key you'll add) on every heartbeat alarm.</li>
+      <li>If the gap between now and <code>swLastHeartbeat</code> is more than 2 minutes, log an <code>'ALARM_MISSED'</code> event with the gap duration in seconds.</li>
+      <li>Test by disabling keepalive and waiting >2 minutes, then waking the worker.</li>
+    </ol>
+    <div class="hint"><strong>Real-world use:</strong> This is how production extensions detect "the worker was dead and we missed alarms." A gap of more than 2× the alarm period means at least one firing was missed.</div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-num">Exercise 04</div>
+    <h3>Make the Log Exportable</h3>
+    <ol>
+      <li>Add an "Export log" button to <code>sw_monitor.html</code>.</li>
+      <li>In the click handler, read <code>swLifecycleLog</code> from storage, convert it to a JSON file with <code>Blob</code>, and trigger a download.</li>
+      <li>Open the downloaded file and verify all 50 (or fewer) events are present with correct timestamps.</li>
+    </ol>
+    <div class="hint"><strong>Pattern to use:</strong> <code>URL.createObjectURL(new Blob([JSON.stringify(log, null, 2)], { type: 'application/json' }))</code> — the same pattern used in options.js's export button.</div>
+  </div>
+
+  <div class="exercise">
+    <div class="exercise-num">Exercise 05</div>
+    <h3>Build a Worker Crash Counter</h3>
+    <ol>
+      <li>Add a new storage key: <code>swCrashCount: 0</code>.</li>
+      <li>In <code>onWorkerStart()</code>, check if <code>swLastStart</code> exists <em>and</em> the gap between <code>swLastStart</code> and now is greater than 6 minutes (which indicates a kill, not a graceful restart).</li>
+      <li>If the gap exceeds 6 minutes, increment <code>swCrashCount</code> and log a <code>'UNEXPECTED_KILL'</code> event.</li>
+      <li>Display the crash count in the SW Monitor's live metrics sidebar.</li>
+    </ol>
+    <div class="hint"><strong>Caveats:</strong> Chrome restarting (browser close + open) also creates large gaps. A robust implementation would also store the last browser session ID to distinguish extension kills from browser restarts.</div>
+  </div>
+
+  <!-- ───────────────────────────────────────────── -->
+  <h2 id="summary">Module Summary</h2>
+
+  <div class="summary-box">
+    <h3>What You Built in Module 05</h3>
+    <ul>
+      <li><strong>importScripts() pattern</strong> — StorageManager is now a true shared global in the service worker, eliminating code duplication.</li>
+      <li><strong>onWorkerStart()</strong> — records every cold start with a persistent counter and timestamp, giving you full restart history.</li>
+      <li><strong>logSwEvent()</strong> — a persistent, capped audit trail of the worker's lifecycle events, accessible from any extension page.</li>
+      <li><strong>Keepalive port pattern</strong> — <code>chrome.runtime.connect()</code> + 25-second ping loop prevents the idle timeout while the SW Monitor is open.</li>
+      <li><strong>SW Monitor page</strong> — live dashboard with 2-second poll for ephemeral metrics + reactive storage.onChange for persistent state.</li>
+      <li><strong>Heartbeat alarm</strong> — 30-second minimum-period alarm as background keepalive fallback when no port is open.</li>
+      <li><strong>tabAccessTimes tracking</strong> — real last-access timestamps from <code>chrome.tabs.onActivated</code>, displayed with stale warnings in Tab Manager.</li>
+    </ul>
+  </div>
+
+  <div class="callout callout-green">
+    <div class="label">The Core Mental Model</div>
+    A MV3 service worker is not a daemon. It is a function that Chrome calls when events arrive. Between calls, it does not exist. Every piece of state you care about across calls must live in <code>chrome.storage</code>, in <code>chrome.alarms</code>, or in another persistent API. Once you fully internalize this, MV3 stops feeling like a limitation and starts feeling like a clean architecture.
+  </div>
+
+  <p style="color:var(--muted);font-size:14px;margin-top:48px;padding-top:20px;border-top:1px solid var(--border);">
+    <strong style="color:var(--text);">Next:</strong> Module 06 — Message Passing: All 4 Communication Patterns. You will implement one-way sendMessage, request/response with async sendResponse, port-based streaming, and the shared-state-over-storage pattern. NeuralTab's architecture goes fully event-driven.
+  </p>
+
+</main>
+</div>
+</body>
+</html>

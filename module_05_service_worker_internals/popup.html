@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-brand">
+      <span class="bolt">⚡</span>
+      <span class="brand">NeuralTab</span>
+    </div>
+    <span class="version" id="popup-version">v0.5</span>
+  </header>
+
+  <!-- Active Tab Info -->
+  <section class="section">
+    <div class="section-label">Active Tab</div>
+    <div class="tab-title" id="tab-title">—</div>
+    <div class="tab-url"   id="tab-url">—</div>
+  </section>
+
+  <!-- Content Script Status -->
+  <section class="section">
+    <div class="section-label">Content Script</div>
+    <div class="status-row">
+      <span class="status-dot" id="cs-dot"></span>
+      <span class="status-text" id="cs-status">Checking…</span>
+    </div>
+    <div class="status-note" id="cs-note"></div>
+  </section>
+
+  <!-- Service Worker Status (Module 05) -->
+  <section class="section">
+    <div class="section-label">Service Worker</div>
+    <div class="status-row">
+      <span class="status-dot" id="sw-dot"></span>
+      <span class="status-text" id="sw-status">Checking…</span>
+    </div>
+    <div class="status-row" style="margin-top:4px;">
+      <span class="mini-label">Wakes:</span>
+      <span id="sw-wakes" class="mini-val">—</span>
+      <span class="mini-label" style="margin-left:10px;">Uptime:</span>
+      <span id="sw-uptime" class="mini-val">—</span>
+    </div>
+    <button class="btn btn-ghost btn-full" id="btn-sw-monitor" style="margin-top:6px;">
+      Open SW Monitor
+    </button>
+  </section>
+
+  <!-- Quick Settings -->
+  <section class="section">
+    <div class="section-label">Quick Settings</div>
+    <div class="quick-row">
+      <label class="quick-label">Highlight colour</label>
+      <div class="quick-color-wrap">
+        <input type="color" id="quick-color" class="quick-color" />
+        <input type="text"  id="quick-color-hex" class="quick-color-hex" maxlength="7" />
+      </div>
+    </div>
+    <div class="quick-row">
+      <label class="quick-label">Show button</label>
+      <label class="toggle">
+        <input type="checkbox" id="quick-visible" />
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="quick-stat">
+      Summaries: <strong id="stat-summaries">0</strong>
+      &nbsp;·&nbsp; SW wakes: <strong id="stat-wakes">0</strong>
+    </div>
+  </section>
+
+  <!-- Tab Overview -->
+  <section class="section">
+    <div class="section-label">Tab Overview</div>
+    <div class="tab-stats-grid">
+      <div class="mini-stat">
+        <div class="mini-stat-num"      id="popup-tab-total">—</div>
+        <div class="mini-stat-label">Open</div>
+      </div>
+      <div class="mini-stat">
+        <div class="mini-stat-num idle" id="popup-tab-idle">—</div>
+        <div class="mini-stat-label">Idle</div>
+      </div>
+    </div>
+    <button class="btn btn-full btn-gold" id="btn-tab-manager" style="margin-top:8px;">
+      Open Tab Manager
+    </button>
+  </section>
+
+  <!-- Actions -->
+  <section class="section">
+    <div class="section-label">Actions</div>
+    <div class="btn-grid">
+      <button class="btn btn-primary"   data-action="summarize">Summarize</button>
+      <button class="btn btn-secondary" data-action="highlight">Highlight</button>
+      <button class="btn btn-secondary" data-action="clear">Clear</button>
+      <button class="btn btn-secondary" data-action="inject">Tech Info</button>
+    </div>
+  </section>
+
+  <footer>
+    <button class="btn btn-ghost" id="btn-settings">⚙ Settings</button>
+    <button class="btn btn-ghost" id="btn-info-toggle">Info</button>
+  </footer>
+
+  <!-- Extension Info (hidden by default) -->
+  <section class="section" id="ext-info" style="display:none">
+    <div class="section-label">Extension</div>
+    <div class="info-row"><span class="info-key">Name</span>    <span id="ext-name">—</span></div>
+    <div class="info-row"><span class="info-key">Version</span> <span id="ext-ver">—</span></div>
+    <div class="info-row"><span class="info-key">ID</span>      <span id="ext-id" class="ext-id">—</span></div>
+  </section>
+
+  <script src="storage_manager.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

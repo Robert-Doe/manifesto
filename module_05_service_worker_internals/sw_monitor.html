@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab — Service Worker Monitor</title>
+  <link rel="stylesheet" href="sw_monitor.css" />
+</head>
+<body>
+
+  <header class="top-bar">
+    <div class="top-inner">
+      <div class="brand">
+        <span class="bolt">⚡</span>
+        <span>NeuralTab</span>
+        <span class="page-name">SW Monitor</span>
+      </div>
+      <div class="top-actions">
+        <button class="btn btn-ghost" id="btn-clear-log">Clear log</button>
+        <label class="keepalive-toggle">
+          <input type="checkbox" id="keepalive-checkbox" />
+          <span>Keepalive port</span>
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <div class="page-body">
+
+    <!-- Left: real-time metrics -->
+    <aside class="metrics-panel">
+      <h3 class="panel-title">Live Metrics</h3>
+
+      <div class="metric-card">
+        <div class="metric-label">Worker status</div>
+        <div class="metric-value" id="m-status">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">Checking…</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">In-memory event counter</div>
+        <div class="metric-value big" id="m-counter">—</div>
+        <div class="metric-note">Resets to 0 on every worker restart. Watch it reset to prove the 5-minute kill.</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Worker uptime</div>
+        <div class="metric-value" id="m-uptime">—</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Total wake count (persistent)</div>
+        <div class="metric-value big cyan" id="m-wakes">—</div>
+        <div class="metric-note">Stored in chrome.storage — survives worker restarts.</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Keepalive port</div>
+        <div class="metric-value" id="m-keepalive">Inactive</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Last heartbeat</div>
+        <div class="metric-value" id="m-heartbeat">—</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-label">Next alarm</div>
+        <div class="metric-value small" id="m-next-alarm">—</div>
+      </div>
+
+      <div style="margin-top:16px; display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-gold" id="btn-ping">Send ping to SW</button>
+        <button class="btn btn-secondary" id="btn-force-alarm">Trigger alarm now</button>
+        <button class="btn btn-secondary" id="btn-open-options">Open Options</button>
+      </div>
+    </aside>
+
+    <!-- Right: lifecycle event log -->
+    <main class="log-panel">
+      <div class="log-header">
+        <h3 class="panel-title">Lifecycle Event Log</h3>
+        <span class="log-count" id="log-count">0 events</span>
+      </div>
+      <div id="log-container" class="log-container">
+        <div class="log-empty">Waiting for events…</div>
+      </div>
+    </main>
+
+  </div>
+
+  <script src="storage_manager.js"></script>
+  <script src="sw_monitor.js"></script>
+</body>
+</html>
