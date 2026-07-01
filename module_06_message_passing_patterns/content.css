@@ -1,0 +1,8 @@
+/* NeuralTab — content.css (Module 06 — unchanged from M05) */
+/* Shadow DOM isolation means this file styles the host element only.
+   All NeuralTab injected UI uses Shadow DOM and is styled via <style> tags inside the shadow root. */
+
+#neuraltab-host {
+  all: initial;
+  display: block;
+}

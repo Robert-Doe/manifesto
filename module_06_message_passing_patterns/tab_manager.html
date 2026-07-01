@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab — Tab Manager</title>
+  <link rel="stylesheet" href="tab_manager.css" />
+</head>
+<body>
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <div class="brand"><span class="brand-bolt">⚡</span><span class="brand-name">NeuralTab</span><span class="brand-page">Tab Manager</span></div>
+      <div class="top-actions">
+        <button class="btn btn-ghost"  id="btn-refresh">↻ Refresh</button>
+        <button class="btn btn-danger" id="btn-close-idle">Close all idle</button>
+        <button class="btn btn-gold"   id="btn-group-domains">Group by domain</button>
+      </div>
+    </div>
+  </header>
+  <div class="page-body">
+    <aside class="sidebar">
+      <div class="stat-card"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Total tabs</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-domains">—</div><div class="stat-label">Domains</div></div>
+      <div class="stat-card"><div class="stat-num idle" id="stat-idle">—</div><div class="stat-label">Idle tabs</div></div>
+      <div class="stat-card"><div class="stat-num" id="stat-pinned">—</div><div class="stat-label">Pinned</div></div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Filters</div>
+        <label class="filter-check"><input type="checkbox" id="filter-idle" /> Show idle only</label>
+        <label class="filter-check"><input type="checkbox" id="filter-audible" /> Show audible only</label>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">History</div>
+        <div class="history-search-wrap">
+          <input type="search" id="history-search" placeholder="Search history…" />
+          <button class="btn btn-sm btn-ghost" id="btn-history-search">Go</button>
+        </div>
+        <div id="history-results" class="history-results"></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Bookmarks</div>
+        <button class="btn btn-sm btn-ghost" id="btn-load-bookmarks">Load recent</button>
+        <div id="bookmark-results" class="bookmark-results"></div>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="permission-banner" id="permission-banner">
+        <div class="perm-icon">🔒</div>
+        <div>
+          <strong>Tab permission not granted.</strong><br>
+          <button class="btn btn-sm btn-gold" id="btn-grant-tabs">Grant permission</button>
+        </div>
+      </div>
+      <div id="tab-groups-container" class="tab-groups-container"></div>
+    </main>
+  </div>
+  <script src="storage_manager.js"></script>
+  <script src="tab_manager.js"></script>
+</body>
+</html>

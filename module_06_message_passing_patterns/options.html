@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab — Settings</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+<div class="options-layout">
+
+  <!-- SIDEBAR NAV -->
+  <nav class="sidebar-nav">
+    <div class="nav-brand"><span class="nav-bolt">⚡</span><span class="nav-title">NeuralTab</span></div>
+    <a class="nav-link" href="#appearance">Appearance</a>
+    <a class="nav-link" href="#behaviour">Behaviour</a>
+    <a class="nav-link" href="#tabs">Tabs &amp; Alarms</a>
+    <a class="nav-link" href="#messages">Messages</a>
+    <a class="nav-link" href="#sw">Service Worker</a>
+    <a class="nav-link" href="#permissions">Permissions</a>
+    <a class="nav-link" href="#storage">Storage</a>
+    <a class="nav-link" href="#about">About</a>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="settings-main">
+
+    <!-- Appearance -->
+    <section class="settings-section" id="appearance">
+      <h2>Appearance</h2>
+      <p class="section-intro">Customize how NeuralTab looks on every page.</p>
+      <div class="setting-group">
+        <div class="setting-row">
+          <div class="setting-info"><div class="setting-label">Highlight colour</div><div class="setting-desc">Colour applied to selected text summaries.</div></div>
+          <div class="setting-control">
+            <input type="color" id="highlight-color" />
+            <input type="text"  id="color-hex" class="hex-input" maxlength="7" />
+          </div>
+        </div>
+        <div class="color-presets">
+          <div class="preset-dot" style="background:#f5c842" data-color="#f5c842"></div>
+          <div class="preset-dot" style="background:#38bdf8" data-color="#38bdf8"></div>
+          <div class="preset-dot" style="background:#4ade80" data-color="#4ade80"></div>
+          <div class="preset-dot" style="background:#a78bfa" data-color="#a78bfa"></div>
+          <div class="preset-dot" style="background:#f87171" data-color="#f87171"></div>
+          <div class="preset-dot" style="background:#fb923c" data-color="#fb923c"></div>
+        </div>
+        <div class="color-preview" id="color-preview">#f5c842</div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-row">
+          <div class="setting-info"><div class="setting-label">Minimum word length</div><div class="setting-desc">Words shorter than this won't be highlighted.</div></div>
+          <div class="setting-control">
+            <input type="range" id="min-len-range" min="1" max="10" />
+            <span class="range-value" id="min-len-value">3</span>
+            <span class="range-unit">chars</span>
+          </div>
+        </div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-row">
+          <div class="setting-info"><div class="setting-label">Button position</div><div class="setting-desc">Where the NeuralTab action button appears.</div></div>
+          <div class="setting-control">
+            <select id="btn-position">
+              <option value="bottom-right">Bottom right</option>
+              <option value="bottom-left">Bottom left</option>
+              <option value="top-right">Top right</option>
+              <option value="top-left">Top left</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Behaviour -->
+    <section class="settings-section" id="behaviour">
+      <h2>Behaviour</h2>
+      <p class="section-intro">Control how NeuralTab interacts with pages.</p>
+      <div class="setting-group">
+        <div class="setting-row">
+          <div class="setting-info"><div class="setting-label">Show action button</div><div class="setting-desc">Display the floating NeuralTab button on pages.</div></div>
+          <label class="toggle"><input type="checkbox" id="btn-visible" /><span class="slider"></span></label>
+        </div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-row">
+          <div class="setting-info"><div class="setting-label">Reading speed</div><div class="setting-desc">Words per minute for reading time estimates.</div></div>
+          <div class="setting-control">
+            <input type="range" id="reading-speed" min="100" max="600" step="10" />
+            <span class="range-value" id="speed-value">200</span>
+            <span class="range-unit">wpm</span>
+          </div>
+        </div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-info"><div class="setting-label">Blocked domains</div><div class="setting-desc">NeuralTab won't activate on these domains (one per line).</div></div>
+        <textarea id="blocked-domains" placeholder="example.com&#10;ads.google.com"></textarea>
+      </div>
+    </section>
+
+    <!-- Tabs & Alarms -->
+    <section class="settings-section" id="tabs">
+      <h2>Tabs &amp; Alarms</h2>
+      <p class="section-intro">Scheduled tab analysis and idle detection.</p>
+      <div class="setting-group">
+        <div class="setting-row">
+          <div class="setting-info"><div class="setting-label">Tab analysis</div><div class="setting-desc">Periodically scan for idle tabs and send a notification.</div></div>
+          <label class="toggle"><input type="checkbox" id="tab-analysis-enabled" /><span class="slider"></span></label>
+        </div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-row">
+          <div class="setting-info"><div class="setting-label">Idle threshold</div><div class="setting-desc">Minutes before a tab is considered idle.</div></div>
+          <div class="setting-control">
+            <input type="range" id="idle-threshold" min="5" max="120" step="5" />
+            <span class="range-value" id="idle-threshold-value">30</span>
+            <span class="range-unit">min</span>
+          </div>
+        </div>
+      </div>
+      <div class="setting-group">
+        <div class="info-box" id="alarm-status">Checking alarm…</div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn btn-secondary" id="btn-run-analysis">Run now</button>
+          <button class="btn btn-secondary" id="btn-open-tab-manager">Open Tab Manager</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Messages (M06) -->
+    <section class="settings-section" id="messages">
+      <h2>Messages</h2>
+      <p class="section-intro">Live stats for all 4 communication patterns used in Module 06.</p>
+
+      <div class="setting-group">
+        <div class="msg-stats-grid">
+          <div class="msg-stat-card">
+            <div class="msg-stat-num" id="msg-total-count">—</div>
+            <div class="msg-stat-label">Total processed</div>
+          </div>
+          <div class="msg-stat-card">
+            <div class="msg-stat-num" id="msg-demo-counter">—</div>
+            <div class="msg-stat-label">Demo counter</div>
+          </div>
+          <div class="msg-stat-card">
+            <div class="msg-stat-num" id="msg-active-streams">—</div>
+            <div class="msg-stat-label">Active streams</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <div class="setting-info"><div class="setting-label">Recent message log</div><div class="setting-desc">Last 20 messages processed by the background worker.</div></div>
+        <div class="msg-log" id="msg-log"><div style="color:var(--muted);font-size:12px;padding:6px;">No messages yet.</div></div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn btn-secondary" id="btn-refresh-msg-log">↻ Refresh</button>
+          <button class="btn btn-secondary" id="btn-open-msg-lab">Open Message Lab ⚗</button>
+          <button class="btn btn-danger-sm" id="btn-clear-msg-log">Clear log</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Service Worker (M05) -->
+    <section class="settings-section" id="sw">
+      <h2>Service Worker</h2>
+      <p class="section-intro">Live lifecycle monitoring. Inspect restarts, heartbeats, and port connections.</p>
+      <div class="setting-group">
+        <div class="sw-status-row">
+          <div class="status-dot" id="sw-status-dot"></div>
+          <span id="sw-status-text">Checking…</span>
+        </div>
+        <div class="info-box" id="sw-detail" style="margin-top:10px;">—</div>
+      </div>
+      <div class="setting-group">
+        <div class="stats-grid">
+          <div class="stats-cell"><div class="stats-num" id="sw-wake-count">—</div><div class="stats-label">Total wakes</div></div>
+          <div class="stats-cell"><div class="stats-num" id="sw-idle-alerts">—</div><div class="stats-label">Idle alerts</div></div>
+          <div class="stats-cell"><div class="stats-num" id="sw-msg-count">—</div><div class="stats-label">Messages</div></div>
+        </div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-info"><div class="setting-label">Lifecycle log</div></div>
+        <div class="sw-log" id="sw-log"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn btn-secondary" id="btn-clear-sw-log">Clear log</button>
+          <button class="btn btn-secondary" id="btn-open-sw-monitor">Open SW Monitor</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Permissions -->
+    <section class="settings-section" id="permissions">
+      <h2>Permissions</h2>
+      <p class="section-intro">Grant optional permissions to unlock additional features.</p>
+      <div class="perm-card">
+        <div class="perm-icon">📋</div>
+        <div class="perm-body">
+          <div class="perm-name">Tabs</div>
+          <div class="perm-desc">Required for Tab Manager: read tab URLs, titles, and manage groups.</div>
+          <div class="perm-actions">
+            <button class="btn btn-gold btn-sm perm-grant" data-perm="tabs">Grant</button>
+            <button class="btn btn-danger-sm perm-revoke" data-perm="tabs">Revoke</button>
+            <span class="perm-status" id="perm-status-tabs"></span>
+          </div>
+        </div>
+      </div>
+      <div class="perm-card">
+        <div class="perm-icon">🔖</div>
+        <div class="perm-body">
+          <div class="perm-name">Bookmarks</div>
+          <div class="perm-desc">Save tabs to bookmarks from the Tab Manager.</div>
+          <div class="perm-actions">
+            <button class="btn btn-gold btn-sm perm-grant" data-perm="bookmarks">Grant</button>
+            <button class="btn btn-danger-sm perm-revoke" data-perm="bookmarks">Revoke</button>
+            <span class="perm-status" id="perm-status-bookmarks"></span>
+          </div>
+        </div>
+      </div>
+      <div class="perm-card">
+        <div class="perm-icon">🕓</div>
+        <div class="perm-body">
+          <div class="perm-name">History</div>
+          <div class="perm-desc">Search browsing history from the Tab Manager sidebar.</div>
+          <div class="perm-actions">
+            <button class="btn btn-gold btn-sm perm-grant" data-perm="history">Grant</button>
+            <button class="btn btn-danger-sm perm-revoke" data-perm="history">Revoke</button>
+            <span class="perm-status" id="perm-status-history"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Storage -->
+    <section class="settings-section" id="storage">
+      <h2>Storage</h2>
+      <div class="setting-group">
+        <div class="quota-bar-wrap">
+          <div class="quota-bar"><div class="quota-fill" id="quota-fill"></div></div>
+          <div class="quota-text" id="quota-text">Calculating…</div>
+        </div>
+        <div class="stats-grid" style="margin-top:12px;">
+          <div class="stats-cell"><div class="stats-num" id="stat-summaries">—</div><div class="stats-label">Summaries</div></div>
+          <div class="stats-cell"><div class="stats-num" id="stat-idle-alerts">—</div><div class="stats-label">Idle alerts</div></div>
+          <div class="stats-cell"><div class="stats-num" id="stat-install">—</div><div class="stats-label">Days active</div></div>
+        </div>
+      </div>
+      <div class="setting-group" style="display:flex;gap:8px;">
+        <button class="btn btn-secondary" id="btn-export">Export settings</button>
+        <button class="btn btn-danger-full" id="btn-reset">Reset all</button>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section class="settings-section" id="about">
+      <h2>About</h2>
+      <div class="about-grid">
+        <span class="about-key">Name</span>    <span class="about-val" id="about-name">—</span>
+        <span class="about-key">Version</span> <span class="about-val" id="about-version">—</span>
+        <span class="about-key">Extension ID</span><span class="about-val mono" id="about-id">—</span>
+        <span class="about-key">Installed</span><span class="about-val" id="about-install">—</span>
+      </div>
+    </section>
+
+  </div><!-- /.settings-main -->
+</div>
+
+<script src="storage_manager.js"></script>
+<script src="options.js"></script>
+</body>
+</html>

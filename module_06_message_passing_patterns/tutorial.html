@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Module 06 — Message Passing: All 4 Communication Patterns</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root {
+      --bg:#0b0f1a;--bg2:#0f1623;--card:#141c2e;--card2:#1a2540;--border:#1e3a5f;
+      --gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;
+      --red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;line-height:1.8;font-size:16px;}
+    a{color:var(--cyan);text-decoration:none;}a:hover{text-decoration:underline;}
+    .hero{background:linear-gradient(135deg,#0b0f1a 0%,#0d1a30 50%,#091020 100%);border-bottom:2px solid var(--gold);padding:70px 60px 60px;text-align:center;}
+    .module-tag{display:inline-block;background:#0d1a30;border:1px solid var(--gold);color:var(--gold);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:5px 16px;border-radius:20px;margin-bottom:22px;}
+    .hero h1{font-size:48px;font-weight:900;color:var(--gold);margin-bottom:12px;line-height:1.15;}
+    .hero h1 em{color:var(--cyan);font-style:normal;}
+    .hero p{font-size:18px;color:var(--muted);max-width:720px;margin:0 auto 30px;}
+    .hero-meta{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;}
+    .hero-meta span{font-size:13px;color:var(--muted);}
+    .hero-meta strong{color:var(--text);}
+    .toc-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 60px;}
+    .toc-inner{max-width:900px;margin:0 auto;display:flex;gap:0;overflow-x:auto;}
+    .toc-item{padding:14px 18px;font-size:13px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;white-space:nowrap;cursor:pointer;transition:all 0.15s;}
+    .toc-item:hover{color:var(--gold);border-bottom-color:var(--gold);}
+    .content{max-width:900px;margin:0 auto;padding:60px;}
+    h2{font-size:32px;font-weight:900;color:var(--gold);margin:60px 0 16px;padding-top:20px;}
+    h2.first{margin-top:0;}
+    h3{font-size:21px;font-weight:900;color:var(--cyan);margin:36px 0 12px;}
+    h4{font-size:16px;font-weight:700;color:var(--purple);margin:24px 0 8px;text-transform:uppercase;letter-spacing:1px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    p em{color:var(--gold);font-style:normal;font-weight:700;}
+    ul,ol{padding-left:24px;color:var(--muted);margin-bottom:16px;}
+    li{margin-bottom:6px;line-height:1.7;}
+    li strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:10px;padding:22px 24px;font-family:'Source Code Pro',monospace;font-size:13px;line-height:1.9;overflow-x:auto;white-space:pre;margin:20px 0;}
+    .kw{color:var(--purple);font-weight:700;} .fn{color:var(--cyan);} .str{color:var(--green);} .cm{color:#3d5970;font-style:italic;} .num{color:var(--orange);} .cls{color:var(--gold);}
+    .callout{border-radius:0 10px 10px 0;padding:20px 24px;margin:24px 0;font-size:15px;line-height:1.7;}
+    .callout.gold{background:#141000;border-left:4px solid var(--gold);}
+    .callout.gold strong{color:var(--gold);}
+    .callout.red{background:#140404;border-left:4px solid var(--red);}
+    .callout.red strong{color:var(--red);}
+    .callout.cyan{background:#040e14;border-left:4px solid var(--cyan);}
+    .callout.cyan strong{color:var(--cyan);}
+    .callout.green{background:#040e08;border-left:4px solid var(--green);}
+    .callout.green strong{color:var(--green);}
+    .callout.purple{background:#0a0414;border-left:4px solid var(--purple);}
+    .callout.purple strong{color:var(--purple);}
+    .callout.orange{background:#140800;border-left:4px solid var(--orange);}
+    .callout.orange strong{color:var(--orange);}
+    .callout p{color:var(--muted);margin:0;}
+    .callout p+p{margin-top:10px;}
+    table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+    th{background:var(--card2);color:var(--gold);font-weight:700;padding:11px 14px;border:1px solid var(--border);text-align:left;}
+    td{padding:11px 14px;border:1px solid var(--border);color:var(--muted);vertical-align:top;}
+    tr:nth-child(even) td{background:var(--card);}
+    td strong{color:var(--text);}
+    td code{background:#060a12;border:1px solid var(--border);padding:1px 5px;border-radius:4px;font-family:'Source Code Pro',monospace;font-size:12px;color:var(--cyan);}
+    .yes{color:var(--green);font-weight:700;} .no{color:var(--red);}
+    hr{border:none;border-top:1px solid var(--border);margin:50px 0;}
+    .pattern-heading{display:flex;align-items:center;gap:14px;margin:50px 0 14px;padding:18px 22px;border-radius:10px;border:1px solid var(--border);}
+    .ph1{background:#100500;border-color:var(--orange);}
+    .ph2{background:#020a10;border-color:var(--cyan);}
+    .ph3{background:#080214;border-color:var(--purple);}
+    .ph4{background:#020a04;border-color:var(--green);}
+    .p-num{font-size:28px;font-weight:900;width:44px;flex-shrink:0;text-align:center;line-height:1;}
+    .ph1 .p-num{color:var(--orange);}
+    .ph2 .p-num{color:var(--cyan);}
+    .ph3 .p-num{color:var(--purple);}
+    .ph4 .p-num{color:var(--green);}
+    .p-text .p-label{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+    .p-text .p-name{font-size:20px;font-weight:900;color:var(--text);}
+    .ph1 .p-text .p-name{color:var(--orange);}
+    .ph2 .p-text .p-name{color:var(--cyan);}
+    .ph3 .p-text .p-name{color:var(--purple);}
+    .ph4 .p-text .p-name{color:var(--green);}
+    .flow-row{display:flex;align-items:flex-start;gap:0;margin:24px 0;flex-wrap:wrap;}
+    .flow-step{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;flex:1;min-width:140px;}
+    .fs-num{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:1px;margin-bottom:4px;}
+    .fs-name{font-size:13px;font-weight:700;color:var(--text);}
+    .fs-detail{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.5;}
+    .flow-arrow{padding:12px 6px;font-size:20px;color:var(--muted);align-self:center;}
+    .exercise-box{background:var(--bg2);border:2px solid var(--gold);border-radius:12px;padding:28px 32px;margin:40px 0;}
+    .ex-header{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+    .ex-icon{font-size:32px;}
+    .ex-title{font-weight:900;font-size:20px;color:var(--gold);}
+    .ex-sub{font-size:13px;color:var(--muted);}
+    .ex-body p{color:var(--muted);margin-bottom:12px;}
+    .ex-body ol{color:var(--muted);padding-left:22px;}
+    .ex-body li{margin-bottom:8px;}
+    .ex-body li strong{color:var(--text);}
+    .ex-body code{background:#060a12;border:1px solid var(--border);padding:1px 6px;border-radius:4px;font-family:'Source Code Pro',monospace;font-size:13px;color:var(--cyan);}
+    .danger-banner{background:#1a0000;border:2px solid var(--red);border-radius:12px;padding:24px 28px;margin:30px 0;}
+    .db-title{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:10px;}
+    .db-body{color:var(--muted);font-size:15px;line-height:1.8;}
+    .db-body strong{color:var(--red);}
+    .section-divider{background:linear-gradient(to right,transparent,var(--border),transparent);height:1px;margin:60px 0;}
+    code{background:#060a12;border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-family:'Source Code Pro',monospace;font-size:13px;color:var(--cyan);}
+    .checklist{list-style:none;padding-left:0;}
+    .checklist li{padding-left:28px;position:relative;margin-bottom:8px;color:var(--muted);}
+    .checklist li::before{content:'☐';position:absolute;left:0;color:var(--gold);}
+    .context-diagram{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:24px;margin:24px 0;font-family:'Source Code Pro',monospace;font-size:13px;line-height:2;}
+    .cd-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+    .cd-box{padding:5px 12px;border-radius:6px;font-weight:700;font-size:12px;border:1px solid;}
+    .cd-page{background:#100500;border-color:var(--orange);color:var(--orange);}
+    .cd-cs{background:#100a00;border-color:var(--gold);color:var(--gold);}
+    .cd-bg{background:#020a10;border-color:var(--cyan);color:var(--cyan);}
+    .cd-pop{background:#080214;border-color:var(--purple);color:var(--purple);}
+    .cd-opt{background:#020a04;border-color:var(--green);color:var(--green);}
+    .cd-arrow{color:var(--muted);font-size:11px;}
+    .cd-note{font-size:11px;color:var(--muted);}
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="module-tag">Module 06 · NeuralTab</div>
+  <h1>Message Passing:<br><em>All 4 Communication Patterns</em></h1>
+  <p>Every way extension contexts talk to each other — the hidden rules that decide whether your messages arrive, when they fail, and why Chrome kills the channel without warning.</p>
+  <div class="hero-meta">
+    <span><strong>Patterns:</strong> 4 (one-way, req/res, port, storage)</span>
+    <span><strong>Files added:</strong> message_lab.html, message_lab.css, message_lab.js</span>
+    <span><strong>The danger:</strong> return true</span>
+  </div>
+</div>
+
+<div class="toc-bar">
+  <div class="toc-inner">
+    <div class="toc-item">The 6 Contexts</div>
+    <div class="toc-item">Pattern 1: Fire &amp; Forget</div>
+    <div class="toc-item">Pattern 2: return true</div>
+    <div class="toc-item">Pattern 3: Ports</div>
+    <div class="toc-item">Pattern 4: Storage</div>
+    <div class="toc-item">3-Hop Relay</div>
+    <div class="toc-item">Error Handling</div>
+    <div class="toc-item">Exercises</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <h2 class="first">Before We Write a Single Message</h2>
+
+  <p>You cannot understand Chrome extension messaging without first understanding <em>who is doing the talking</em>. An extension is not a single program. It is a constellation of separate JavaScript contexts, each running in its own V8 isolate, each with different API access and different lifetimes. When one context sends a message to another, it is genuinely crossing a security boundary.</p>
+
+  <p>Here is the full picture of NeuralTab's contexts by the end of Module 06:</p>
+
+  <div class="context-diagram">
+    <div class="cd-row">
+      <div class="cd-box cd-bg">background.js (Service Worker)</div>
+      <div class="cd-note">← Full chrome.* API. Ephemeral. Dies when idle. Lives in its own thread.</div>
+    </div>
+    <div class="cd-row">
+      <div class="cd-box cd-pop">popup.html + popup.js</div>
+      <div class="cd-note">← Extension page. Closes when popup closes. Shares chrome.* access.</div>
+    </div>
+    <div class="cd-row">
+      <div class="cd-box cd-opt">options.html + options.js</div>
+      <div class="cd-note">← Extension page. Lives as long as the tab is open.</div>
+    </div>
+    <div class="cd-row">
+      <div class="cd-box cd-opt">message_lab.html + message_lab.js</div>
+      <div class="cd-note">← Extension page. Can be open in multiple tabs simultaneously.</div>
+    </div>
+    <div class="cd-row">
+      <div class="cd-box cd-cs">content.js</div>
+      <div class="cd-note">← Injected into every web page. Isolated world. Limited chrome.* API.</div>
+    </div>
+    <div class="cd-row">
+      <div class="cd-box cd-page">assets/inject.js</div>
+      <div class="cd-note">← Page world. Injected via content.js. NO chrome.* API at all.</div>
+    </div>
+  </div>
+
+  <p>Each row is a <strong>separate JavaScript execution context</strong>. They cannot share variables, cannot share function references, cannot reach into each other's memory. The only way to communicate is through Chrome's message passing APIs — and through <code>window.postMessage</code> for the page-world boundary.</p>
+
+  <p>This is not an accident. This isolation is <em>the security model</em>. A malicious web page cannot call your background's functions directly. It cannot read your storage directly. Every crossing is mediated, and that mediation is where both power and danger live.</p>
+
+  <h3>The Four Mechanisms Chrome Provides</h3>
+
+  <p>Chrome gives you exactly four ways to move data between contexts:</p>
+
+  <table>
+    <tr>
+      <th>Mechanism</th>
+      <th>API</th>
+      <th>Direction</th>
+      <th>Persistent?</th>
+      <th>Best for</th>
+    </tr>
+    <tr>
+      <td><strong>One-way message</strong></td>
+      <td><code>sendMessage</code></td>
+      <td>Any → background / background → content</td>
+      <td class="no">No</td>
+      <td>Fire &amp; forget events, logging</td>
+    </tr>
+    <tr>
+      <td><strong>Request/response</strong></td>
+      <td><code>sendMessage</code> + <code>sendResponse</code></td>
+      <td>Same as above</td>
+      <td class="no">No</td>
+      <td>Queries, data fetches, confirmations</td>
+    </tr>
+    <tr>
+      <td><strong>Port channel</strong></td>
+      <td><code>connect</code> + <code>postMessage</code></td>
+      <td>Bidirectional, long-lived</td>
+      <td class="yes">Yes (until disconnect)</td>
+      <td>Streaming, keepalive, real-time data</td>
+    </tr>
+    <tr>
+      <td><strong>Storage event</strong></td>
+      <td><code>storage.set</code> + <code>storage.onChanged</code></td>
+      <td>Any → storage → all listeners</td>
+      <td class="yes">Yes (persists across restarts)</td>
+      <td>Shared state, multi-page sync, pub/sub</td>
+    </tr>
+  </table>
+
+  <p>Plus <code>window.postMessage</code> — not a Chrome API, but a browser DOM API — used specifically to cross the page-world / isolated-world boundary between inject.js and content.js.</p>
+
+  <div class="section-divider"></div>
+
+  <!-- PATTERN 1 -->
+
+  <div class="pattern-heading ph1">
+    <div class="p-num">01</div>
+    <div class="p-text">
+      <div class="p-label">Pattern</div>
+      <div class="p-name">Fire &amp; Forget — One-Way Message</div>
+    </div>
+  </div>
+
+  <p>The simplest pattern. You send a message. You don't wait for a reply. You don't check if it arrived. You don't care. This sounds careless — but it is exactly the right choice for a large class of operations.</p>
+
+  <p><strong>When is fire &amp; forget correct?</strong> When the event itself is the whole point and confirmation would be noise. Logging is the canonical example. When the user opens a new tab, content.js fires an event to background so background can track it. If that log write fails, what would you do? Retry? Pop an alert? No. You accept best-effort semantics and move on. Analytics pings, heartbeat signals, page lifecycle notifications — all of these are naturally fire &amp; forget.</p>
+
+  <h3>The Sender Side</h3>
+
+<pre><span class="cm">// content.js or message_lab.js — sender sends and immediately continues</span>
+<span class="kw">function</span> <span class="fn">logEventToBackground</span>(action, text) {
+  chrome.runtime.<span class="fn">sendMessage</span>({ action, text });
+  <span class="cm">// No await. No .then(). No response variable.</span>
+  <span class="cm">// Execution continues on the next line immediately.</span>
+}</pre>
+
+  <p>Notice there is no <code>await</code>, no <code>.then()</code>, no error handler. The message is dispatched into the Chrome runtime queue and we proceed. Chrome will deliver it asynchronously to the registered listener.</p>
+
+  <p>You <em>might</em> see a console warning: "A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received." If you see this on a fire &amp; forget sender, it means the background returned <code>true</code> by mistake when it should have returned <code>false</code>. We'll cover that in Pattern 2.</p>
+
+  <h3>The Background Receiver</h3>
+
+<pre><span class="cm">// background.js — receiver handles and returns false (or nothing)</span>
+chrome.runtime.onMessage.<span class="fn">addListener</span>((msg, sender, sendResponse) => {
+  <span class="kw">if</span> (msg.action === <span class="str">'oneWayLog'</span>) {
+    <span class="cm">// Do the work synchronously or fire-and-forget an async operation</span>
+    <span class="cls">StorageManager</span>.<span class="fn">logMessage</span>(<span class="str">'IN'</span>, <span class="str">'oneWayLog'</span>, <span class="str">'popup'</span>, msg.text);
+    <span class="cm">// Return false: we will NOT call sendResponse.</span>
+    <span class="cm">// Chrome can clean up the channel immediately.</span>
+    <span class="kw">return false</span>;
+  }
+});</pre>
+
+  <p>The critical rule: <strong>if you are not going to call <code>sendResponse</code>, return <code>false</code> (or return nothing)</strong>. This tells Chrome that the channel can be torn down immediately. If you accidentally return <code>true</code>, Chrome holds the channel open waiting for a response that never comes — for about 30 seconds before timing out. That is a resource leak.</p>
+
+  <div class="callout orange">
+    <p><strong>Common mistake:</strong> Using one big <code>onMessage</code> listener where the final line is <code>return true</code> to handle ALL actions, including fire &amp; forget ones. The <code>return true</code> will cause Chrome to hold the channel open even for actions that will never call <code>sendResponse</code>. Each action branch should return explicitly: <code>return false</code> for no-reply actions, <code>return true</code> for async reply actions.</p>
+  </div>
+
+  <div class="flow-row">
+    <div class="flow-step">
+      <div class="fs-num">STEP 1</div>
+      <div class="fs-name">Sender calls sendMessage</div>
+      <div class="fs-detail">No await. Returns undefined immediately.</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="fs-num">STEP 2</div>
+      <div class="fs-name">Chrome delivers message</div>
+      <div class="fs-detail">Async, next event loop tick.</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="fs-num">STEP 3</div>
+      <div class="fs-name">Listener runs, returns false</div>
+      <div class="fs-detail">Channel closed immediately.</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="fs-num">DONE</div>
+      <div class="fs-name">No response sent</div>
+      <div class="fs-detail">Sender never unblocked (was never blocked).</div>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- PATTERN 2 -->
+
+  <div class="pattern-heading ph2">
+    <div class="p-num">02</div>
+    <div class="p-text">
+      <div class="p-label">Pattern</div>
+      <div class="p-name">Async Request/Response — The return true Danger</div>
+    </div>
+  </div>
+
+  <p>This is where most extension developers make their first serious mistake. The pattern looks simple — send a message, get a response back — but it has an invisible tripwire that causes cryptic errors and hours of debugging.</p>
+
+  <p>The scenario: the popup wants live statistics from the service worker. How many messages have been processed? How long has the worker been alive? What is its memory usage? None of this is in storage yet — it is the worker's current live state. The popup must <em>ask</em> and <em>wait</em> for an answer.</p>
+
+  <h3>The Sender</h3>
+
+<pre><span class="cm">// popup.js — sends a request and awaits the response</span>
+<span class="kw">async function</span> <span class="fn">fetchStats</span>() {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> result = <span class="kw">await</span> chrome.runtime.<span class="fn">sendMessage</span>({
+      action: <span class="str">'getMessageStats'</span>
+    });
+    <span class="fn">renderStats</span>(result);
+  } <span class="kw">catch</span> (err) {
+    console.<span class="fn">error</span>(<span class="str">'Stats fetch failed:'</span>, err.message);
+  }
+}</pre>
+
+  <p>The <code>await</code> suspends <code>fetchStats</code> until the background calls <code>sendResponse</code>. If <code>sendResponse</code> is never called, the await hangs for ~30 seconds then rejects with a "port closed" error. If <code>return true</code> is not returned from the listener, the channel closes before <code>sendResponse</code> is ever reached, and the <code>await</code> rejects immediately.</p>
+
+  <h3>The Background Receiver</h3>
+
+  <p>Here is the correct implementation. Read it carefully:</p>
+
+<pre><span class="cm">// background.js — async handler with the critical return true</span>
+chrome.runtime.onMessage.<span class="fn">addListener</span>((msg, sender, sendResponse) => {
+  <span class="kw">if</span> (msg.action === <span class="str">'getMessageStats'</span>) {
+    <span class="cm">// ↓ MUST start the async work here, NOT before return true</span>
+    <span class="cls">StorageManager</span>.<span class="fn">get</span>([<span class="str">'messageLog'</span>, <span class="str">'messageCount'</span>])
+      .<span class="fn">then</span>(s => <span class="fn">sendResponse</span>({
+        messageCount:   s.messageCount || <span class="num">0</span>,
+        swStartTime:    swStartTime,
+        inMemoryCount:  inMemoryEventCounter,
+        streamPortCount: streamPorts.size
+      }))
+      .<span class="fn">catch</span>(e => <span class="fn">sendResponse</span>({ error: e.message }));
+
+    <span class="kw">return true</span>; <span class="cm">// ← THIS IS THE CRITICAL LINE. It must execute BEFORE</span>
+                 <span class="cm">//   the .then() resolves. It keeps the channel open.</span>
+  }
+});</pre>
+
+  <div class="danger-banner">
+    <div class="db-title">⚠ The Most Dangerous Line in Extension Development</div>
+    <div class="db-body">
+      <strong><code>return true</code></strong> must be reached synchronously before any async operation resolves. Here is what happens if you get it wrong:
+      <br><br>
+      <strong>If you forget <code>return true</code>:</strong> The listener returns <code>undefined</code> (falsy). Chrome tears down the message channel synchronously. When your async code eventually calls <code>sendResponse</code>, the channel is gone. The sender's <code>await</code> rejects immediately with: <em>Error: The message port closed before a response was received.</em>
+      <br><br>
+      <strong>If you call <code>sendResponse</code> twice:</strong> The second call silently fails with no error. This happens when you have both a <code>.then()</code> and a <code>.catch()</code> that both call <code>sendResponse</code>, and both run somehow. Use a <code>let responded = false</code> guard if necessary.
+      <br><br>
+      <strong>If you return <code>true</code> but never call <code>sendResponse</code>:</strong> The sender hangs for ~30 seconds, then rejects with the same "port closed" error. Always call <code>sendResponse</code> on both success and error paths.
+    </div>
+  </div>
+
+  <h3>Why Can't Chrome Just Handle This Automatically?</h3>
+
+  <p>Because Chrome cannot know whether your listener is synchronous or asynchronous before it runs. The <code>return true</code> is an explicit signal to Chrome: "I have started an async operation; please keep this channel open until I explicitly call sendResponse." Without that signal, Chrome would need to hold open every single message channel indefinitely, which is a resource nightmare at scale.</p>
+
+  <p>The alternative would be to use Promises natively in <code>onMessage</code> — but Chrome's <code>onMessage</code> predates modern JavaScript async/await idioms and the API contract was designed for callback-style code. There is an open Chromium feature request to support returning a Promise directly, but as of 2025 it is not in the stable channel.</p>
+
+  <h3>One Listener to Rule Them All</h3>
+
+  <p>Chrome fires ALL registered <code>onMessage</code> listeners for every single incoming message. If you have two listeners and both return <code>true</code>, they both try to handle <code>sendResponse</code>. The first call wins; the second silently fails. The sender gets the first response, which may be wrong depending on which listener resolved first.</p>
+
+  <p>NeuralTab uses the <strong>single listener / action routing</strong> pattern:</p>
+
+<pre><span class="cm">// background.js — one listener, all routing inside</span>
+chrome.runtime.onMessage.<span class="fn">addListener</span>((msg, sender, sendResponse) => {
+  <span class="kw">switch</span> (msg.action) {
+    <span class="kw">case</span> <span class="str">'oneWayLog'</span>:
+      <span class="cls">StorageManager</span>.<span class="fn">logMessage</span>(<span class="str">'IN'</span>, <span class="str">'oneWayLog'</span>, <span class="str">'bg'</span>, msg.text);
+      <span class="kw">return false</span>;
+
+    <span class="kw">case</span> <span class="str">'echoRequest'</span>:
+      <span class="cls">StorageManager</span>.<span class="fn">logMessage</span>(<span class="str">'IN'</span>, <span class="str">'echoRequest'</span>, <span class="str">'bg'</span>, <span class="str">''</span>)
+        .<span class="fn">then</span>(() => <span class="fn">sendResponse</span>({
+          echo: msg.payload,
+          swTimestamp: <span class="cls">Date</span>.<span class="fn">now</span>()
+        }));
+      <span class="kw">return true</span>; <span class="cm">// ← async: keep channel open</span>
+
+    <span class="kw">case</span> <span class="str">'getMessageStats'</span>:
+      <span class="cls">StorageManager</span>.<span class="fn">get</span>([<span class="str">'messageCount'</span>])
+        .<span class="fn">then</span>(s => <span class="fn">sendResponse</span>(s))
+        .<span class="fn">catch</span>(e => <span class="fn">sendResponse</span>({ error: e.message }));
+      <span class="kw">return true</span>; <span class="cm">// ← async: keep channel open</span>
+
+    <span class="kw">default</span>:
+      <span class="kw">return false</span>;
+  }
+});</pre>
+
+  <div class="callout cyan">
+    <p><strong>Design principle:</strong> Every <code>case</code> must return explicitly. Cases that call <code>sendResponse</code> asynchronously return <code>true</code>. Cases that don't return <code>false</code>. The <code>default</code> case always returns <code>false</code> — unknown actions are silently ignored rather than hanging the sender.</p>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <!-- PATTERN 3 -->
+
+  <div class="pattern-heading ph3">
+    <div class="p-num">03</div>
+    <div class="p-text">
+      <div class="p-label">Pattern</div>
+      <div class="p-name">Port-Based Streaming — Persistent Channels</div>
+    </div>
+  </div>
+
+  <p>Patterns 1 and 2 share a fundamental characteristic: they are one-shot. One message in, zero or one message out, channel closes. This is fine for point queries and fire-and-forget events. But what if you need to stream 50 chunks of data over 5 seconds? Opening 50 separate <code>sendMessage</code> channels is expensive. <code>return true</code> doesn't work across multiple responses — <code>sendResponse</code> can only be called once per message.</p>
+
+  <p>Ports solve this. A port is a long-lived, bidirectional channel. You open it once; you can exchange unlimited messages in both directions; you close it explicitly or it closes when either end disconnects. The Message Lab's streaming panel uses a port to demonstrate a real-time chunk feed.</p>
+
+  <h3>The Client (Message Lab)</h3>
+
+<pre><span class="cm">// message_lab.js — open a port, send control messages, receive chunks</span>
+<span class="kw">let</span> streamPort = <span class="kw">null</span>;
+
+<span class="kw">function</span> <span class="fn">startStream</span>(chunks, delayMs) {
+  <span class="cm">// Connect: background's onConnect fires immediately</span>
+  streamPort = chrome.runtime.<span class="fn">connect</span>({ name: <span class="str">'neuraltab-stream'</span> });
+
+  <span class="cm">// Listen for chunks coming back from background</span>
+  streamPort.onMessage.<span class="fn">addListener</span>(msg => {
+    <span class="kw">if</span> (msg.type === <span class="str">'chunk'</span>)    <span class="fn">renderChunk</span>(msg);
+    <span class="kw">if</span> (msg.type === <span class="str">'complete'</span>) <span class="fn">renderComplete</span>(msg);
+    <span class="kw">if</span> (msg.type === <span class="str">'pong'</span>)     <span class="fn">renderPong</span>(msg);
+  });
+
+  <span class="cm">// Handle disconnection (background crashed, SW restarted, etc.)</span>
+  streamPort.onDisconnect.<span class="fn">addListener</span>(() => {
+    streamPort = <span class="kw">null</span>;
+    <span class="fn">renderDisconnected</span>();
+  });
+
+  <span class="cm">// Send the start command — background begins streaming</span>
+  streamPort.<span class="fn">postMessage</span>({ action: <span class="str">'startStream'</span>, chunks, delayMs });
+}
+
+<span class="kw">function</span> <span class="fn">stopStream</span>() {
+  streamPort?.<span class="fn">postMessage</span>({ action: <span class="str">'stopStream'</span> });
+}</pre>
+
+  <h3>The Background (Streaming Server)</h3>
+
+<pre><span class="cm">// background.js — port server using a Set for multi-client support</span>
+<span class="kw">const</span> streamPorts = <span class="kw">new</span> <span class="cls">Set</span>(); <span class="cm">// NOT a single reference — supports N simultaneous clients</span>
+
+chrome.runtime.onConnect.<span class="fn">addListener</span>(port => {
+  <span class="kw">if</span> (port.name !== <span class="str">'neuraltab-stream'</span>) <span class="kw">return</span>;
+
+  streamPorts.<span class="fn">add</span>(port);
+  <span class="kw">let</span> streamInterval = <span class="kw">null</span>;
+
+  port.onMessage.<span class="fn">addListener</span>(msg => {
+    <span class="kw">if</span> (msg.action === <span class="str">'startStream'</span>) {
+      <span class="kw">let</span> sent = <span class="num">0</span>;
+      streamInterval = <span class="fn">setInterval</span>(() => {
+        sent++;
+        port.<span class="fn">postMessage</span>({ type: <span class="str">'chunk'</span>, index: sent, total: msg.chunks, data: <span class="fn">generateChunkData</span>() });
+        <span class="kw">if</span> (sent >= msg.chunks) {
+          <span class="fn">clearInterval</span>(streamInterval);
+          port.<span class="fn">postMessage</span>({ type: <span class="str">'complete'</span>, totalSent: sent });
+        }
+      }, msg.delayMs || <span class="num">150</span>);
+    }
+    <span class="kw">if</span> (msg.action === <span class="str">'stopStream'</span>) {
+      <span class="fn">clearInterval</span>(streamInterval);
+    }
+  });
+
+  port.onDisconnect.<span class="fn">addListener</span>(() => {
+    <span class="fn">clearInterval</span>(streamInterval); <span class="cm">// stop streaming if client disconnects mid-stream</span>
+    streamPorts.<span class="fn">delete</span>(port);
+  });
+});</pre>
+
+  <div class="callout purple">
+    <p><strong>Why a Set and not a single <code>streamPort</code> variable?</strong> The Message Lab can be open in multiple tabs simultaneously. Each tab connects its own port. With a single variable, the second tab's connection would overwrite the first, and the first tab would stop receiving chunks. The Set stores every active connection independently. Each port's <code>onMessage</code> and <code>onDisconnect</code> are closures that capture that specific port object, so they are fully self-contained.</p>
+  </div>
+
+  <h3>Port Lifecycle</h3>
+
+  <table>
+    <tr>
+      <th>Event</th>
+      <th>Who fires it</th>
+      <th>What to do</th>
+    </tr>
+    <tr>
+      <td><code>chrome.runtime.connect()</code></td>
+      <td>Client</td>
+      <td>Background's <code>onConnect</code> fires. Add port to Set. Register handlers.</td>
+    </tr>
+    <tr>
+      <td><code>port.postMessage()</code></td>
+      <td>Either side</td>
+      <td>Other side's <code>port.onMessage</code> fires.</td>
+    </tr>
+    <tr>
+      <td><code>port.disconnect()</code></td>
+      <td>Either side</td>
+      <td>Other side's <code>port.onDisconnect</code> fires. Remove from Set. Stop intervals.</td>
+    </tr>
+    <tr>
+      <td>Service worker death</td>
+      <td>Chrome (involuntary)</td>
+      <td>Client's <code>port.onDisconnect</code> fires. Reconnect if needed.</td>
+    </tr>
+    <tr>
+      <td>Tab close / popup close</td>
+      <td>Chrome (involuntary)</td>
+      <td>Background's <code>port.onDisconnect</code> fires. Clean up intervals.</td>
+    </tr>
+  </table>
+
+  <div class="callout red">
+    <p><strong>Interval leak:</strong> If the client disconnects mid-stream and you do not <code>clearInterval</code> in <code>port.onDisconnect</code>, the background keeps firing the interval and calling <code>port.postMessage</code> on a dead port. In MV3 this does not crash, but it burns CPU and keeps the service worker alive unnecessarily.</p>
+  </div>
+
+  <h3>Ports vs sendMessage — The Decision Boundary</h3>
+
+  <p>Use a port when any of these are true:</p>
+  <ul>
+    <li>You will send <strong>more than one response</strong> to a single request (streaming)</li>
+    <li>You need <strong>bidirectional control</strong> (client can send stop/pause signals during streaming)</li>
+    <li>You need the connection to <strong>stay alive</strong> across multiple operations (keepalive port)</li>
+    <li>You are streaming data where the <strong>number of chunks is unknown upfront</strong></li>
+  </ul>
+
+  <p>Use <code>sendMessage</code> when any of these are true:</p>
+  <ul>
+    <li>You need exactly <strong>one response</strong> to one request</li>
+    <li>The exchange is <strong>infrequent</strong> (opening a port has overhead)</li>
+    <li>You are doing <strong>fire &amp; forget</strong> (zero responses)</li>
+  </ul>
+
+  <div class="section-divider"></div>
+
+  <!-- PATTERN 4 -->
+
+  <div class="pattern-heading ph4">
+    <div class="p-num">04</div>
+    <div class="p-text">
+      <div class="p-label">Pattern</div>
+      <div class="p-name">Storage Pub/Sub — Zero-Infrastructure Broadcasting</div>
+    </div>
+  </div>
+
+  <p>Here is a problem that Patterns 1-3 cannot elegantly solve: the popup, the options page, and the Message Lab are all open at the same time. A counter increments somewhere. All three pages need to update simultaneously. How do you route that update?</p>
+
+  <p>With Patterns 1-3, you would need to know who is open, maintain a list of listeners, and broadcast to each one. That is pub/sub infrastructure — subscriber registration, message routing, unsubscription on tab close. It is non-trivial code, and you have to re-implement it every time.</p>
+
+  <p>Pattern 4 makes this trivial. <code>chrome.storage.onChanged</code> fires in <em>every</em> open extension page simultaneously when storage changes. The publisher writes once. Every subscriber reacts. Zero routing code.</p>
+
+  <h3>The Publisher — Any Context</h3>
+
+<pre><span class="cm">// message_lab.js — the "+" button. Direct storage write. No background involved.</span>
+<span class="kw">async function</span> <span class="fn">incrementCounter</span>() {
+  <span class="kw">const</span> s = <span class="kw">await</span> <span class="cls">StorageManager</span>.<span class="fn">get</span>([<span class="str">'demoCounter'</span>]);
+  <span class="kw">const</span> next = (s.demoCounter || <span class="num">0</span>) + <span class="num">1</span>;
+  <span class="kw">await</span> <span class="cls">StorageManager</span>.<span class="fn">set</span>({ demoCounter: next });
+  <span class="cm">// That's it. Every open page will receive the onChanged event.</span>
+}</pre>
+
+  <h3>The Subscriber — Every Open Extension Page</h3>
+
+<pre><span class="cm">// message_lab.js — listens for changes. Fires when ANY storage key changes.</span>
+<span class="cls">StorageManager</span>.<span class="fn">onChange</span>(changes => {
+  <span class="kw">if</span> (changes.demoCounter !== <span class="kw">undefined</span>) {
+    <span class="fn">onDemoCounterChange</span>(changes.demoCounter);
+  }
+});
+
+<span class="cm">// popup.js — same pattern, different page, same event</span>
+<span class="cls">StorageManager</span>.<span class="fn">onChange</span>(changes => {
+  <span class="kw">if</span> (changes.demoCounter) <span class="fn">updateCounterDisplay</span>(changes.demoCounter.newValue);
+  <span class="kw">if</span> (changes.messageCount) <span class="fn">updateMsgDisplay</span>(changes.messageCount.newValue);
+});</pre>
+
+  <p>The <code>changes</code> object contains only the keys that changed, with <code>{ oldValue, newValue }</code> for each. If you have 50 storage keys and only <code>demoCounter</code> changed, the event fires with a <code>changes</code> object containing only <code>demoCounter</code>. You check for the keys you care about and ignore the rest.</p>
+
+  <h3>The StorageManager.onChange Wrapper</h3>
+
+<pre><span class="cm">// storage_manager.js — wraps chrome.storage.onChanged</span>
+<span class="fn">onChange</span>(callback) {
+  chrome.storage.onChanged.<span class="fn">addListener</span>((changes, areaName) => {
+    <span class="kw">if</span> (areaName !== <span class="str">'local'</span>) <span class="kw">return</span>; <span class="cm">// only react to 'local' area</span>
+    <span class="kw">const</span> flat = {};
+    <span class="kw">for</span> (<span class="kw">const</span> [key, { oldValue, newValue }] <span class="kw">of</span> <span class="cls">Object</span>.<span class="fn">entries</span>(changes)) {
+      flat[key] = newValue;
+    }
+    <span class="fn">callback</span>(flat); <span class="cm">// simplified: just newValues keyed by name</span>
+  });
+}</pre>
+
+  <div class="callout green">
+    <p><strong>The Key Experiment (do this now):</strong> Load the extension. Open the Message Lab (<code>chrome://extensions</code> → NeuralTab → click the ⚗ icon in the popup). Now open a <em>second Message Lab tab</em> by right-clicking the icon and opening in a new tab, or pressing the Open Lab button in options. In Tab 1, click the counter increment button. Watch Tab 2's counter update <strong>without any page refresh, without any socket, without any polling</strong>. That is Pattern 4. Storage is the message bus.</p>
+  </div>
+
+  <h3>When NOT to Use Pattern 4</h3>
+
+  <p>Pattern 4 is deceptively powerful, but it has constraints:</p>
+
+  <ul>
+    <li><strong>No ordering guarantees across multiple writers.</strong> If Tab 1 and Tab 2 both increment the counter simultaneously (read-modify-write), you have a race condition. The last write wins, and you lose increments. For correctness under concurrent writes, route all writes through the background (which processes them sequentially).</li>
+    <li><strong>Storage size limits.</strong> <code>chrome.storage.local</code> has a 5 MB default limit. Do not use Pattern 4 to stream high-frequency data (use a port instead). Use it for shared state that is small and infrequently written.</li>
+    <li><strong>Content scripts do not receive <code>onChanged</code> events by default</strong> in some older Chrome versions. Test explicitly if you need content scripts to react to storage changes.</li>
+    <li><strong>Persistence = baggage.</strong> Everything in storage survives extension restarts. Make sure the data you are pub/subbing is something you actually want to persist. Use <code>chrome.storage.session</code> (MV3 only) for ephemeral shared state.</li>
+  </ul>
+
+  <div class="section-divider"></div>
+
+  <h2>The 3-Hop Relay Chain</h2>
+
+  <p>Module 06 introduces a fourth "who" in the messaging picture: <strong>assets/inject.js</strong>, running in the page world. This script is injected into every web page via <code>executeScript</code>. It sits in the same JavaScript context as the page's own scripts — it can read and write page variables, call page APIs, intercept events. But it has <em>no <code>chrome.*</code> API access at all</em>.</p>
+
+  <p>This is the fundamental isolation in Chrome's extension architecture. The page world and the extension world are separate. To bridge them, we need a relay chain:</p>
+
+  <div class="flow-row">
+    <div class="flow-step" style="border-color:var(--orange);">
+      <div class="fs-num" style="color:var(--orange);">HOP 1</div>
+      <div class="fs-name">inject.js</div>
+      <div class="fs-detail">window.postMessage({ source: 'neuraltab-inject', type: 'RELAY_TO_BACKGROUND', payload })</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:var(--gold);">
+      <div class="fs-num" style="color:var(--gold);">HOP 2</div>
+      <div class="fs-name">content.js</div>
+      <div class="fs-detail">Validates source. chrome.runtime.sendMessage({ action: 'relayFromPage', payload })</div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step" style="border-color:var(--cyan);">
+      <div class="fs-num" style="color:var(--cyan);">HOP 3</div>
+      <div class="fs-name">background.js</div>
+      <div class="fs-detail">Full chrome.* access. Acts on payload. sendResponse({ result })</div>
+    </div>
+  </div>
+
+  <h3>The inject.js Side — Publishing into the DOM</h3>
+
+<pre><span class="cm">// assets/inject.js — runs in page world, no chrome.* available</span>
+window.__neuralTab = {
+  <span class="fn">relayToBackground</span>(payload) {
+    <span class="kw">return new</span> <span class="cls">Promise</span>((resolve, reject) => {
+      <span class="kw">const</span> requestId = <span class="cls">Math</span>.<span class="fn">random</span>().<span class="fn">toString</span>(<span class="num">36</span>).slice(<span class="num">2</span>);
+      <span class="kw">const</span> timeout = <span class="fn">setTimeout</span>(() => reject(<span class="kw">new</span> <span class="cls">Error</span>(<span class="str">'Relay timeout'</span>)), <span class="num">3000</span>);
+
+      window.<span class="fn">addEventListener</span>(<span class="str">'message'</span>, <span class="kw">function</span> handler(e) {
+        <span class="kw">if</span> (e.data?.type !== <span class="str">'RELAY_RESPONSE'</span> || e.data?.requestId !== requestId) <span class="kw">return</span>;
+        window.<span class="fn">removeEventListener</span>(<span class="str">'message'</span>, handler);
+        <span class="fn">clearTimeout</span>(timeout);
+        <span class="fn">resolve</span>(e.data.result);
+      });
+
+      window.<span class="fn">postMessage</span>({ source: <span class="str">'neuraltab-inject'</span>, type: <span class="str">'RELAY_TO_BACKGROUND'</span>, payload, requestId }, <span class="str">'*'</span>);
+    });
+  }
+};</pre>
+
+  <h3>The content.js Side — Validation and Forwarding</h3>
+
+<pre><span class="cm">// content.js — listens for page world messages, validates, relays</span>
+<span class="kw">function</span> <span class="fn">listenForPageMessages</span>() {
+  window.<span class="fn">addEventListener</span>(<span class="str">'message'</span>, async e => {
+    <span class="cm">// Security: ONLY relay messages from our own inject script</span>
+    <span class="kw">if</span> (e.data?.source !== <span class="str">'neuraltab-inject'</span>) <span class="kw">return</span>;
+    <span class="kw">if</span> (e.data?.type !== <span class="str">'RELAY_TO_BACKGROUND'</span>) <span class="kw">return</span>;
+
+    <span class="kw">const</span> { payload, requestId } = e.data;
+    <span class="kw">try</span> {
+      <span class="kw">const</span> result = <span class="kw">await</span> chrome.runtime.<span class="fn">sendMessage</span>({
+        action: <span class="str">'relayFromPage'</span>, payload, requestId
+      });
+      <span class="cm">// Echo the result back into the page world</span>
+      window.<span class="fn">postMessage</span>({ type: <span class="str">'RELAY_RESPONSE'</span>, requestId, result }, <span class="str">'*'</span>);
+    } <span class="kw">catch</span> (err) {
+      window.<span class="fn">postMessage</span>({ type: <span class="str">'RELAY_RESPONSE'</span>, requestId, error: err.message }, <span class="str">'*'</span>);
+    }
+  });
+}</pre>
+
+  <div class="callout red">
+    <p><strong>Security critical:</strong> The content script must validate <code>e.data.source === 'neuraltab-inject'</code>. Any script on the web page — including malicious third-party scripts — can call <code>window.postMessage</code>. Without the source check, a malicious page could craft fake relay messages and trick your content script into forwarding arbitrary payloads to your background. The source field is not cryptographically secure (any page can set it), but it raises the bar above casual exploitation. For sensitive operations, add schema validation on the payload as well.</p>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <h2>Error Handling Across All Four Patterns</h2>
+
+  <p>Each pattern has distinct failure modes. Here is how to defend against them:</p>
+
+  <h3>Pattern 1 (Fire &amp; Forget) — Errors Are Silent</h3>
+
+  <p>By design, fire &amp; forget gives you no feedback. If the background is not running, the message is silently dropped. If storage write fails inside the background handler, you never know. This is acceptable for logging and analytics — if a log entry is lost, the system continues. Do not use Pattern 1 for operations that must succeed.</p>
+
+  <h3>Pattern 2 (Request/Response) — Catch Everything</h3>
+
+<pre><span class="cm">// Always wrap in try/catch — the promise rejects on channel close</span>
+<span class="kw">try</span> {
+  <span class="kw">const</span> result = <span class="kw">await</span> chrome.runtime.<span class="fn">sendMessage</span>({ action: <span class="str">'echoRequest'</span>, payload });
+  <span class="kw">if</span> (result?.error) <span class="fn">showError</span>(result.error); <span class="cm">// background sent back an error payload</span>
+  <span class="kw">else</span> <span class="fn">handleResult</span>(result);
+} <span class="kw">catch</span> (err) {
+  <span class="cm">// Catches: port closed, SW not running, no listener registered</span>
+  <span class="kw">if</span> (err.message.includes(<span class="str">'Could not establish connection'</span>)) {
+    <span class="fn">showWarning</span>(<span class="str">'Background worker is not running. Try again.'</span>);
+  } <span class="kw">else</span> {
+    <span class="fn">showError</span>(err.message);
+  }
+}</pre>
+
+  <h3>Pattern 3 (Port) — Handle onDisconnect</h3>
+
+<pre><span class="cm">// Always register onDisconnect BEFORE postMessage</span>
+<span class="kw">const</span> port = chrome.runtime.<span class="fn">connect</span>({ name: <span class="str">'neuraltab-stream'</span> });
+port.onDisconnect.<span class="fn">addListener</span>(() => {
+  <span class="kw">const</span> error = chrome.runtime.lastError;
+  <span class="kw">if</span> (error) console.<span class="fn">error</span>(<span class="str">'Port disconnected with error:'</span>, error.message);
+  <span class="cm">// SW may have died. Reconnect logic here if needed.</span>
+  streamPort = <span class="kw">null</span>;
+});</pre>
+
+  <h3>Pattern 4 (Storage) — Concurrent Write Races</h3>
+
+<pre><span class="cm">// Wrong: read-modify-write is a race condition when two tabs do this simultaneously</span>
+<span class="kw">const</span> s = <span class="kw">await</span> <span class="cls">StorageManager</span>.<span class="fn">get</span>([<span class="str">'demoCounter'</span>]);
+<span class="kw">await</span> <span class="cls">StorageManager</span>.<span class="fn">set</span>({ demoCounter: s.demoCounter + <span class="num">1</span> });
+
+<span class="cm">// Right (for correctness): route through background to serialize writes</span>
+<span class="kw">await</span> chrome.runtime.<span class="fn">sendMessage</span>({ action: <span class="str">'incrementDemoCounter'</span> });
+<span class="cm">// Background processes these one at a time; no race condition</span></pre>
+
+  <div class="section-divider"></div>
+
+  <h2>What the Message Lab Teaches</h2>
+
+  <p>The Message Lab (<code>message_lab.html</code>) is the centerpiece of Module 06. Its four panels are not just demos — they are designed to make specific concepts viscerally clear:</p>
+
+  <table>
+    <tr>
+      <th>Panel</th>
+      <th>What you do</th>
+      <th>What you learn</th>
+    </tr>
+    <tr>
+      <td><strong>Panel 1</strong> (orange)</td>
+      <td>Type a message, click Send</td>
+      <td>sendMessage with no await. Message appears in background log but no response comes back to the sender.</td>
+    </tr>
+    <tr>
+      <td><strong>Panel 2</strong> (cyan)</td>
+      <td>Type a payload, click Echo</td>
+      <td>The RTT (round-trip time) in milliseconds appears. Shows the async gap. Modify background.js to remove <code>return true</code> — watch the error appear.</td>
+    </tr>
+    <tr>
+      <td><strong>Panel 3</strong> (purple)</td>
+      <td>Set chunk count and delay, click Stream</td>
+      <td>Chunks arrive one by one. A progress bar fills. Click Stop mid-stream — background clears the interval. The stream truly stops.</td>
+    </tr>
+    <tr>
+      <td><strong>Panel 4</strong> (green)</td>
+      <td>Click +/- buttons; open second tab</td>
+      <td>Counter updates in both tabs simultaneously. No messages sent between tabs. Storage.onChanged is the only mechanism.</td>
+    </tr>
+  </table>
+
+  <p>The log at the bottom of the Message Lab shows every message that has passed through in the current session. It reads from the <code>messageLog</code> array in storage (capped at 100 entries) and updates live via Pattern 4 — the log itself demonstrates the very pattern it is recording.</p>
+
+  <div class="section-divider"></div>
+
+  <h2>Integration: How the New Files Fit the NeuralTab Architecture</h2>
+
+  <p>Module 06 adds three files and modifies five. Here is what changed and why:</p>
+
+  <table>
+    <tr>
+      <th>File</th>
+      <th>Change</th>
+      <th>Why</th>
+    </tr>
+    <tr>
+      <td><code>manifest.json</code></td>
+      <td>Adds <code>message_lab.html</code> to <code>web_accessible_resources</code></td>
+      <td>Makes the page accessible from any context for debugging. Required for <code>chrome.runtime.getURL()</code> to return a navigable URL.</td>
+    </tr>
+    <tr>
+      <td><code>storage_manager.js</code></td>
+      <td>New DEFAULTS: <code>messageLog</code>, <code>messageCount</code>, <code>demoCounter</code>, <code>activeStreams</code>. New method: <code>logMessage()</code></td>
+      <td>Every module that adds persistent state extends DEFAULTS. <code>logMessage()</code> encapsulates the append-and-cap logic for the message log.</td>
+    </tr>
+    <tr>
+      <td><code>background.js</code></td>
+      <td>Single onMessage listener routes 7 actions. onConnect routes 2 port names.</td>
+      <td>One listener prevents the multiple-listener race condition described above.</td>
+    </tr>
+    <tr>
+      <td><code>content.js</code></td>
+      <td>Adds <code>listenForBackgroundMessages()</code> and <code>listenForPageMessages()</code></td>
+      <td>Background can now ping content scripts. Inject.js can now relay to background.</td>
+    </tr>
+    <tr>
+      <td><code>popup.js</code></td>
+      <td>Adds message stats display and Open Lab button</td>
+      <td>Popup demonstrates Pattern 4 by reactively updating its stats via <code>StorageManager.onChange</code>.</td>
+    </tr>
+    <tr>
+      <td><code>options.js</code></td>
+      <td>Adds Messages nav section with live log</td>
+      <td>Options page demonstrates Pattern 4 for high-frequency updates (every message triggers a log update).</td>
+    </tr>
+    <tr>
+      <td><code>message_lab.*</code></td>
+      <td>New: 4-panel interactive lab</td>
+      <td>The primary teaching tool for Module 06.</td>
+    </tr>
+    <tr>
+      <td><code>assets/inject.js</code></td>
+      <td>Adds <code>window.__neuralTab.relayToBackground()</code></td>
+      <td>Exposes the 3-hop relay to page scripts. Web page code can call this to reach the extension.</td>
+    </tr>
+  </table>
+
+  <div class="section-divider"></div>
+
+  <h2>Exercises</h2>
+
+  <div class="exercise-box">
+    <div class="ex-header">
+      <div class="ex-icon">🔬</div>
+      <div>
+        <div class="ex-title">Exercise 1 — Break Pattern 2 On Purpose</div>
+        <div class="ex-sub">Feel the "port closed" error so you never forget it.</div>
+      </div>
+    </div>
+    <div class="ex-body">
+      <p>The goal is to deliberately trigger the most common MV3 bug so you recognize it immediately in the wild.</p>
+      <ol>
+        <li>Open <code>background.js</code>. Find the <code>echoRequest</code> case in the <code>onMessage</code> listener.</li>
+        <li><strong>Remove the <code>return true</code></strong> line. Save the file.</li>
+        <li>Go to <code>chrome://extensions</code>, click the reload icon on NeuralTab.</li>
+        <li>Open the Message Lab. In Panel 2, type any payload and click Echo.</li>
+        <li><strong>Observe:</strong> The result area shows an error, not a response. Open DevTools on the Message Lab page (right-click → Inspect). Check the console. You should see: <em>Error: The message port closed before a response was received</em>.</li>
+        <li>Restore <code>return true</code>. Reload the extension. Confirm the echo works again.</li>
+        <li><strong>Write in your notes:</strong> In your own words, explain why removing one line causes this specific error.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="exercise-box">
+    <div class="ex-header">
+      <div class="ex-icon">📡</div>
+      <div>
+        <div class="ex-title">Exercise 2 — The Two-Tab Pub/Sub Experiment</div>
+        <div class="ex-sub">See Pattern 4 in action across browser contexts.</div>
+      </div>
+    </div>
+    <div class="ex-body">
+      <p>This exercise makes <code>storage.onChanged</code> tangible in a way that passive reading cannot.</p>
+      <ol>
+        <li>Load the extension. Open the popup. Click "Open Message Lab ⚗".</li>
+        <li>In the Message Lab tab, right-click the browser tab → Duplicate. You now have two Message Lab tabs.</li>
+        <li>Arrange them side by side (drag one tab to a split view, or use two browser windows).</li>
+        <li>In Tab 1, click the "+" button in Panel 4 three times. Watch both tabs. <strong>Observe:</strong> Tab 2's counter updates without any interaction from you.</li>
+        <li>Now click "+" in Tab 2. Watch Tab 1. <strong>Observe:</strong> Tab 1 also updates.</li>
+        <li>Open DevTools on Tab 1 (F12). Go to Application → Storage → Local Storage. Find the <code>demoCounter</code> key. <strong>Observe:</strong> It matches what both tabs show.</li>
+        <li><strong>Question:</strong> Did Tab 1 send any message to Tab 2? Did Tab 2 poll for updates? How did Tab 2 know the counter changed?</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="exercise-box">
+    <div class="ex-header">
+      <div class="ex-icon">🌊</div>
+      <div>
+        <div class="ex-title">Exercise 3 — Stream in Two Tabs Simultaneously</div>
+        <div class="ex-sub">Verify that the Port Set handles multi-client streaming correctly.</div>
+      </div>
+    </div>
+    <div class="ex-body">
+      <p>This exercise tests the Set-based port management in background.js.</p>
+      <ol>
+        <li>Open two Message Lab tabs.</li>
+        <li>In Tab 1, set chunks to 30 and delay to 200ms. Click Start Stream.</li>
+        <li>Immediately switch to Tab 2 and also start a stream (chunks: 20, delay: 150ms).</li>
+        <li><strong>Observe:</strong> Both tabs receive their own independent streams. They do not interfere with each other.</li>
+        <li>While both are streaming, open the SW Monitor. Check the "Active Stream Ports" count. It should show 2.</li>
+        <li>Close Tab 1. Watch the SW Monitor. The count should drop to 1. <strong>Explain why.</strong></li>
+        <li><strong>Modify the code:</strong> In <code>background.js</code>, change <code>const streamPorts = new Set()</code> to <code>let streamPort = null</code> and update <code>onConnect</code> to store a single reference. Test again with two tabs. <strong>Observe what breaks.</strong> Restore the Set.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="exercise-box">
+    <div class="ex-header">
+      <div class="ex-icon">🔐</div>
+      <div>
+        <div class="ex-title">Exercise 4 — Attack the Relay Chain</div>
+        <div class="ex-sub">Understand why the source check is a security requirement.</div>
+      </div>
+    </div>
+    <div class="ex-body">
+      <p>This exercise demonstrates what happens when the source validation is absent.</p>
+      <ol>
+        <li>Navigate to any web page (e.g., a blank tab with <code>about:blank</code>).</li>
+        <li>Open DevTools console on that page.</li>
+        <li>Try to send a fake relay message: <code>window.postMessage({ source: 'neuraltab-inject', type: 'RELAY_TO_BACKGROUND', payload: { test: 'injected' }, requestId: 'fake123' }, '*')</code></li>
+        <li><strong>Observe:</strong> Does the background receive this? Check the message log in the options page. It should NOT appear because the content script validates the source.</li>
+        <li>Now temporarily remove the source check from <code>content.js</code>'s <code>listenForPageMessages</code>. Reload the extension. Repeat the postMessage from the console. <strong>Observe:</strong> The message now appears in the log.</li>
+        <li>Restore the source check. <strong>Write:</strong> Why is this check insufficient against a sophisticated attacker? What additional validation would you add?</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="exercise-box">
+    <div class="ex-header">
+      <div class="ex-icon">🏗️</div>
+      <div>
+        <div class="ex-title">Exercise 5 — Add a Fifth Action: broadcastToAllTabs</div>
+        <div class="ex-sub">Build a background → all content scripts fan-out.</div>
+      </div>
+    </div>
+    <div class="ex-body">
+      <p>All four patterns so far send messages <em>to</em> the background. This exercise builds the reverse: the background sends to all open tabs.</p>
+      <ol>
+        <li>In <code>background.js</code>, add a new case <code>'broadcastToAllTabs'</code> in the onMessage listener. When triggered, it should call <code>chrome.tabs.query({})</code> to get all tabs, then loop over them and call <code>chrome.tabs.sendMessage(tab.id, { action: 'showPageNotice', text: msg.text })</code> for each.</li>
+        <li>In the Message Lab, add a button in Panel 1 (or a new section) that sends <code>{ action: 'broadcastToAllTabs', text: 'Hello from extension!' }</code>.</li>
+        <li>Open 3-4 regular web browser tabs alongside the Message Lab.</li>
+        <li>Click the broadcast button. <strong>Observe:</strong> Each web tab should show the NeuralTab page notice (the content.js <code>showPageNotice</code> handler displays a banner).</li>
+        <li><strong>Edge case to handle:</strong> <code>chrome.tabs.sendMessage</code> will throw if the tab has no content script (e.g., a chrome:// page). Wrap each call in a try/catch.</li>
+        <li><strong>Question:</strong> This is Pattern 1 (fire &amp; forget) from background to content. How would you turn it into Pattern 2 (request/response) so the background collects all tab responses before reporting success?</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="section-divider"></div>
+
+  <h2>Summary: The Decision Framework</h2>
+
+  <p>When you need to move data between extension contexts, ask these questions in order:</p>
+
+  <ol>
+    <li><strong>Does the sender need a response?</strong> No → Pattern 1. Yes → continue.</li>
+    <li><strong>Is the response a single value, or a stream of values over time?</strong> Single → Pattern 2 (with <code>return true</code>). Stream → Pattern 3 (port).</li>
+    <li><strong>Does multiple receivers need to know about the data simultaneously?</strong> Yes → Pattern 4 (storage.onChanged). No → Pattern 1 or 2.</li>
+    <li><strong>Does the sender live in the page world (no chrome.* access)?</strong> Yes → 3-hop relay through content script.</li>
+  </ol>
+
+  <p>These four patterns are exhaustive. Every inter-context communication in NeuralTab — and in every Chrome extension ever written — is one of these four. Knowing them completely, including their failure modes, their performance characteristics, and their security implications, is the foundation of everything that follows.</p>
+
+  <div class="callout gold">
+    <p><strong>Coming up in Module 07 — Storage Mastery:</strong> You have been treating <code>chrome.storage.local</code> as a simple key-value store. It is much more than that. Module 07 covers the full storage API: <code>local</code> vs <code>sync</code> vs <code>session</code>, quota limits and error handling, atomic writes and race conditions, and when to reach for IndexedDB for structured data at scale. NeuralTab will gain a history database that stores up to 10,000 page visits with full-text search.</p>
+  </div>
+
+</div>
+</body>
+</html>

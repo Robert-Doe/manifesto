@@ -1,0 +1,63 @@
+/* NeuralTab — sw_monitor.css (Module 06 — unchanged from M05) */
+
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+
+:root {
+  --bg:#0b0f1a; --bg2:#0f1623; --card:#141c2e; --card2:#1a2540; --border:#1e3a5f;
+  --gold:#f5c842; --cyan:#38bdf8; --purple:#a78bfa; --green:#4ade80;
+  --red:#f87171; --orange:#fb923c; --text:#e2e8f0; --muted:#7a9bbf;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Lato', sans-serif; font-size: 14px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+.top-bar { background: var(--bg2); border-bottom: 1px solid var(--border); flex-shrink: 0; height: 54px; }
+.top-bar-inner { max-width: 1400px; margin: 0 auto; padding: 0 20px; height: 100%; display: flex; align-items: center; justify-content: space-between; }
+.brand { display: flex; align-items: center; gap: 8px; }
+.brand-bolt { color: var(--gold); font-size: 20px; }
+.brand-name { font-weight: 900; font-size: 16px; color: var(--gold); }
+.brand-page { color: var(--muted); font-size: 13px; margin-left: 4px; }
+.top-actions { display: flex; gap: 8px; }
+
+.btn { border: none; cursor: pointer; border-radius: 6px; font-family: 'Lato', sans-serif; font-weight: 700; font-size: 13px; padding: 7px 14px; transition: opacity 0.15s; }
+.btn:hover { opacity: 0.85; }
+.btn-ghost { background: var(--card2); color: var(--text); border: 1px solid var(--border); }
+.btn-full  { width: 100%; margin-top: 8px; }
+
+.page-body { flex: 1; display: flex; overflow: hidden; max-width: 1400px; width: 100%; margin: 0 auto; }
+
+.sidebar { width: 240px; flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border); overflow-y: auto; padding: 16px 12px; display: flex; flex-direction: column; gap: 10px; }
+.metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+.metric-label { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.metric-val   { font-size: 18px; font-weight: 900; color: var(--text); }
+.metric-val.mono { font-family: 'Source Code Pro', monospace; }
+.metric-sub   { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+.status-row { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+.status-dot.alive { background: var(--green); animation: pulse 2s ease-in-out infinite; }
+.status-dot.dead  { background: var(--red); }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+.toggle-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; color: var(--muted); cursor: pointer; }
+.toggle-row input { accent-color: var(--gold); width: 14px; height: 14px; }
+
+.main-content { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.log-header { border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+.log-title  { font-size: 18px; font-weight: 900; color: var(--gold); }
+.log-sub    { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+.log-container { display: flex; flex-direction: column; gap: 4px; }
+.log-empty     { color: var(--muted); font-size: 13px; padding: 20px 0; }
+
+.log-entry { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; display: flex; gap: 12px; font-family: 'Source Code Pro', monospace; font-size: 12px; align-items: center; }
+.log-entry.event-NEW { animation: newEntryFlash 0.8s ease forwards; }
+@keyframes newEntryFlash { 0%{background:rgba(245,200,66,0.15)}100%{background:var(--card)} }
+.log-ts     { color: var(--muted); flex-shrink: 0; min-width: 80px; }
+.log-event  { font-weight: 700; min-width: 100px; flex-shrink: 0; }
+.log-detail { color: var(--muted); }
+
+.ev-START      { color: var(--green); }
+.ev-HEARTBEAT  { color: var(--cyan); }
+.ev-ALARM      { color: var(--gold); }
+.ev-PORT_OPEN  { color: var(--purple); }
+.ev-PORT_CLOSE { color: var(--orange); }

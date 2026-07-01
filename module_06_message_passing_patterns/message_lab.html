@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab — Message Lab</title>
+  <link rel="stylesheet" href="message_lab.css" />
+</head>
+<body>
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <div class="brand"><span class="brand-bolt">⚡</span><span class="brand-name">NeuralTab</span><span class="brand-page">Message Lab</span></div>
+      <div class="top-actions">
+        <span class="context-badge" id="context-id">Extension Page</span>
+        <button class="btn btn-ghost" id="btn-clear-log">Clear Log</button>
+        <button class="btn btn-gold"  id="btn-open-new-tab">Open in New Tab →</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="lab-body">
+
+    <!-- ── PATTERN 1: One-Way Fire & Forget ─────────────────────────── -->
+    <div class="pattern-card" id="panel-p1">
+      <div class="pattern-header">
+        <div class="pattern-number">01</div>
+        <div>
+          <div class="pattern-title">One-Way Fire &amp; Forget</div>
+          <div class="pattern-sub">sendMessage with no response expected</div>
+        </div>
+        <div class="pattern-badge badge-oneway">one-way</div>
+      </div>
+      <div class="pattern-body">
+        <div class="code-snip"><span class="kw">chrome</span>.runtime.<span class="fn">sendMessage</span>({ action: <span class="str">'oneWayLog'</span>, text })
+<span class="cm">// no .then() — caller doesn't wait for a response</span></div>
+        <div class="input-row">
+          <input type="text" id="p1-text" class="lab-input" placeholder="Type a message to log…" maxlength="120" />
+          <button class="btn btn-oneway" id="p1-send">Fire →</button>
+        </div>
+        <div class="sent-confirm hidden" id="p1-confirm">
+          <span class="confirm-icon">✓</span> Message fired. Background logged it — no response came back.
+        </div>
+        <div class="pattern-log-wrap">
+          <div class="log-label">Recent oneWayLog entries (read from storage)</div>
+          <div class="pattern-log" id="p1-log"><div class="log-empty">No entries yet. Fire a message above.</div></div>
+          <button class="btn btn-sm btn-ghost" id="p1-refresh">↻ Refresh log from storage</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PATTERN 2: Request / Response ────────────────────────────── -->
+    <div class="pattern-card" id="panel-p2">
+      <div class="pattern-header">
+        <div class="pattern-number">02</div>
+        <div>
+          <div class="pattern-title">Request / Response</div>
+          <div class="pattern-sub">await sendMessage — background uses <code>return true</code></div>
+        </div>
+        <div class="pattern-badge badge-reqres">req/res</div>
+      </div>
+      <div class="pattern-body">
+        <div class="code-snip"><span class="kw">const</span> result = <span class="kw">await</span> chrome.runtime.<span class="fn">sendMessage</span>({ action: <span class="str">'echoRequest'</span>, payload })
+<span class="cm">// background: sendResponse(data); return true;</span></div>
+
+        <div class="rr-grid">
+          <!-- Echo sub-demo -->
+          <div class="rr-panel">
+            <div class="rr-panel-title">Echo (any payload)</div>
+            <textarea id="p2-echo-input" class="lab-textarea" placeholder='{"key":"value"}'></textarea>
+            <button class="btn btn-reqres" id="p2-echo-send">Send &amp; Await →</button>
+            <div class="rr-result hidden" id="p2-echo-result"></div>
+          </div>
+          <!-- Stats sub-demo -->
+          <div class="rr-panel">
+            <div class="rr-panel-title">Get Message Stats</div>
+            <p class="rr-desc">Fetches live background state: message count, demo counter, active streams, worker uptime.</p>
+            <button class="btn btn-reqres" id="p2-stats-send">Request Stats →</button>
+            <div class="rr-result hidden" id="p2-stats-result"></div>
+          </div>
+        </div>
+
+        <div class="roundtrip-bar hidden" id="p2-timing">
+          <span class="rt-label">Round-trip:</span>
+          <span class="rt-value" id="p2-rt-ms">—</span>
+          <span class="rt-label" style="margin-left:16px;">Background response at:</span>
+          <span class="rt-value" id="p2-rt-at">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PATTERN 3: Port Streaming ────────────────────────────────── -->
+    <div class="pattern-card" id="panel-p3">
+      <div class="pattern-header">
+        <div class="pattern-number">03</div>
+        <div>
+          <div class="pattern-title">Port-Based Streaming</div>
+          <div class="pattern-sub">chrome.runtime.connect() — persistent bidirectional channel</div>
+        </div>
+        <div class="pattern-badge badge-stream">port</div>
+      </div>
+      <div class="pattern-body">
+        <div class="code-snip"><span class="kw">const</span> port = chrome.runtime.<span class="fn">connect</span>({ name: <span class="str">'neuraltab-stream'</span> })
+port.onMessage.<span class="fn">addListener</span>(msg => <span class="cm">/* receive chunks */</span>)
+port.<span class="fn">postMessage</span>({ action: <span class="str">'startStream'</span>, chunks: <span class="num">20</span> })</div>
+
+        <div class="stream-controls">
+          <div class="stream-status-row">
+            <div class="status-dot" id="p3-dot"></div>
+            <span id="p3-status-text">Port disconnected</span>
+          </div>
+          <div class="stream-btn-row">
+            <button class="btn btn-stream" id="p3-connect">Connect Port</button>
+            <button class="btn btn-ghost"  id="p3-disconnect" disabled>Disconnect</button>
+            <button class="btn btn-ghost"  id="p3-ping" disabled>Ping</button>
+          </div>
+          <div class="stream-config">
+            <label>Chunks: <input type="number" id="p3-chunks" value="20" min="1" max="50" class="lab-number" /></label>
+            <label>Delay (ms): <input type="number" id="p3-delay" value="150" min="50" max="1000" class="lab-number" /></label>
+            <button class="btn btn-stream" id="p3-start" disabled>▶ Start Stream</button>
+            <button class="btn btn-ghost"  id="p3-stop"  disabled>■ Stop</button>
+          </div>
+        </div>
+
+        <div class="stream-progress hidden" id="p3-progress-wrap">
+          <div class="progress-bar-bg"><div class="progress-bar-fill" id="p3-progress-fill"></div></div>
+          <span class="progress-text" id="p3-progress-text">0 / 0</span>
+        </div>
+
+        <div class="stream-feed" id="p3-feed">
+          <div class="log-empty">Connect a port and start streaming.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PATTERN 4: Storage Pub/Sub ───────────────────────────────── -->
+    <div class="pattern-card" id="panel-p4">
+      <div class="pattern-header">
+        <div class="pattern-number">04</div>
+        <div>
+          <div class="pattern-title">Storage as Pub/Sub</div>
+          <div class="pattern-sub">storage.onChanged — reactive cross-context sync</div>
+        </div>
+        <div class="pattern-badge badge-pubsub">pub/sub</div>
+      </div>
+      <div class="pattern-body">
+        <div class="code-snip"><span class="cm">// Publisher: any context</span>
+<span class="kw">await</span> chrome.storage.local.<span class="fn">set</span>({ demoCounter: n })
+
+<span class="cm">// Subscriber: EVERY open extension page reacts</span>
+chrome.storage.onChanged.<span class="fn">addListener</span>((changes) => {
+  <span class="kw">if</span> (changes.demoCounter) updateDisplay(changes.demoCounter.newValue)
+})</div>
+
+        <div class="pubsub-demo">
+          <div class="counter-display">
+            <div class="counter-big" id="p4-counter">0</div>
+            <div class="counter-label">demoCounter (in storage)</div>
+          </div>
+          <div class="counter-controls">
+            <button class="btn btn-pubsub" id="p4-minus">− 1</button>
+            <button class="btn btn-pubsub" id="p4-plus">+ 1</button>
+            <button class="btn btn-ghost btn-sm" id="p4-plus10">+ 10</button>
+            <button class="btn btn-ghost btn-sm" id="p4-reset">Reset</button>
+          </div>
+          <div class="pubsub-hint">
+            <span class="hint-icon">💡</span>
+            <strong>Try this:</strong> Open this page in a second tab (<span class="btn-ref">Open in New Tab →</span> above). Increment the counter here and watch it update in the other tab in real time — no message passing, just <code>storage.onChanged</code>.
+          </div>
+          <div class="pubsub-log-wrap">
+            <div class="log-label">Change events received by <em>this</em> page</div>
+            <div class="pubsub-log" id="p4-log"><div class="log-empty">No changes yet.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BOTTOM: Unified Message Log ───────────────────────────────── -->
+    <div class="pattern-card full-width" id="panel-log">
+      <div class="pattern-header">
+        <div class="pattern-number">📋</div>
+        <div>
+          <div class="pattern-title">Background Message Log</div>
+          <div class="pattern-sub">All messages processed by the service worker — from storage (persistent across restarts)</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <button class="btn btn-sm btn-ghost" id="log-refresh">↻ Refresh</button>
+          <button class="btn btn-sm btn-ghost" id="log-export">↓ Export</button>
+        </div>
+      </div>
+      <div class="pattern-body">
+        <div class="log-stats-row">
+          <div class="log-stat"><span class="log-stat-num" id="ls-total">0</span><span class="log-stat-label">Total messages</span></div>
+          <div class="log-stat"><span class="log-stat-num" id="ls-in">0</span><span class="log-stat-label">Inbound</span></div>
+          <div class="log-stat"><span class="log-stat-num" id="ls-out">0</span><span class="log-stat-label">Outbound</span></div>
+          <div class="log-stat"><span class="log-stat-num" id="ls-port">0</span><span class="log-stat-label">Port events</span></div>
+        </div>
+        <div class="message-log" id="message-log"><div class="log-empty">No messages yet.</div></div>
+      </div>
+    </div>
+
+  </div><!-- /.lab-body -->
+
+  <script src="storage_manager.js"></script>
+  <script src="message_lab.js"></script>
+</body>
+</html>

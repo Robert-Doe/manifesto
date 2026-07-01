@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NeuralTab</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="popup-header">
+    <span class="bolt">⚡</span>
+    <span class="title">NeuralTab</span>
+    <span class="version">v0.6.0</span>
+  </div>
+
+  <!-- Reading stats (M02) -->
+  <div class="section">
+    <div class="section-title">Current Page</div>
+    <div class="stat-row"><span class="stat-label">Word count</span><span class="stat-val" id="stat-words">—</span></div>
+    <div class="stat-row"><span class="stat-label">Reading time</span><span class="stat-val" id="stat-reading">—</span></div>
+    <div class="stat-row"><span class="stat-label">Summaries</span><span class="stat-val" id="stat-summaries">—</span></div>
+  </div>
+
+  <!-- Tabs (M04) -->
+  <div class="section">
+    <div class="section-title">Tabs</div>
+    <div class="stat-row"><span class="stat-label">Total open</span><span class="stat-val" id="stat-tabs">—</span></div>
+    <div class="stat-row"><span class="stat-label">Idle alerts</span><span class="stat-val" id="stat-wakes">—</span></div>
+    <button class="btn btn-full btn-ghost" id="btn-tab-manager">Open Tab Manager</button>
+  </div>
+
+  <!-- Service Worker (M05) -->
+  <div class="section">
+    <div class="section-title">Service Worker</div>
+    <div class="stat-row">
+      <span class="stat-label">
+        <span class="status-dot" id="sw-dot"></span> Status
+      </span>
+      <span class="stat-val" id="sw-status">—</span>
+    </div>
+    <div class="stat-row mini-row">
+      <span class="mini-label">Wakes</span><span class="mini-val" id="sw-wakes">—</span>
+      <span class="mini-label">Uptime</span><span class="mini-val" id="sw-uptime">—</span>
+    </div>
+    <button class="btn btn-full btn-ghost" id="btn-sw-monitor">Open SW Monitor</button>
+  </div>
+
+  <!-- Messages (M06) -->
+  <div class="section">
+    <div class="section-title">Messages (M06)</div>
+    <div class="stat-row"><span class="stat-label">Total processed</span><span class="stat-val" id="stat-msg-count">—</span></div>
+    <div class="stat-row"><span class="stat-label">Demo counter</span><span class="stat-val" id="stat-demo-counter">—</span></div>
+    <div class="stat-row"><span class="stat-label">Active streams</span><span class="stat-val" id="stat-streams">—</span></div>
+    <button class="btn btn-full btn-gold" id="btn-msg-lab">Open Message Lab ⚗</button>
+  </div>
+
+  <div class="footer">
+    <button class="btn btn-link" id="btn-options">Settings</button>
+  </div>
+
+  <script src="storage_manager.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

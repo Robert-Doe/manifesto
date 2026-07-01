@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab — SW Monitor</title>
+  <link rel="stylesheet" href="sw_monitor.css" />
+</head>
+<body>
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <div class="brand"><span class="brand-bolt">⚡</span><span class="brand-name">NeuralTab</span><span class="brand-page">SW Monitor</span></div>
+      <div class="top-actions">
+        <button class="btn btn-ghost" id="btn-ping">Send ping</button>
+        <button class="btn btn-ghost" id="btn-trigger">Trigger alarm</button>
+        <button class="btn btn-ghost" id="btn-options">Open Options</button>
+      </div>
+    </div>
+  </header>
+  <div class="page-body">
+    <aside class="sidebar">
+      <div class="metric-card">
+        <div class="metric-label">Worker status</div>
+        <div class="metric-val status-row">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">Checking…</span>
+        </div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">In-memory counter</div>
+        <div class="metric-val mono" id="mem-counter">—</div>
+        <div class="metric-sub">resets to 0 on restart</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Uptime</div>
+        <div class="metric-val mono" id="uptime">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Total wakes</div>
+        <div class="metric-val mono" id="total-wakes">—</div>
+        <div class="metric-sub">from chrome.storage</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Keepalive port</div>
+        <div class="metric-val" id="kl-status">Off</div>
+        <label class="toggle-row">
+          <input type="checkbox" id="kl-toggle" />
+          <span>Keep worker alive</span>
+        </label>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Stream ports</div>
+        <div class="metric-val mono" id="stream-ports">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Last heartbeat</div>
+        <div class="metric-val mono" id="last-heartbeat">—</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Next alarm</div>
+        <div class="metric-val mono" id="next-alarm">—</div>
+      </div>
+      <button class="btn btn-ghost btn-full" id="btn-clear-log">Clear log</button>
+    </aside>
+    <main class="main-content">
+      <div class="log-header">
+        <div class="log-title">Lifecycle Event Log</div>
+        <div class="log-sub">Persists across restarts · capped at 50 entries · color-coded by event type</div>
+      </div>
+      <div class="log-container" id="log-container">
+        <div class="log-empty">No events yet. Interact with the extension to generate events.</div>
+      </div>
+    </main>
+  </div>
+  <script src="storage_manager.js"></script>
+  <script src="sw_monitor.js"></script>
+</body>
+</html>
