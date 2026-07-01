@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 11 — Extension Fingerprinting</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--bg2:#0f1623;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+  <h1>Module 11 — Extension Fingerprinting</h1>
+  <div class="byline">NeuralTab Curriculum · Module 11 of 25</div>
+
+  <h2>Your Extension Has a Fingerprint</h2>
+  <p>Every installed Chrome extension leaks information about itself to any page that knows how to look. The mechanism is simple: <strong>web_accessible_resources</strong>. Any file listed there can be fetched by any web page using the extension's ID in the URL. If the fetch succeeds, the page knows the extension is installed.</p>
+  <pre>// Any page can probe your extension:
+const img = new Image();
+img.onload  = () => console.log('Extension installed!');
+img.onerror = () => console.log('Not installed');
+img.src = 'chrome-extension://abcdefghijklmnopqrstuvwxyzabcdef/icon.png';</pre>
+  <p>NeuralTab exposes 14+ files in WAR. Each one is a data point a fingerprinter can use. Security-conscious users and anti-fingerprinting tools watch for exactly this pattern.</p>
+
+  <h2>What the Extension ID Reveals</h2>
+  <p>Unpacked extensions get a random ID that changes on reinstall. But <strong>published extensions have a permanent ID</strong> tied to the signing key used for the first CWS upload. This ID never changes. Any page can hardcode it and probe reliably. Privacy extensions like uBlock Origin are fingerprinted this way by ad-tech companies tracking their own blockers.</p>
+
+  <h2>The chrome.runtime.id Exposure</h2>
+  <p>Content scripts can read <code>chrome.runtime.id</code> — the extension's own ID. This is intentional. But it means any page that successfully communicates with your content script via <code>window.postMessage</code> can learn your extension's ID. From there, WAR probing is trivial.</p>
+
+  <h2>API Availability as a Capability Map</h2>
+  <p>The fingerprint.html page probes API availability: <code>!!chrome.debugger</code>, <code>!!chrome.sidePanel</code>, <code>!!chrome.storage?.session</code>. These aren't just detection — they're a capability map that tells you exactly which Chrome version and manifest features are available at runtime. This same technique is how you implement graceful degradation.</p>
+
+  <h2>The Detectability Score</h2>
+  <p>NeuralTab calculates a stealth score: 100 points minus penalties for WAR count and sensitive permissions. It's a teaching metaphor, not a security audit. The real lesson: <strong>every WAR entry is a public API</strong>. Add them only when genuinely required.</p>
+
+  <div class="callout">
+    <div class="label">Key Insight</div>
+    <p>The minimum viable WAR list for NeuralTab is just <code>assets/inject.js</code> — the MAIN-world injection script. Everything else (the HTML pages) is opened via <code>chrome.tabs.create</code> and doesn't need WAR listing. Reducing WAR entries is a privacy improvement with zero feature cost.</p>
+  </div>
+
+  <h2>Storage as a Behavioral Fingerprint</h2>
+  <p><code>getBytesInUse(null)</code> combined with <code>swInstallTime</code> reveals: how long the extension has been installed and how actively it's been used. A brand-new install has near-zero bytes. A year-old install with heavy history usage has 1-5MB. This behavioral fingerprint is useful for onboarding flows (detect first-time users) and abuse detection (detect automated test installs).</p>
+
+  <h2>Exercises</h2>
+  <div class="exercise">
+    <div class="ex-label">Exercise 11-A — Minimize WAR</div>
+    <p>Open NeuralTab's manifest.json. Remove every entry from <code>web_accessible_resources</code> except <code>assets/inject.js</code>. Reload the extension. Which features break? Which features still work? Document which pages need WAR vs. which are opened via chrome.tabs.create and therefore don't.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 11-B — Probe Your Own Extension</div>
+    <p>Open any web page's DevTools console. Type the probe code from the top of this tutorial, substituting NeuralTab's extension ID (visible at chrome://extensions). Confirm the probe succeeds for files in WAR and fails for files not in WAR.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 11-C — Add a New Probe</div>
+    <p>Add a probe to fingerprint.js that checks whether <code>chrome.storage.session</code> is available AND whether <code>chrome.sidePanel</code> is available AND derives the minimum Chrome version from the combination. Chrome 116+ has both; 114-115 has sidePanel but no session; below 114 has neither.</p>
+  </div>
+</body>
+</html>

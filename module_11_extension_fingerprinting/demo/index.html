@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 11 Demo — Extension Fingerprinting</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:860px;margin:0 auto;}
+    h1{color:var(--gold);font-size:34px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:36px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;color:var(--text);margin:16px 0;}
+  </style>
+</head>
+<body>
+  <h1>Module 11 — Extension Fingerprinting</h1>
+  <p class="sub">How pages detect installed extensions — and how to reason about your extension's detectability.</p>
+
+  <h2>WAR-Based Detection</h2>
+  <p>Any URL in <strong>web_accessible_resources</strong> can be probed by any page:</p>
+  <pre>// Page script can detect your extension is installed:
+const img = new Image();
+img.onload  = () => console.log('NeuralTab IS installed');
+img.onerror = () => console.log('NeuralTab not installed');
+img.src = 'chrome-extension://KNOWN_EXTENSION_ID/assets/inject.js';</pre>
+
+  <h2>Timing-Based Detection</h2>
+  <p>Even without knowing the extension ID, pages can detect content script injection by measuring DOM mutation timing. Extensions that add DOM elements or modify styles leave a detectable latency signature.</p>
+
+  <h2>Reducing Your Footprint</h2>
+  <p>Minimize WAR entries. Only expose files that truly need to be accessible from web pages. The fingerprint.html page shows NeuralTab's current exposure surface — the detectability score drops as WAR entries are removed.</p>
+</body>
+</html>
