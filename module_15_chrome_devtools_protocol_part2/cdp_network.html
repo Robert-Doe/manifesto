@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab — CDP Network &amp; Trace</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:32px;max-width:960px;margin:0 auto;}
+    h1{color:var(--gold);font-size:26px;font-weight:900;margin-bottom:6px;}
+    .sub{color:var(--muted);margin-bottom:24px;font-size:13px;}
+    .toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+    .btn{border:none;cursor:pointer;border-radius:6px;font-family:'Lato',sans-serif;font-weight:700;font-size:12px;padding:9px 16px;}
+    .btn-att{background:var(--cyan);color:#000;}
+    .btn-rec{background:var(--green);color:#000;}
+    .btn-stop{background:var(--red);color:#fff;}
+    .btn-cmd{background:#1e3a5f;color:var(--text);}
+    .panels{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;}
+    .panel-title{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+    .result{background:#060a12;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:'Source Code Pro',monospace;font-size:11px;color:var(--muted);min-height:200px;max-height:400px;overflow-y:auto;white-space:pre-wrap;}
+    .req-row{padding:4px 0;border-bottom:1px solid #0f1a2e;font-size:11px;display:flex;gap:8px;}
+    .method{font-weight:700;color:var(--cyan);width:40px;flex-shrink:0;}
+    .status-code{width:30px;flex-shrink:0;}
+    .url{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .s200{color:var(--green);}
+    .s3xx{color:var(--orange);}
+    .s4xx,.s5xx{color:var(--red);}
+  </style>
+</head>
+<body>
+  <h1>🌐 CDP Part 2 — Network &amp; Performance Tracing</h1>
+  <p class="sub">Intercept network requests, read response bodies, start performance traces — all via Chrome DevTools Protocol.</p>
+
+  <div class="toolbar">
+    <button class="btn btn-att" id="btn-attach">Attach Debugger</button>
+    <button class="btn btn-rec" id="btn-enable-net">Enable Network</button>
+    <button class="btn btn-cmd" id="btn-screenshot">Page Screenshot</button>
+    <button class="btn btn-cmd" id="btn-trace-start">Start Trace</button>
+    <button class="btn btn-stop" id="btn-trace-stop">Stop Trace</button>
+  </div>
+
+  <div class="panels">
+    <div class="panel">
+      <div class="panel-title">Network Requests (live)</div>
+      <div class="result" id="net-log">Enable network to see requests…</div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">CDP Result / Screenshot</div>
+      <div class="result" id="cdp-result">Run a command above…</div>
+      <img id="screenshot-img" style="width:100%;border-radius:6px;margin-top:10px;display:none;" alt="screenshot"/>
+    </div>
+  </div>
+
+  <script>
+    const netLog = document.getElementById('net-log');
+    const resultEl = document.getElementById('cdp-result');
+    const imgEl = document.getElementById('screenshot-img');
+    const requests = {};
+
+    async function sendCDP(method, params = {}) {
+      const res = await chrome.runtime.sendMessage({ type: 'cdpSend', method, params });
+      if (res?.error) throw new Error(res.error);
+      return res;
+    }
+
+    function addRequest(requestId, method, url) {
+      requests[requestId] = { method, url, status: '…' };
+      renderNet();
+    }
+    function updateRequest(requestId, status) {
+      if (requests[requestId]) { requests[requestId].status = status; renderNet(); }
+    }
+    function renderNet() {
+      const entries = Object.values(requests).slice(-30).reverse();
+      netLog.innerHTML = entries.map(r => {
+        const sc = parseInt(r.status) || 0;
+        const cls = sc >= 500 ? 's5xx' : sc >= 400 ? 's4xx' : sc >= 300 ? 's3xx' : sc >= 200 ? 's200' : '';
+        return `<div class="req-row"><span class="method">${r.method}</span><span class="status-code ${cls}">${r.status}</span><span class="url">${r.url}</span></div>`;
+      }).join('') || 'No requests yet…';
+    }
+
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg.type === 'cdpEvent') {
+        if (msg.event === 'Network.requestWillBeSent') {
+          addRequest(msg.params.requestId, msg.params.request.method, msg.params.request.url);
+        } else if (msg.event === 'Network.responseReceived') {
+          updateRequest(msg.params.requestId, msg.params.response.status);
+        }
+      }
+    });
+
+    document.getElementById('btn-attach').addEventListener('click', async () => {
+      const res = await chrome.runtime.sendMessage({ type: 'cdpAttach' });
+      resultEl.textContent = res?.error ? 'Error: ' + res.error : 'Debugger attached';
+    });
+
+    document.getElementById('btn-enable-net').addEventListener('click', async () => {
+      try {
+        await sendCDP('Network.enable');
+        netLog.textContent = 'Network enabled — navigate the page to see requests…';
+        resultEl.textContent = 'Network.enable OK';
+      } catch(e) { resultEl.textContent = 'Error: ' + e.message; }
+    });
+
+    document.getElementById('btn-screenshot').addEventListener('click', async () => {
+      try {
+        const res = await sendCDP('Page.captureScreenshot', { format: 'jpeg', quality: 60 });
+        const data = res?.result?.data;
+        if (data) {
+          imgEl.src = 'data:image/jpeg;base64,' + data;
+          imgEl.style.display = 'block';
+          resultEl.textContent = `Screenshot: ${data.length} base64 chars`;
+        }
+      } catch(e) { resultEl.textContent = 'Error: ' + e.message; }
+    });
+
+    document.getElementById('btn-trace-start').addEventListener('click', async () => {
+      try {
+        await sendCDP('Tracing.start', { categories: 'devtools.timeline,blink.user_timing' });
+        resultEl.textContent = 'Tracing started — navigate, then Stop Trace';
+      } catch(e) { resultEl.textContent = 'Error: ' + e.message; }
+    });
+
+    document.getElementById('btn-trace-stop').addEventListener('click', async () => {
+      try {
+        await sendCDP('Tracing.end');
+        resultEl.textContent = 'Tracing.end sent — trace data arrives via Tracing.dataCollected events';
+      } catch(e) { resultEl.textContent = 'Error: ' + e.message; }
+    });
+  </script>
+</body>
+</html>

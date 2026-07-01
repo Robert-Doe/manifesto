@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 15 — CDP Part 2</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+  <h1>Module 15 — CDP Part 2: Network &amp; Tracing</h1>
+  <div class="byline">NeuralTab Curriculum · Module 15 of 25</div>
+
+  <h2>The Network Domain</h2>
+  <p>After calling <code>Network.enable</code>, CDP emits an event for every network request the tab makes — before it's sent, when headers arrive, when the body arrives, when it finishes, when it fails. This gives you a complete picture of a page's network activity, including requests that happen during page load before the user sees anything.</p>
+  <pre>// Enable network tracking
+await chrome.debugger.sendCommand({ tabId }, 'Network.enable');
+
+// Now you'll receive these events via chrome.debugger.onEvent:
+// Network.requestWillBeSent  — request about to be sent
+// Network.responseReceived   — response headers arrived
+// Network.loadingFinished    — body completely loaded
+// Network.loadingFailed      — request failed
+
+chrome.debugger.onEvent.addListener((source, method, params) => {
+  if (method === 'Network.requestWillBeSent') {
+    console.log(params.requestId, params.request.method, params.request.url);
+  }
+});</pre>
+
+  <h2>Reading Response Bodies</h2>
+  <p>Response bodies are NOT included in the events automatically — that would be enormous memory usage. To read a body, you call <code>Network.getResponseBody</code> after the <code>loadingFinished</code> event, using the <code>requestId</code> from the events. Chrome only holds the body in memory briefly, so you must request it quickly.</p>
+  <pre>chrome.debugger.onEvent.addListener(async (source, method, params) => {
+  if (method === 'Network.loadingFinished') {
+    const { body, base64Encoded } = await chrome.debugger.sendCommand(
+      { tabId: source.tabId },
+      'Network.getResponseBody',
+      { requestId: params.requestId }
+    );
+    // body is text (or base64 if binary)
+    const text = base64Encoded ? atob(body) : body;
+    console.log('Response body length:', text.length);
+  }
+});</pre>
+
+  <h2>Performance Tracing</h2>
+  <p>CDP's Tracing domain captures a performance timeline — the same data that appears in the DevTools Performance panel. The trace records every browser event: layout, paint, JavaScript execution, garbage collection, network activity. The data format is the same as Chrome's <code>about:tracing</code> and can be loaded into Perfetto.</p>
+  <pre>// Start tracing
+await debuggerSend('Tracing.start', {
+  categories: '-*,devtools.timeline,blink.user_timing,v8',
+  options: 'sampling-frequency=10000'
+});
+
+// Do some work, navigate, etc.
+
+// Stop tracing — data arrives as events, not in response
+await debuggerSend('Tracing.end');
+
+// Collect data from events:
+const traceEvents = [];
+chrome.debugger.onEvent.addListener((src, method, params) => {
+  if (method === 'Tracing.dataCollected') {
+    traceEvents.push(...params.value);
+  }
+  if (method === 'Tracing.tracingComplete') {
+    // traceEvents is now the full trace
+    const traceJson = JSON.stringify({ traceEvents });
+    // Load into chrome://tracing or Perfetto
+  }
+});</pre>
+
+  <h2>Screenshots via CDP</h2>
+  <p><code>Page.captureScreenshot</code> is more powerful than <code>chrome.tabs.captureVisibleTab</code>: it captures the full page, supports clipping to specific coordinates, can scale to any DPI, and supports both JPEG and PNG. The result is base64-encoded.</p>
+  <pre>const { data } = await debuggerSend('Page.captureScreenshot', {
+  format: 'jpeg',
+  quality: 80,
+  clip: { x: 0, y: 0, width: 800, height: 600, scale: 1 },
+  fromSurface: true   // capture full composited page
+});
+// data is base64-encoded JPEG
+const url = 'data:image/jpeg;base64,' + data;
+document.getElementById('preview').src = url;</pre>
+
+  <div class="callout">
+    <div class="label">Architecture Note</div>
+    <p>CDP events fire in the service worker via <code>chrome.debugger.onEvent</code>. To display them in the cdp_network.html page, relay them via <code>chrome.runtime.sendMessage</code>. The page listens via <code>chrome.runtime.onMessage</code>. This is the standard SW → page communication bridge from Module 06.</p>
+  </div>
+
+  <h2>Exercises</h2>
+  <div class="exercise">
+    <div class="ex-label">Exercise 15-A — Request Filter</div>
+    <p>Add a filter to cdp_network.html that shows only XHR/fetch requests (resourceType === 'XHR' or 'Fetch'). Navigate a modern SPA page with the network panel open and observe the API calls the page makes — the kind of data visible only via CDP, not via webNavigation.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 15-B — Largest Content Paint</div>
+    <p>Use the Performance domain to capture the LargestContentfulPaint metric. After <code>Performance.enable</code>, navigate to a page and then call <code>Performance.getMetrics</code>. Find and display the LCP value. Compare it against Core Web Vitals thresholds: good (&lt;2.5s), needs improvement (2.5-4s), poor (&gt;4s).</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 15-C — Full-Page Screenshot Tool</div>
+    <p>Build a "screenshot" button in the popup.html that: (1) attaches the debugger to the active tab, (2) calls Page.captureScreenshot, (3) detaches the debugger, (4) opens a new tab with the image as a data URL. Handle the case where the debugger is already attached. Add a download button on the screenshot tab.</p>
+  </div>
+</body>
+</html>
