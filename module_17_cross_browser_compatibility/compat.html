@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab — Cross-Browser Compatibility</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:32px;max-width:900px;margin:0 auto;}
+    h1{color:var(--gold);font-size:26px;font-weight:900;margin-bottom:6px;}
+    .sub{color:var(--muted);margin-bottom:24px;font-size:13px;}
+    h2{color:var(--cyan);font-size:17px;font-weight:900;margin:24px 0 10px;}
+    .matrix{width:100%;border-collapse:collapse;margin-bottom:24px;}
+    th{background:var(--card);color:var(--gold);padding:10px 14px;font-size:12px;text-align:left;border:1px solid var(--border);}
+    td{padding:9px 14px;border:1px solid var(--border);font-size:12px;color:var(--muted);}
+    .yes{color:var(--green);font-weight:700;}
+    .no{color:var(--red);font-weight:700;}
+    .partial{color:var(--orange);font-weight:700;}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;}
+    .card-title{color:var(--gold);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+    .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1a2840;}
+    .row:last-child{border-bottom:none;}
+    .rl{color:var(--muted);font-size:12px;}
+    .rv{font-family:'Source Code Pro',monospace;font-size:12px;}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:'Source Code Pro',monospace;font-size:11px;color:var(--muted);margin:10px 0;}
+  </style>
+</head>
+<body>
+  <h1>🌍 Cross-Browser Compatibility</h1>
+  <p class="sub">WebExtensions API parity across Chrome, Firefox, and Safari — what works, what differs, what breaks.</p>
+
+  <div class="card">
+    <div class="card-title">Current Environment</div>
+    <div class="row"><span class="rl">Browser detected</span><span class="rv" id="e-browser">—</span></div>
+    <div class="row"><span class="rl">Manifest version</span><span class="rv" id="e-mv">—</span></div>
+    <div class="row"><span class="rl">browser.* namespace</span><span class="rv" id="e-browser-ns">—</span></div>
+    <div class="row"><span class="rl">chrome.sidePanel</span><span class="rv" id="e-sidepanel">—</span></div>
+    <div class="row"><span class="rl">chrome.storage.session</span><span class="rv" id="e-session">—</span></div>
+    <div class="row"><span class="rl">chrome.offscreen</span><span class="rv" id="e-offscreen">—</span></div>
+  </div>
+
+  <h2>API Parity Matrix</h2>
+  <table class="matrix">
+    <tr><th>API</th><th>Chrome MV3</th><th>Firefox MV2/3</th><th>Safari MV3</th></tr>
+    <tr><td>storage.local</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+    <tr><td>storage.session</td><td class="yes">✓</td><td class="no">✗ MV2</td><td class="partial">MV3 only</td></tr>
+    <tr><td>declarativeNetRequest</td><td class="yes">✓</td><td class="partial">Limited</td><td class="yes">✓</td></tr>
+    <tr><td>sidePanel</td><td class="yes">✓ Chrome 114+</td><td class="no">✗</td><td class="no">✗</td></tr>
+    <tr><td>background service_worker</td><td class="yes">✓</td><td class="partial">event page</td><td class="yes">✓</td></tr>
+    <tr><td>offscreen documents</td><td class="yes">✓</td><td class="no">✗</td><td class="no">✗</td></tr>
+    <tr><td>webNavigation</td><td class="yes">✓</td><td class="yes">✓</td><td class="partial">Limited</td></tr>
+    <tr><td>identity (OAuth)</td><td class="yes">✓</td><td class="partial">launchWebAuthFlow</td><td class="no">✗</td></tr>
+    <tr><td>debugger (CDP)</td><td class="yes">✓</td><td class="no">✗</td><td class="no">✗</td></tr>
+    <tr><td>browser.* namespace</td><td class="partial">Polyfill only</td><td class="yes">Native</td><td class="yes">Native</td></tr>
+  </table>
+
+  <h2>The Polyfill Pattern</h2>
+  <pre>// browser_polyfill.js wraps chrome.* with Promises when browser.* is absent
+// Usage throughout the extension:
+const tabs = await browser.tabs.query({ active: true });  // works in all browsers
+// vs.
+chrome.tabs.query({ active: true }, callback);  // Chrome callback style only</pre>
+
+  <script>
+    function setEl(id, text, cls) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = text;
+      if (cls) el.className = 'rv ' + cls;
+    }
+    const compat = window.NTCompat || {};
+    setEl('e-browser', compat.isFirefox?.() ? 'Firefox' : compat.isSafari?.() ? 'Safari' : 'Chrome');
+    setEl('e-mv', chrome.runtime.getManifest().manifest_version);
+    setEl('e-browser-ns', typeof browser !== 'undefined' ? 'native' : 'polyfilled', typeof browser !== 'undefined' ? 'yes' : 'partial');
+    setEl('e-sidepanel', compat.hasSidePanel?.() ? '✓ available' : '✗ not available', compat.hasSidePanel?.() ? 'yes' : 'no');
+    setEl('e-session', compat.hasSession?.() ? '✓ available' : '✗ not available', compat.hasSession?.() ? 'yes' : 'no');
+    setEl('e-offscreen', compat.hasOffscreen?.() ? '✓ available' : '✗ not available', compat.hasOffscreen?.() ? 'yes' : 'no');
+  </script>
+</body>
+</html>

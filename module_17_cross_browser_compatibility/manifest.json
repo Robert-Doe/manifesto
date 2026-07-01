@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "NeuralTab",
+  "version": "0.17.0",
+  "description": "Cross-Browser Compatibility: WebExtensions API, browser namespace polyfill, Firefox/Safari differences",
+  "background": { "service_worker": "background.js", "type": "classic" },
+  "action": { "default_popup": "popup.html", "default_title": "NeuralTab" },
+  "options_page": "options.html",
+  "side_panel": { "default_path": "sidepanel.html" },
+  "permissions": [
+    "storage", "alarms", "tabs", "scripting", "unlimitedStorage",
+    "history", "bookmarks", "tabGroups",
+    "declarativeNetRequest", "declarativeNetRequestFeedback", "webNavigation",
+    "identity", "debugger", "sidePanel", "contextMenus"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "declarative_net_request": {
+    "rule_resources": [{ "id": "neuraltab_rules", "enabled": true, "path": "dnr_rules.json" }]
+  },
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["browser_polyfill.js", "storage_manager.js", "content.js"],
+    "css": ["content.css"],
+    "run_at": "document_idle"
+  }],
+  "web_accessible_resources": [{
+    "resources": [
+      "assets/inject.js", "message_lab.html", "history_db.html",
+      "update_log.html", "network_monitor.html", "world_demo.html",
+      "sw_monitor.html", "tab_manager.html", "fingerprint.html",
+      "api_demo.html", "wasm_demo.html",
+      "cdp_inspector.html", "cdp_network.html", "sidepanel.html", "compat.html"
+    ],
+    "matches": ["<all_urls>"]
+  }]
+}

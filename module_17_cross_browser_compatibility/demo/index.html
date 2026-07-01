@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 17 Demo — Cross-Browser</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:860px;margin:0 auto;}
+    h1{color:var(--gold);font-size:34px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:36px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;color:var(--text);margin:16px 0;}
+  </style>
+</head>
+<body>
+  <h1>Module 17 — Cross-Browser Compatibility</h1>
+  <p class="sub">Write once, ship on Chrome, Firefox, and Safari — with minimal per-browser branching.</p>
+
+  <h2>The Core Strategy</h2>
+  <p>One manifest, one codebase, two adjustments: (1) a polyfill that makes <code>browser.*</code> available in Chrome, (2) feature detection guards before every Chrome-exclusive API call. Everything else — storage, tabs, scripting, alarms, messaging — is compatible across all three browsers.</p>
+
+  <h2>The Polyfill Pattern</h2>
+  <pre>// In any extension script:
+if (typeof browser === 'undefined') {
+  // We're in Chrome — browser_polyfill.js created window.browser
+}
+// Use browser.* everywhere:
+const tabs = await browser.tabs.query({ active: true });
+// Works: Chrome (polyfilled), Firefox (native), Safari (native)</pre>
+
+  <h2>Feature Guards</h2>
+  <pre>// Guard Chrome-exclusive features:
+if (chrome.sidePanel) {
+  await chrome.sidePanel.open({ windowId });
+}
+if (chrome.offscreen) {
+  await chrome.offscreen.createDocument({...});
+}
+// NTCompat helpers:
+if (window.NTCompat?.hasSidePanel()) { ... }</pre>
+
+  <h2>What Doesn't Cross</h2>
+  <p><strong>chrome.debugger</strong> (CDP) — Chrome only. <strong>chrome.sidePanel</strong> — Chrome only. <strong>chrome.offscreen</strong> — Chrome only. <strong>chrome.storage.session</strong> — Chrome MV3 and Safari MV3, not Firefox MV2. Plan your feature set around the common denominator if full cross-browser support is required.</p>
+</body>
+</html>

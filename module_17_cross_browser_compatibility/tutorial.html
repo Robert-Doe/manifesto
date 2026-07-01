@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 17 — Cross-Browser Compatibility</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+    table{width:100%;border-collapse:collapse;margin:20px 0;}
+    th{background:var(--card);color:var(--cyan);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:10px 14px;text-align:left;border-bottom:2px solid var(--border);}
+    td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:13px;}
+    td:first-child{color:var(--text);}
+    .yes{color:var(--green);}
+    .no{color:var(--red);}
+    .partial{color:var(--gold);}
+  </style>
+</head>
+<body>
+  <h1>Module 17 — Cross-Browser Compatibility</h1>
+  <div class="byline">NeuralTab Curriculum · Module 17 of 25</div>
+
+  <h2>Two Namespaces, One Protocol</h2>
+  <p>Firefox was the first browser to implement WebExtensions — the MV2 extension standard. Firefox used a <code>browser.*</code> namespace with Promise-based APIs. Chrome implemented the same APIs under <code>chrome.*</code> with callback-based APIs. They're functionally equivalent — same method names, same parameters — but the interface style differs. Safari added its own implementation in Safari 14, mostly following Firefox's Promise style.</p>
+  <p>The practical consequence: code written for Chrome (<code>chrome.tabs.query(opts, callback)</code>) doesn't run in Firefox without changes. The solution is a polyfill that wraps Chrome's callback APIs in Promises and exposes them as <code>browser.*</code>.</p>
+
+  <h2>The Promisify Pattern</h2>
+  <pre>function promisify(fn, context) {
+  return function(...args) {
+    return new Promise((resolve, reject) => {
+      fn.call(context, ...args, (result) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+        } else {
+          resolve(result);
+        }
+      });
+    });
+  };
+}</pre>
+  <p>The polyfill wraps entire namespaces at once. <code>wrapNamespace(chrome.tabs)</code> returns an object where every method is a promisified version. This is assigned to <code>window.browser.tabs</code>, giving you <code>await browser.tabs.query(...)</code> in Chrome.</p>
+
+  <h2>API Parity: What's Available Where</h2>
+  <table>
+    <tr><th>API</th><th>Chrome</th><th>Firefox</th><th>Safari</th></tr>
+    <tr><td>storage.local / sync</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+    <tr><td>declarativeNetRequest</td><td class="yes">Yes</td><td class="yes">Yes (MV3)</td><td class="partial">Partial</td></tr>
+    <tr><td>webNavigation</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="partial">Partial</td></tr>
+    <tr><td>sidePanel</td><td class="yes">Chrome 114+</td><td class="no">No</td><td class="no">No</td></tr>
+    <tr><td>storage.session</td><td class="yes">Chrome 102+</td><td class="yes">Firefox 115+</td><td class="no">No</td></tr>
+    <tr><td>offscreen</td><td class="yes">Chrome 109+</td><td class="no">No</td><td class="no">No</td></tr>
+    <tr><td>identity</td><td class="yes">Yes</td><td class="partial">Partial</td><td class="no">No</td></tr>
+    <tr><td>debugger</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td></tr>
+    <tr><td>contextMenus</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+  </table>
+
+  <h2>NTCompat — Feature Detection</h2>
+  <p>Polyfilling the namespace is not enough. Even with <code>browser.*</code> available everywhere, Chrome-specific APIs like <code>sidePanel</code> don't exist in Firefox. Use feature detection before calling these APIs:</p>
+  <pre>// NTCompat from browser_polyfill.js
+const NTCompat = {
+  hasSidePanel:  () => typeof chrome.sidePanel !== 'undefined',
+  hasSession:    () => typeof chrome.storage?.session !== 'undefined',
+  hasOffscreen:  () => typeof chrome.offscreen !== 'undefined',
+  isFirefox:     () => navigator.userAgent.includes('Firefox'),
+  isChrome:      () => !!window.chrome && !NTCompat.isFirefox(),
+  manifestVersion: () => chrome.runtime.getManifest().manifest_version,
+};
+
+// Usage in background.js:
+if (NTCompat.hasSidePanel()) {
+  chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true });
+}</pre>
+
+  <div class="callout">
+    <div class="label">Firefox MV3 Note</div>
+    <p>Firefox adopted MV3 in Firefox 109 but with differences: Firefox's service worker model allows <code>importScripts</code> from extension files (Chrome doesn't in module SW), and Firefox doesn't enforce some MV3 CSP restrictions as strictly as Chrome. Test on both engines if targeting cross-browser deployment.</p>
+  </div>
+
+  <h2>Manifest Differences</h2>
+  <pre>// Firefox MV3 manifest differences:
+{
+  // Firefox uses browser_specific_settings (not key/oauth2):
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "neuraltab@example.com",
+      "strict_min_version": "109.0"
+    }
+  },
+  // Firefox doesn't support "minimum_chrome_version"
+}</pre>
+
+  <h2>Exercises</h2>
+  <div class="exercise">
+    <div class="ex-label">Exercise 17-A — Test the Polyfill</div>
+    <p>Open the compat.html page in NeuralTab. Read the "Current Environment" card — it should show your Chrome version, whether sidePanel is available, whether session storage is available, and the manifest version. Then try opening compat.html in Firefox (after loading the extension there) and compare the capability differences shown in the environment card.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 17-B — Conditional sidePanel</div>
+    <p>Modify popup.js to show a "Open Side Panel" button only when <code>NTCompat.hasSidePanel()</code> returns true. In browsers without sidePanel support, show an "Open Dashboard" button that opens popup.html in a tab instead. This gives Firefox users a comparable experience without throwing API errors.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 17-C — Promise vs Callback</div>
+    <p>Without the polyfill, write <code>chrome.tabs.query</code> in callback style and in Promise style (using the native Promise that Chrome 99+ returns). Then write the same call using the <code>browser.*</code> polyfill. Compare readability. Identify one scenario where the native Chrome Promise API and the <code>browser.*</code> polyfill behave differently (hint: error handling in older Chrome versions).</p>
+  </div>
+</body>
+</html>
