@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 25 Demo — Publishing & CI/CD</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--orange:#fb923c;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:860px;margin:0 auto;}
+    h1{color:var(--gold);font-size:34px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:36px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;color:var(--text);margin:16px 0;}
+    .pipeline{display:flex;gap:0;margin:20px 0;flex-wrap:wrap;}
+    .stage{background:#141c2e;border:1px solid var(--border);padding:14px 18px;flex:1;min-width:140px;}
+    .stage:first-child{border-radius:8px 0 0 8px;}
+    .stage:last-child{border-radius:0 8px 8px 0;}
+    .s-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+    .s-title.lint{color:var(--cyan);}
+    .s-title.build{color:var(--gold);}
+    .s-title.pub{color:var(--green);}
+    .s-detail{color:var(--muted);font-size:11px;}
+    .arrow{display:flex;align-items:center;color:var(--border);padding:0 4px;font-size:20px;}
+  </style>
+</head>
+<body>
+  <h1>Module 25 — Publishing &amp; CI/CD</h1>
+  <p class="sub">From git push to Chrome Web Store in one pipeline. The final module — ship it.</p>
+
+  <h2>The Pipeline</h2>
+  <div class="pipeline">
+    <div class="stage"><div class="s-title lint">Lint & Validate</div><div class="s-detail">manifest.json check, Jest unit tests, coverage gate</div></div>
+    <div class="arrow">→</div>
+    <div class="stage"><div class="s-title build">Build & Package</div><div class="s-detail">Vite build, zip with exclusions, version tagging</div></div>
+    <div class="arrow">→</div>
+    <div class="stage"><div class="s-title pub">Publish to CWS</div><div class="s-detail">items.upload + items.publish via CWS API (main only)</div></div>
+  </div>
+
+  <h2>Required GitHub Secrets</h2>
+  <pre>CWS_EXTENSION_ID    # Your extension's ID from CWS dashboard
+CWS_ACCESS_TOKEN    # OAuth2 access token for CWS API
+CODECOV_TOKEN       # (optional) coverage reporting</pre>
+
+  <h2>Getting the CWS Access Token</h2>
+  <pre># 1. Create project in Google Cloud Console
+# 2. Enable Chrome Web Store API
+# 3. Create OAuth2 client credentials (Desktop app type)
+# 4. Exchange for refresh token via OAuth2 playground
+# 5. In CI: exchange refresh token for access token:
+curl -X POST https://oauth2.googleapis.com/token \
+  -d "client_id=CLIENT_ID" \
+  -d "client_secret=CLIENT_SECRET" \
+  -d "refresh_token=REFRESH_TOKEN" \
+  -d "grant_type=refresh_token"</pre>
+
+  <h2>Review Time Expectations</h2>
+  <p><strong>New extension, low permissions:</strong> 1-3 days. <strong>New extension with debugger/identity/&lt;all_urls&gt;:</strong> 1-3 weeks. <strong>Update, no new permissions:</strong> 1-2 days. <strong>Update adding permissions:</strong> triggers full re-review. Plan your release schedule around these windows — shipping the Friday before a holiday is a reliable way to spend two weeks waiting.</p>
+
+  <h2>Congratulations</h2>
+  <p>You've completed the full 25-module NeuralTab curriculum. You now understand the complete Chrome extension architecture: MV3 service workers, four storage layers, IndexedDB, migrations, DNR, webNavigation, isolated worlds, CDP, side panels, WebAssembly, OAuth2, cross-browser compat, React+Vite+TypeScript, testing, performance, security analysis, and publishing. <strong>Ship something.</strong></p>
+</body>
+</html>

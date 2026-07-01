@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab — CWS Submission Checklist</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:32px;max-width:860px;margin:0 auto;}
+    h1{color:var(--gold);font-size:26px;font-weight:900;margin-bottom:6px;}
+    .sub{color:var(--muted);margin-bottom:24px;font-size:13px;line-height:1.6;}
+    h2{color:var(--cyan);font-size:16px;font-weight:900;margin:24px 0 10px;}
+    .section{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:16px;}
+    .sec-title{color:var(--gold);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+    .progress{color:var(--muted);font-size:11px;}
+    .item{display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid #1a2840;cursor:pointer;}
+    .item:last-child{border-bottom:none;}
+    .item:hover{background:#0f1a2e;margin:0 -6px;padding-left:6px;padding-right:6px;border-radius:4px;}
+    .checkbox{width:18px;height:18px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:11px;}
+    .checkbox.checked{background:var(--green);border-color:var(--green);color:#000;}
+    .item-text{flex:1;}
+    .item-label{color:var(--text);font-size:13px;}
+    .item-note{color:var(--muted);font-size:11px;margin-top:2px;line-height:1.5;}
+    .crit{color:var(--red);font-size:10px;font-weight:700;margin-left:6px;}
+    .score-bar{height:10px;background:#1a2840;border-radius:5px;overflow:hidden;margin-top:16px;}
+    .score-fill{height:100%;background:var(--green);border-radius:5px;transition:width 0.3s;}
+    .score-text{color:var(--text);font-size:20px;font-weight:900;margin-top:8px;}
+    .btn{background:var(--cyan);color:#000;border:none;border-radius:6px;font-family:'Lato',sans-serif;font-weight:700;font-size:12px;padding:8px 16px;cursor:pointer;margin-right:8px;margin-top:12px;}
+  </style>
+</head>
+<body>
+  <h1>✅ CWS Submission Checklist</h1>
+  <p class="sub">Every item that matters before submitting to the Chrome Web Store. Check off as you complete each step. Items marked <span style="color:var(--red);font-weight:700;">CRITICAL</span> cause automatic rejection.</p>
+
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:20px;">
+    <div style="color:var(--gold);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Overall Readiness</div>
+    <div class="score-bar"><div class="score-fill" id="score-fill" style="width:0%"></div></div>
+    <div class="score-text"><span id="score-pct">0</span>% ready · <span id="score-count">0/0</span> items complete</div>
+    <button class="btn" id="btn-all">Check All</button>
+    <button class="btn" id="btn-reset" style="background:var(--muted);">Reset</button>
+  </div>
+
+  <div class="section" id="sec-manifest">
+    <div class="sec-title"><span>Manifest &amp; Permissions</span><span class="progress" id="p-manifest">0/5</span></div>
+    <div class="item" data-id="m1"><div class="checkbox" id="cb-m1"></div><div class="item-text"><div class="item-label">manifest_version: 3 <span class="crit">CRITICAL</span></div><div class="item-note">MV2 extensions are no longer accepted for new submissions.</div></div></div>
+    <div class="item" data-id="m2"><div class="checkbox" id="cb-m2"></div><div class="item-text"><div class="item-label">No unused permissions</div><div class="item-note">Every permission in manifest.json must be used. Remove debugger, identity, etc. if not in use.</div></div></div>
+    <div class="item" data-id="m3"><div class="checkbox" id="cb-m3"></div><div class="item-text"><div class="item-label">&lt;all_urls&gt; justified in listing description</div><div class="item-note">If you request &lt;all_urls&gt;, the CWS listing must explain why clearly.</div></div></div>
+    <div class="item" data-id="m4"><div class="checkbox" id="cb-m4"></div><div class="item-text"><div class="item-label">No remote script loading <span class="crit">CRITICAL</span></div><div class="item-note">All JS must be bundled in the extension. No eval, no remote script tags, no importScripts from CDN.</div></div></div>
+    <div class="item" data-id="m5"><div class="checkbox" id="cb-m5"></div><div class="item-text"><div class="item-label">No obfuscated code <span class="crit">CRITICAL</span></div><div class="item-note">Minification is fine. Obfuscation (mangled variable names, encoded strings) triggers rejection.</div></div></div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title"><span>Privacy &amp; Data</span><span class="progress" id="p-privacy">0/4</span></div>
+    <div class="item" data-id="p1"><div class="checkbox" id="cb-p1"></div><div class="item-text"><div class="item-label">Privacy policy URL set in CWS dashboard</div><div class="item-note">Required if you collect any user data, including analytics.</div></div></div>
+    <div class="item" data-id="p2"><div class="checkbox" id="cb-p2"></div><div class="item-text"><div class="item-label">Data use disclosure completed in CWS dashboard</div><div class="item-note">The "Privacy practices" tab in the developer dashboard must be filled out accurately.</div></div></div>
+    <div class="item" data-id="p3"><div class="checkbox" id="cb-p3"></div><div class="item-text"><div class="item-label">No user data sold to third parties <span class="crit">CRITICAL</span></div><div class="item-note">Selling browsing history, usage data, or any user-derived data to data brokers is a removal offense.</div></div></div>
+    <div class="item" data-id="p4"><div class="checkbox" id="cb-p4"></div><div class="item-text"><div class="item-label">No keystroke logging or form content capture</div><div class="item-note">Recording what users type and sending it off-device requires explicit consent and strong justification.</div></div></div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title"><span>Listing Quality</span><span class="progress" id="p-listing">0/5</span></div>
+    <div class="item" data-id="l1"><div class="checkbox" id="cb-l1"></div><div class="item-text"><div class="item-label">Screenshots show actual extension UI</div><div class="item-note">Screenshots must show your real extension, not stock photos or misleading mockups.</div></div></div>
+    <div class="item" data-id="l2"><div class="checkbox" id="cb-l2"></div><div class="item-text"><div class="item-label">Description matches actual functionality</div><div class="item-note">Do not describe features you don't have. Do not use keyword stuffing.</div></div></div>
+    <div class="item" data-id="l3"><div class="checkbox" id="cb-l3"></div><div class="item-text"><div class="item-label">128×128 icon (PNG, no alpha edge issues)</div><div class="item-note">Icon must look good on both light and dark backgrounds in the CWS listing.</div></div></div>
+    <div class="item" data-id="l4"><div class="checkbox" id="cb-l4"></div><div class="item-text"><div class="item-label">1280×800 or 640×400 promotional tile (optional but recommended)</div><div class="item-note">Extensions with promo tiles get better placement in search results.</div></div></div>
+    <div class="item" data-id="l5"><div class="checkbox" id="cb-l5"></div><div class="item-text"><div class="item-label">Category set correctly</div><div class="item-note">Wrong category increases likelihood of manual review delays.</div></div></div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title"><span>Technical Quality</span><span class="progress" id="p-tech">0/5</span></div>
+    <div class="item" data-id="t1"><div class="checkbox" id="cb-t1"></div><div class="item-text"><div class="item-label">Tested on clean Chrome profile</div><div class="item-note">Install from the .zip on a fresh profile with no other extensions. Verify all features work.</div></div></div>
+    <div class="item" data-id="t2"><div class="checkbox" id="cb-t2"></div><div class="item-text"><div class="item-label">No console errors in background, popup, options</div><div class="item-note">Open DevTools on each page. Zero uncaught errors required before submission.</div></div></div>
+    <div class="item" data-id="t3"><div class="checkbox" id="cb-t3"></div><div class="item-text"><div class="item-label">Service worker does not crash on install</div><div class="item-note">Check chrome://serviceworker-internals after install. Status should be RUNNING or STOPPED, not REDUNDANT.</div></div></div>
+    <div class="item" data-id="t4"><div class="checkbox" id="cb-t4"></div><div class="item-text"><div class="item-label">Zip file excludes development artifacts</div><div class="item-note">No node_modules/, .git/, .env, *.map files, test files, or README in the submission zip.</div></div></div>
+    <div class="item" data-id="t5"><div class="checkbox" id="cb-t5"></div><div class="item-text"><div class="item-label">Version number incremented from previous submission</div><div class="item-note">CWS rejects updates with the same version number as a published version.</div></div></div>
+  </div>
+
+  <script>
+    const checked = new Set();
+    const allIds = ['m1','m2','m3','m4','m5','p1','p2','p3','p4','l1','l2','l3','l4','l5','t1','t2','t3','t4','t5'];
+    const sections = { manifest:['m1','m2','m3','m4','m5'], privacy:['p1','p2','p3','p4'], listing:['l1','l2','l3','l4','l5'], tech:['t1','t2','t3','t4','t5'] };
+
+    function updateUI() {
+      const total = allIds.length;
+      const done = checked.size;
+      const pct = Math.round((done / total) * 100);
+      document.getElementById('score-fill').style.width = pct + '%';
+      document.getElementById('score-pct').textContent = pct;
+      document.getElementById('score-count').textContent = `${done}/${total}`;
+
+      for (const [sec, ids] of Object.entries(sections)) {
+        const secDone = ids.filter(id => checked.has(id)).length;
+        document.getElementById(`p-${sec}`).textContent = `${secDone}/${ids.length}`;
+      }
+    }
+
+    document.querySelectorAll('.item').forEach(item => {
+      item.addEventListener('click', () => {
+        const id = item.dataset.id;
+        const cb = document.getElementById('cb-' + id);
+        if (checked.has(id)) { checked.delete(id); cb.textContent = ''; cb.className = 'checkbox'; }
+        else { checked.add(id); cb.textContent = '✓'; cb.className = 'checkbox checked'; }
+        updateUI();
+      });
+    });
+
+    document.getElementById('btn-all').addEventListener('click', () => {
+      allIds.forEach(id => {
+        checked.add(id);
+        const cb = document.getElementById('cb-' + id);
+        cb.textContent = '✓'; cb.className = 'checkbox checked';
+      });
+      updateUI();
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      checked.clear();
+      allIds.forEach(id => {
+        const cb = document.getElementById('cb-' + id);
+        cb.textContent = ''; cb.className = 'checkbox';
+      });
+      updateUI();
+    });
+
+    updateUI();
+  </script>
+</body>
+</html>
