@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>NeuralTab</title>
+  <link rel="stylesheet" href="popup.css"/>
+</head>
+<body>
+  <div class="header">
+    <span class="bolt">⚡</span>
+    <span class="brand">NeuralTab</span>
+    <span class="version">v0.7</span>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-messages">—</div>
+      <div class="stat-label">Messages</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-visits">—</div>
+      <div class="stat-label">Visits logged</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-counter">—</div>
+      <div class="stat-label">Counter</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-streams">—</div>
+      <div class="stat-label">Streams</div>
+    </div>
+  </div>
+
+  <div class="quota-section">
+    <div class="quota-label">
+      <span>Storage</span>
+      <span id="quota-text">—</span>
+    </div>
+    <div class="quota-bar-wrap">
+      <div class="quota-bar" id="quota-bar"></div>
+    </div>
+  </div>
+
+  <div class="action-grid">
+    <button class="btn btn-gold" id="btn-lab">⚗ Message Lab</button>
+    <button class="btn btn-cyan" id="btn-history">📖 History</button>
+    <button class="btn btn-ghost" id="btn-options">⚙ Options</button>
+    <button class="btn btn-ghost" id="btn-monitor">📡 SW Monitor</button>
+  </div>
+
+  <script src="storage_manager.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

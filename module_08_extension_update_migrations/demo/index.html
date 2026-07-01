@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 08 Demo — Update Mechanics</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--orange:#fb923c;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:960px;margin:0 auto;}
+    h1{color:var(--gold);font-size:36px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:40px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;overflow-x:auto;color:var(--text);margin:16px 0;}
+    .flow{display:flex;gap:0;margin:20px 0;flex-wrap:wrap;}
+    .flow-step{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 18px;flex:1;min-width:140px;}
+    .fs-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+    .fs-name{font-size:14px;font-weight:700;color:var(--text);}
+    .fs-detail{font-size:12px;color:var(--muted);margin-top:4px;}
+    .arrow{padding:14px 8px;font-size:20px;color:var(--muted);align-self:center;}
+    .reason-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0;}
+    .reason-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;}
+    .r-reason{font-size:12px;font-weight:700;font-family:'Source Code Pro',monospace;margin-bottom:8px;}
+    .r-install{color:var(--green);}
+    .r-update{color:var(--cyan);}
+    .r-chrome{color:var(--orange);}
+    .r-desc{font-size:13px;color:var(--muted);line-height:1.6;}
+  </style>
+</head>
+<body>
+  <h1>Module 08 — Update Mechanics</h1>
+  <p class="sub">Every install, update, and Chrome restart fires different lifecycle events. Getting these right means your users never see a blank screen or corrupt state after an upgrade.</p>
+
+  <h2>The onInstalled Lifecycle</h2>
+  <div class="flow">
+    <div class="flow-step"><div class="fs-label">User installs</div><div class="fs-name">onInstalled fires</div><div class="fs-detail">reason = 'install'. previousVersion = undefined.</div></div>
+    <div class="arrow">→</div>
+    <div class="flow-step"><div class="fs-label">MigrationManager</div><div class="fs-name">run(null, '0.8.0')</div><div class="fs-detail">All migrations 0.2.0 → 0.8.0 run in version order.</div></div>
+    <div class="arrow">→</div>
+    <div class="flow-step"><div class="fs-label">Storage ready</div><div class="fs-name">Defaults applied</div><div class="fs-detail">All keys exist. Extension works immediately.</div></div>
+  </div>
+  <div class="flow">
+    <div class="flow-step"><div class="fs-label">User updates 0.6 → 0.8</div><div class="fs-name">onInstalled fires</div><div class="fs-detail">reason = 'update'. previousVersion = '0.6.0'.</div></div>
+    <div class="arrow">→</div>
+    <div class="flow-step"><div class="fs-label">MigrationManager</div><div class="fs-name">run('0.6.0', '0.8.0')</div><div class="fs-detail">Only migrations 0.7.0 and 0.8.0 run. 0.2–0.6 already applied.</div></div>
+    <div class="arrow">→</div>
+    <div class="flow-step"><div class="fs-label">Storage upgraded</div><div class="fs-name">New keys added</div><div class="fs-detail">Existing data untouched. New defaults added for new keys.</div></div>
+  </div>
+
+  <h2>Three Reasons, Three Behaviors</h2>
+  <div class="reason-grid">
+    <div class="reason-card"><div class="r-reason r-install">'install'</div><div class="r-desc">Fresh install. Run all migrations from null. Set swStartCount = 1. Open IDB eagerly.</div></div>
+    <div class="reason-card"><div class="r-reason r-update">'update'</div><div class="r-desc">User upgraded. Increment swStartCount. Run only migrations between previousVersion and currentVersion.</div></div>
+    <div class="reason-card"><div class="r-reason r-chrome">'chrome_update'</div><div class="r-desc">Chrome updated but extension version unchanged. Log the event. Do nothing to storage — schema has not changed.</div></div>
+  </div>
+
+  <h2>Migration Runner Logic</h2>
+  <pre>const MIGRATIONS = {
+  '0.7.0': async (storage) => {
+    // Only set defaults if keys are missing — idempotency guarantee
+    if (!storage.historyVisitCount)
+      await StorageManager.set({ historyVisitCount: 0, historyEnabled: true });
+  },
+  '0.8.0': async (storage) => {
+    if (!storage.migrationLog)
+      await StorageManager.set({ migrationLog: [], schemaVersion: '0.8.0' });
+  }
+};
+
+async function run(previousVersion, currentVersion) {
+  const sortedVersions = Object.keys(MIGRATIONS).sort(compareVersions);
+  for (const target of sortedVersions) {
+    const shouldRun = (!previousVersion || compare(previousVersion, target) &lt; 0)
+                   && compare(target, currentVersion) &lt;= 0
+                   && !log.some(e => e.version === target && e.success);
+    if (shouldRun) await MIGRATIONS[target](storage);
+  }
+}</pre>
+
+  <p><strong>Key invariant:</strong> each migration checks whether its keys already exist before writing. This makes every migration idempotent — safe to run twice without doubling data or overwriting user preferences.</p>
+</body>
+</html>

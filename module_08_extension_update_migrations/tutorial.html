@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 08 — Extension Update Mechanics</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--bg2:#0f1623;--card:#141c2e;--card2:#1a2540;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;line-height:1.8;font-size:16px;}
+    .hero{background:linear-gradient(135deg,#0b0f1a,#0d1a30);border-bottom:2px solid var(--gold);padding:70px 60px 60px;text-align:center;}
+    .module-tag{display:inline-block;background:#0d1a30;border:1px solid var(--gold);color:var(--gold);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:5px 16px;border-radius:20px;margin-bottom:22px;}
+    .hero h1{font-size:48px;font-weight:900;color:var(--gold);margin-bottom:12px;}
+    .hero h1 em{color:var(--cyan);font-style:normal;}
+    .hero p{font-size:18px;color:var(--muted);max-width:720px;margin:0 auto;}
+    .content{max-width:900px;margin:0 auto;padding:60px;}
+    h2{font-size:32px;font-weight:900;color:var(--gold);margin:60px 0 16px;}
+    h2.first{margin-top:0;}
+    h3{font-size:21px;font-weight:900;color:var(--cyan);margin:36px 0 12px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    p em{color:var(--gold);font-style:normal;font-weight:700;}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:10px;padding:22px 24px;font-family:'Source Code Pro',monospace;font-size:13px;line-height:1.9;overflow-x:auto;margin:20px 0;}
+    .kw{color:var(--purple);font-weight:700;}.fn{color:var(--cyan);}.str{color:var(--green);}.cm{color:#3d5970;font-style:italic;}.num{color:var(--orange);}
+    .callout{border-radius:0 10px 10px 0;padding:20px 24px;margin:24px 0;font-size:15px;line-height:1.7;}
+    .callout.gold{background:#141000;border-left:4px solid var(--gold);}.callout.gold strong{color:var(--gold);}
+    .callout.red{background:#140404;border-left:4px solid var(--red);}.callout.red strong{color:var(--red);}
+    .callout.cyan{background:#040e14;border-left:4px solid var(--cyan);}.callout.cyan strong{color:var(--cyan);}
+    .callout.green{background:#040e08;border-left:4px solid var(--green);}.callout.green strong{color:var(--green);}
+    .callout p{color:var(--muted);margin:0;}.callout p+p{margin-top:10px;}
+    table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+    th{background:var(--card2);color:var(--gold);font-weight:700;padding:11px 14px;border:1px solid var(--border);text-align:left;}
+    td{padding:11px 14px;border:1px solid var(--border);color:var(--muted);vertical-align:top;}
+    tr:nth-child(even) td{background:var(--card);}
+    td strong{color:var(--text);}
+    code{background:#060a12;border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-family:'Source Code Pro',monospace;font-size:13px;color:var(--cyan);}
+    hr{border:none;border-top:1px solid var(--border);margin:50px 0;}
+    .exercise-box{background:var(--bg2);border:2px solid var(--gold);border-radius:12px;padding:28px 32px;margin:40px 0;}
+    .ex-title{font-weight:900;font-size:20px;color:var(--gold);margin-bottom:16px;}
+    .ex-body ol{color:var(--muted);padding-left:22px;}
+    .ex-body li{margin-bottom:8px;}
+    .ex-body li strong{color:var(--text);}
+    .ex-body code{background:#060a12;border:1px solid var(--border);padding:1px 6px;border-radius:4px;font-family:'Source Code Pro',monospace;font-size:13px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+<div class="hero">
+  <div class="module-tag">Module 08 · NeuralTab</div>
+  <h1>Extension Update Mechanics:<br><em>Graceful Schema Migration</em></h1>
+  <p>Your users are not all on the same version. Some installed last week. Some installed two years ago and never updated. When your extension ships a new version, every user's storage is in a different state. Migration is how you make "it just works" into a guarantee, not a hope.</p>
+</div>
+<div class="content">
+
+<h2 class="first">The Problem: Your Data Lives in Their Browser</h2>
+
+<p>Here is a scenario every serious extension developer eventually faces. You ship version 0.7.0. Users install it. Version 0.7.0 stores history visits in IndexedDB with three indexes: `url`, `timestamp`, `domain`. A month later you ship 0.8.0, which adds a fourth index: `wordCount`. You also rename the `bookmarkFolderName` storage key to `savedFolder`.</p>
+
+<p>What happens to existing users when they update? <strong>Their storage has the old schema.</strong> The old IndexedDB has three indexes. The old `chrome.storage.local` has the old key name. Your new code reads `savedFolder`, gets `undefined`, crashes.</p>
+
+<p>There are three bad ways to handle this:</p>
+<ul>
+  <li><strong>Ignore it:</strong> hope the new defaults kick in and users reset their data. Some do; most notice their settings disappeared and leave a 1-star review.</li>
+  <li><strong>Delete everything:</strong> wipe storage on update. Correct behavior, guaranteed loss of user data.</li>
+  <li><strong>Conditional code everywhere:</strong> every read checks "is this the old format or the new format?" The codebase becomes a graveyard of compatibility shims.</li>
+</ul>
+
+<p>The correct approach: <em>run migrations once at update time</em>, bring all storage to the current schema, and let the rest of the code assume the current schema always exists.</p>
+
+<h2>The Three Lifecycle Events</h2>
+
+<p>Chrome gives you three distinct entry points for extension lifecycle management:</p>
+
+<table>
+  <tr><th>Event</th><th>When it fires</th><th>previousVersion</th><th>What to do</th></tr>
+  <tr><td><code>onInstalled</code> (install)</td><td>First install only</td><td>undefined</td><td>Set all defaults. Run all migrations from scratch.</td></tr>
+  <tr><td><code>onInstalled</code> (update)</td><td>Extension version changed</td><td>The old version string</td><td>Run only new migrations.</td></tr>
+  <tr><td><code>onInstalled</code> (chrome_update)</td><td>Chrome itself updated</td><td>undefined</td><td>Log it. Do nothing to storage.</td></tr>
+  <tr><td><code>onStartup</code></td><td>Browser starts</td><td>N/A</td><td>Session-level setup only. Never run migrations here.</td></tr>
+</table>
+
+<div class="callout red">
+  <p><strong>Never run migrations in onStartup.</strong> `onStartup` fires on every browser launch, every time — even when nothing has changed. Migrations must run at most once. `onInstalled` has the version context to know which migrations are needed. `onStartup` does not.</p>
+</div>
+
+<h3>The Handler</h3>
+
+<pre><span class="cm">// background.js — the correct structure</span>
+chrome.runtime.onInstalled.<span class="fn">addListener</span>(<span class="kw">async</span> ({ reason, previousVersion }) => {
+  <span class="kw">const</span> currentVersion = chrome.runtime.<span class="fn">getManifest</span>().version;
+
+  <span class="kw">if</span> (reason === <span class="str">'install'</span>) {
+    <span class="cm">// Fresh install: run ALL migrations from null → currentVersion</span>
+    <span class="kw">await</span> <span class="cls">MigrationManager</span>.<span class="fn">run</span>(<span class="kw">null</span>, currentVersion);
+
+  } <span class="kw">else if</span> (reason === <span class="str">'update'</span>) {
+    <span class="cm">// Update: run only migrations between previousVersion and currentVersion</span>
+    <span class="kw">await</span> <span class="cls">MigrationManager</span>.<span class="fn">run</span>(previousVersion, currentVersion);
+
+  } <span class="kw">else if</span> (reason === <span class="str">'chrome_update'</span>) {
+    <span class="cm">// Chrome updated but extension did not — schema unchanged</span>
+    <span class="kw">await</span> <span class="cls">StorageManager</span>.<span class="fn">logSwEvent</span>(<span class="str">'chrome_update'</span>, <span class="str">'Chrome updated'</span>);
+  }
+});</pre>
+
+<h2>The Migration Runner</h2>
+
+<p>NeuralTab's `MigrationManager` is a deterministic version-keyed runner. The design has four properties:</p>
+
+<ol>
+  <li><strong>Ordered:</strong> migrations run in version sort order, not insertion order.</li>
+  <li><strong>Filtered:</strong> only migrations between `previousVersion` and `currentVersion` run.</li>
+  <li><strong>Idempotent:</strong> each migration checks whether its keys already exist before writing. Running twice produces the same result as running once.</li>
+  <li><strong>Logged:</strong> every run (success or failure) is appended to `migrationLog` in storage. You can inspect the history in the Update Log page.</li>
+</ol>
+
+<pre><span class="kw">const</span> MIGRATIONS = {
+
+  <span class="str">'0.7.0'</span>: <span class="kw">async</span> (storage) => {
+    <span class="cm">// Idempotency check: only write if keys are missing</span>
+    <span class="kw">if</span> (!storage.historyVisitCount)
+      <span class="kw">await</span> <span class="cls">StorageManager</span>.<span class="fn">set</span>({ historyVisitCount: <span class="num">0</span>, historyEnabled: <span class="kw">true</span> });
+  },
+
+  <span class="str">'0.8.0'</span>: <span class="kw">async</span> (storage) => {
+    <span class="kw">if</span> (!storage.migrationLog)
+      <span class="kw">await</span> <span class="cls">StorageManager</span>.<span class="fn">set</span>({ migrationLog: [], schemaVersion: <span class="str">'0.8.0'</span> });
+  }
+};</pre>
+
+<h3>Version Comparison</h3>
+
+<p>Comparing version strings correctly is non-obvious. The string `'0.10.0'` sorts <em>before</em> `'0.9.0'` lexicographically because `'1' < '9'`. This is wrong for version ordering. NeuralTab uses a 3-component numeric comparator:</p>
+
+<pre><span class="kw">function</span> <span class="fn">compareVersions</span>(a, b) {
+  <span class="kw">const</span> pa = a.<span class="fn">split</span>(<span class="str">'.'</span>).<span class="fn">map</span>(Number);
+  <span class="kw">const</span> pb = b.<span class="fn">split</span>(<span class="str">'.'</span>).<span class="fn">map</span>(Number);
+  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i < <span class="num">3</span>; i++) {
+    <span class="kw">if</span> (pa[i] > pb[i]) <span class="kw">return</span>  <span class="num">1</span>;
+    <span class="kw">if</span> (pa[i] < pb[i]) <span class="kw">return</span> -<span class="num">1</span>;
+  }
+  <span class="kw">return</span> <span class="num">0</span>;
+}
+
+<span class="fn">compareVersions</span>(<span class="str">'0.10.0'</span>, <span class="str">'0.9.0'</span>); <span class="cm">// → 1 (correct: 10 > 9)</span>
+<span class="fn">compareVersions</span>(<span class="str">'0.9.0'</span>,  <span class="str">'0.10.0'</span>); <span class="cm">// → -1</span>
+<span class="fn">compareVersions</span>(<span class="str">'0.8.0'</span>,  <span class="str">'0.8.0'</span>);  <span class="cm">// → 0</span></pre>
+
+<h2>IndexedDB Schema Migrations</h2>
+
+<p>IndexedDB has its own migration mechanism, separate from `chrome.storage`. The `onupgradeneeded` callback fires when you open the database with a higher version number. This is where you add indexes, rename stores, or restructure records.</p>
+
+<pre><span class="kw">const</span> req = indexedDB.<span class="fn">open</span>(<span class="str">'neuraltab-history'</span>, <span class="num">2</span>); <span class="cm">// bump from 1 → 2</span>
+
+req.onupgradeneeded = e => {
+  <span class="kw">const</span> db    = e.target.result;
+  <span class="kw">const</span> store = e.target.transaction.<span class="fn">objectStore</span>(<span class="str">'page_visits'</span>);
+
+  <span class="cm">// Guard: only create index if upgrading from a version that lacks it</span>
+  <span class="kw">if</span> (e.oldVersion < <span class="num">2</span>) {
+    <span class="cm">// e.oldVersion = 0 means fresh install (no previous DB)</span>
+    <span class="cm">// e.oldVersion = 1 means upgrading from DB version 1</span>
+    store.<span class="fn">createIndex</span>(<span class="str">'wordCount'</span>, <span class="str">'wordCount'</span>, { unique: <span class="kw">false</span> });
+  }
+};</pre>
+
+<div class="callout cyan">
+  <p><strong>IDB version vs extension version:</strong> These are completely separate numbers. The IDB version is an integer that you control in `indexedDB.open(name, version)`. The extension version is the semver string in `manifest.json`. You can bump the IDB version independently of the extension version — they have no automatic relationship. NeuralTab's convention: bump the IDB version whenever you add or change an object store or index, and document it in `migration_manager.js` as part of the corresponding extension version migration.</p>
+</div>
+
+<h2>What Can Go Wrong</h2>
+
+<table>
+  <tr><th>Failure mode</th><th>Cause</th><th>Fix</th></tr>
+  <tr><td>Migration ran twice, data doubled</td><td>Migration is not idempotent — no existence check before writing</td><td>Add <code>if (!storage.key)</code> guards or use the <code>migrationLog</code> deduplication</td></tr>
+  <tr><td>User on 0.6.0 upgrades to 0.9.0 directly, 0.7.0/0.8.0 migrations don't run</td><td>Filtering only by <code>target === currentVersion</code> instead of range check</td><td>Use <code>previousVersion &lt; target &lt;= currentVersion</code> range filter</td></tr>
+  <tr><td>Extension reinstall re-runs all migrations, overwrites user data</td><td>Reason check missing — treating 'install' same as 'update'</td><td>Branch on <code>reason</code>; fresh install means null previousVersion, run all but with idempotency guards</td></tr>
+  <tr><td>IDB migration hangs forever</td><td>A transaction on the old version is still open (another tab has the database open)</td><td>Handle <code>req.onblocked</code> — tell user to close other tabs</td></tr>
+  <tr><td>Migration error silently breaks extension</td><td>Exception in migration function, no catch</td><td>Wrap each migration in try/catch, log failure to <code>migrationLog</code>, continue with next migration</td></tr>
+</table>
+
+<hr/>
+
+<div class="exercise-box">
+  <div class="ex-title">Exercise 1 — See onInstalled Fire</div>
+  <div class="ex-body">
+    <ol>
+      <li>Load the extension. Open the SW Monitor.</li>
+      <li>Open <code>chrome://extensions</code>. Click the reload icon on NeuralTab.</li>
+      <li>Switch back to the SW Monitor (refresh it).</li>
+      <li><strong>Observe:</strong> There is no <code>onInstalled</code> event in the lifecycle log. Reloading in dev mode fires <code>onStartup</code>, not <code>onInstalled</code>.</li>
+      <li>Now go to <code>chrome://extensions</code>, remove NeuralTab, then re-load unpacked from the module_08/dist folder.</li>
+      <li><strong>Observe:</strong> The lifecycle log now shows <code>onInstalled reason=install</code> followed by <code>migrations</code>. The Update Log page shows all migration entries.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="exercise-box">
+  <div class="ex-title">Exercise 2 — Simulate a Version Skip</div>
+  <div class="ex-body">
+    <ol>
+      <li>Open the Update Log page (popup → Options → SW section → Open Monitor, or direct navigation to the extension's <code>update_log.html</code>).</li>
+      <li>Click "Simulate Update from 0.5.0".</li>
+      <li><strong>Observe:</strong> The migration history shows 0.6.0, 0.7.0, and 0.8.0 migrations were run (in that order).</li>
+      <li>Click the button again.</li>
+      <li><strong>Observe:</strong> The response says "none (already applied)". The <code>alreadyRan</code> check in the migration runner prevents double-execution.</li>
+      <li><strong>Write:</strong> What would happen if you removed the <code>alreadyRan</code> guard and clicked the button a third time? Which migrations are idempotent and which are not?</li>
+    </ol>
+  </div>
+</div>
+
+<div class="exercise-box">
+  <div class="ex-title">Exercise 3 — Write a Data-Transforming Migration</div>
+  <div class="ex-body">
+    <ol>
+      <li>Imagine NeuralTab 0.9.0 renames <code>demoCounter</code> to <code>pubSubCounter</code>. Write a migration for <code>'0.9.0'</code>.</li>
+      <li>The migration must: read the current value of <code>demoCounter</code>, write it to <code>pubSubCounter</code>, then delete <code>demoCounter</code>.</li>
+      <li>Make it idempotent: if <code>pubSubCounter</code> already exists, skip the migration (user already upgraded or fresh install ran this migration).</li>
+      <li>Add the migration to <code>migration_manager.js</code>. Bump manifest.json version to <code>0.9.0</code>.</li>
+      <li>Simulate the update. Verify in DevTools → Application → Extension Storage → Local that <code>demoCounter</code> is gone and <code>pubSubCounter</code> has the old value.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="callout gold" style="margin-top:40px;">
+  <p><strong>Coming up in Module 09 — Network Layer:</strong> NeuralTab has so far only watched what users do inside the browser. Module 09 adds network interception: seeing every HTTP request, blocking ads, redirecting URLs, and modifying request headers — all without a proxy server. We will implement <code>declarativeNetRequest</code> rules and build a network monitor page that shows live traffic.</p>
+</div>
+
+</div>
+</body>
+</html>

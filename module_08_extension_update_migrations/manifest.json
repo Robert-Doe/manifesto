@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "NeuralTab",
+  "version": "0.8.0",
+  "description": "Extension Update Mechanics & Graceful Schema Migration",
+  "background": { "service_worker": "background.js", "type": "classic" },
+  "action": { "default_popup": "popup.html", "default_title": "NeuralTab" },
+  "options_page": "options.html",
+  "permissions": [
+    "storage", "alarms", "tabs", "scripting", "unlimitedStorage",
+    "history", "bookmarks", "tabGroups"
+  ],
+  "optional_permissions": ["tabs", "history", "bookmarks"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [{
+    "matches": ["<all_urls>"],
+    "js": ["storage_manager.js", "content.js"],
+    "css": ["content.css"],
+    "run_at": "document_idle"
+  }],
+  "web_accessible_resources": [{
+    "resources": [
+      "assets/inject.js", "message_lab.html", "history_db.html",
+      "update_log.html", "sw_monitor.html", "tab_manager.html"
+    ],
+    "matches": ["<all_urls>"]
+  }]
+}
