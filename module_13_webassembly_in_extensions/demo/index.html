@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 13 Demo — WebAssembly</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:860px;margin:0 auto;}
+    h1{color:var(--gold);font-size:34px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:36px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;color:var(--text);margin:16px 0;}
+  </style>
+</head>
+<body>
+  <h1>Module 13 — WebAssembly in Extensions</h1>
+  <p class="sub">Binary performance inside the extension sandbox — no unsafe-eval required.</p>
+
+  <h2>Why Wasm Works in MV3</h2>
+  <p><code>WebAssembly.instantiate(buffer)</code> compiles a <strong>binary buffer</strong>, not JavaScript source text. MV3's CSP blocks dynamic code generation from strings (eval, new Function), but binary compilation is explicitly permitted by the CSP spec. This is why you can ship a .wasm file and compile it at runtime without any CSP relaxation.</p>
+
+  <h2>The Inline Binary Pattern</h2>
+  <p><strong>wasm_runner.js</strong> embeds a hand-crafted Wasm fibonacci binary as a <code>Uint8Array</code> literal. This is useful for tiny Wasm modules (&lt;1KB) where shipping a separate file adds overhead. For larger modules, ship a .wasm file in web_accessible_resources and load it via <code>fetch(chrome.runtime.getURL('module.wasm'))</code>.</p>
+
+  <h2>Real Use Cases</h2>
+  <pre>// Image compression (Squoosh uses Wasm)
+// Password hashing (bcrypt in Wasm)
+// Full-text search (SQLite compiled to Wasm)
+// Spell checking (Hunspell → Wasm)
+// Video processing (FFmpeg → Wasm)</pre>
+  <p>Fibonacci is a benchmark subject. Real Wasm value comes from running native C/C++/Rust code in the browser sandbox — things that would be 10-100× slower in pure JavaScript.</p>
+</body>
+</html>

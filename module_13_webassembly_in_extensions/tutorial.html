@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 13 — WebAssembly in Extensions</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+  <h1>Module 13 — WebAssembly in Extensions</h1>
+  <div class="byline">NeuralTab Curriculum · Module 13 of 25</div>
+
+  <h2>Why Wasm in an Extension?</h2>
+  <p>Chrome extensions run JavaScript — always. But JavaScript has performance limits, particularly for CPU-intensive work: cryptography, compression, image processing, signal processing, or running code originally written in C/C++/Rust. WebAssembly bridges this gap: compile native code to a binary format that V8 executes near-natively, without sacrificing the extension sandbox.</p>
+
+  <h2>The CSP Exception for Binary Wasm</h2>
+  <p>MV3 extension pages have a strict Content Security Policy that blocks <code>eval()</code>, <code>new Function(string)</code>, and remote script loading. This might seem like it would block WebAssembly compilation too — after all, you're generating executable code at runtime. But the CSP spec carves out an explicit exception: <strong>compiling a binary buffer is not "dynamic code generation from strings."</strong> <code>WebAssembly.instantiate(buffer)</code> is allowed everywhere, including MV3 service workers.</p>
+  <pre>// ❌ Blocked by MV3 CSP:
+eval("function add(a,b){return a+b}");
+new Function('a', 'b', 'return a + b');
+
+// ✅ Allowed by MV3 CSP:
+const wasmBytes = new Uint8Array([0x00, 0x61, 0x73, 0x6d, ...]);
+const { instance } = await WebAssembly.instantiate(wasmBytes.buffer);
+instance.exports.fibonacci(40);  // fast!</pre>
+
+  <h2>Three Ways to Load a Wasm Module</h2>
+  <h3>1. Inline Binary (small modules only)</h3>
+  <p>Embed the .wasm bytes as a <code>Uint8Array</code> literal in a .js file. Works well under ~2KB. No extra file, no fetch needed. Used in wasm_runner.js for the fibonacci module.</p>
+
+  <h3>2. Fetch from Extension URL</h3>
+  <pre>const url = chrome.runtime.getURL('assets/neuraltab.wasm');
+const response = await fetch(url);
+const buffer = await response.arrayBuffer();
+const { instance } = await WebAssembly.instantiate(buffer);</pre>
+  <p>List the .wasm file in <code>web_accessible_resources</code> if it needs to be loaded from content scripts or web pages. For background SW only, WAR is not required.</p>
+
+  <h3>3. instantiateStreaming (fastest, for fetched files)</h3>
+  <pre>const { instance } = await WebAssembly.instantiateStreaming(
+  fetch(chrome.runtime.getURL('assets/module.wasm'))
+);
+// Compiles while streaming — faster than fetch → arrayBuffer → instantiate</pre>
+
+  <h2>Caching Across SW Restarts</h2>
+  <p>Wasm compilation is expensive for large modules. Since service workers restart frequently in MV3, avoid recompiling on every restart. Cache the compiled <code>WebAssembly.Module</code> in the Cache API:</p>
+  <pre>const CACHE_NAME = 'neuraltab-wasm-v1';
+async function getWasmModule(url) {
+  const cache = await caches.open(CACHE_NAME);
+  let response = await cache.match(url);
+  if (!response) {
+    response = await fetch(url);
+    await cache.put(url, response.clone());
+  }
+  const buffer = await response.arrayBuffer();
+  return WebAssembly.compile(buffer);   // returns Module (not instance)
+}
+// Then instantiate from the cached module (fast):
+const instance = await WebAssembly.instantiate(cachedModule);</pre>
+
+  <h2>Exercises</h2>
+  <div class="exercise">
+    <div class="ex-label">Exercise 13-A — Verify the CSP</div>
+    <p>Open the wasm_demo.html page from NeuralTab. Click "Run Benchmark" with n=40. Verify in DevTools → Console that there are no CSP violations. Then try adding <code>eval("1+1")</code> to wasm_runner.js and confirm it throws a CSP error. This proves Wasm is in a different category than eval.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 13-B — Iterative vs. Recursive</div>
+    <p>Add an iterative fibonacci function to wasm_runner.js and the WAT source. Compare: recursive Wasm vs. iterative Wasm vs. recursive JS vs. iterative JS. The iterative versions should be orders of magnitude faster. What does this tell you about the value of Wasm for well-written algorithms?</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 13-C — Load from File</div>
+    <p>Convert the inline Uint8Array in wasm_runner.js to load from a .wasm file instead. Create assets/fib.wasm using the wat2wasm online tool (watfiddle.com), add it to web_accessible_resources, and update wasm_runner.js to fetch it. Verify the benchmark still works.</p>
+  </div>
+</body>
+</html>
