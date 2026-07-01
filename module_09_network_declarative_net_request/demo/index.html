@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 09 Demo — Network Layer</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--orange:#fb923c;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:40px;max-width:960px;margin:0 auto;}
+    h1{color:var(--gold);font-size:36px;font-weight:900;margin-bottom:8px;}
+    .sub{color:var(--muted);font-size:16px;margin-bottom:40px;}
+    h2{color:var(--cyan);font-size:20px;font-weight:900;margin:32px 0 12px;}
+    p{color:var(--muted);line-height:1.7;margin-bottom:12px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:16px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.8;overflow-x:auto;color:var(--text);margin:16px 0;}
+    .rule-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13px;}
+    th{background:var(--card);color:var(--gold);font-weight:700;padding:10px 14px;text-align:left;border:1px solid var(--border);}
+    td{padding:10px 14px;border:1px solid var(--border);color:var(--muted);}
+    .type-block{color:var(--red);font-weight:700;}
+    .type-redirect{color:var(--orange);font-weight:700;}
+    .type-headers{color:var(--cyan);font-weight:700;}
+    .comparison{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0;}
+    .comp-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;}
+    .cc-title{font-size:13px;font-weight:700;margin-bottom:8px;}
+    .mv2{color:var(--orange);}
+    .mv3{color:var(--green);}
+    ul{color:var(--muted);padding-left:20px;margin:8px 0;}
+    li{margin-bottom:6px;font-size:13px;}
+  </style>
+</head>
+<body>
+  <h1>Module 09 — Network Layer</h1>
+  <p class="sub">declarativeNetRequest replaces webRequest blocking in MV3. Rules are evaluated in the browser's C++ networking stack — zero JavaScript required, zero service worker wake-up.</p>
+
+  <h2>The 5 DNR Rules in NeuralTab</h2>
+  <table class="rule-table">
+    <tr><th>ID</th><th>Action</th><th>URL Filter</th><th>Resource Types</th></tr>
+    <tr><td>1</td><td class="type-block">block</td><td>||doubleclick.net^</td><td>script, image, xhr, sub_frame</td></tr>
+    <tr><td>2</td><td class="type-block">block</td><td>||googlesyndication.com^</td><td>script, image, xhr</td></tr>
+    <tr><td>3</td><td class="type-block">block</td><td>||adservice.google.com^</td><td>script, xhr</td></tr>
+    <tr><td>4</td><td class="type-headers">modifyHeaders</td><td>||example.com^</td><td>main_frame, xhr</td></tr>
+    <tr><td>5</td><td class="type-redirect">redirect</td><td>||google.com/search?*</td><td>main_frame</td></tr>
+  </table>
+
+  <h2>MV2 webRequest vs MV3 declarativeNetRequest</h2>
+  <div class="comparison">
+    <div class="comp-card">
+      <div class="cc-title mv2">MV2: chrome.webRequest (blocking)</div>
+      <ul>
+        <li>JavaScript runs for every matching request</li>
+        <li>Service worker must be alive</li>
+        <li>Can inspect request body, headers, URL dynamically</li>
+        <li>Can return modified request from JS logic</li>
+        <li>Slower: IPC + JS evaluation per request</li>
+        <li><strong>Removed in MV3</strong> (blocking mode)</li>
+      </ul>
+    </div>
+    <div class="comp-card">
+      <div class="cc-title mv3">MV3: declarativeNetRequest</div>
+      <ul>
+        <li>Rules evaluated in C++ networking engine</li>
+        <li>No service worker needed at intercept time</li>
+        <li>Rules declared statically in JSON</li>
+        <li>No access to request body</li>
+        <li>Much faster: no IPC, no JS</li>
+        <li><strong>Required for request blocking in MV3</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>DNR Rule Anatomy</h2>
+  <pre>{
+  "id": 1,               // unique integer per ruleset
+  "priority": 1,         // higher wins when multiple rules match
+  "action": {
+    "type": "block"      // block | redirect | modifyHeaders | allow | allowAllRequests
+  },
+  "condition": {
+    "urlFilter": "||doubleclick.net^",  // uBlock-style URL pattern
+    "resourceTypes": ["script", "image"] // filter by resource type
+  }
+}</pre>
+
+  <p><strong>The || prefix</strong> means "match at start of domain". <strong>^</strong> means separator (end of domain component). These are uBlock Origin filter syntax, adopted by the DNR spec.</p>
+
+  <h2>webNavigation — Still Available for Observation</h2>
+  <pre>// webNavigation is observation-only in MV3 — no blocking
+chrome.webNavigation.onBeforeNavigate.addListener(details => {
+  if (details.frameId === 0) {  // main frame only
+    logNetworkEvent('beforenavigate', details.url);
+  }
+});</pre>
+  <p>NeuralTab's Network Monitor uses webNavigation to build a live event log. Every main-frame navigation appears in the UI within milliseconds via storage.onChanged (Pattern 4 from Module 06).</p>
+</body>
+</html>

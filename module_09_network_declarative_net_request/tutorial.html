@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 09 — Network Layer</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--bg2:#0f1623;--card:#141c2e;--card2:#1a2540;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--purple:#a78bfa;--green:#4ade80;--red:#f87171;--orange:#fb923c;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;line-height:1.8;font-size:16px;}
+    .hero{background:linear-gradient(135deg,#0b0f1a,#0d1a30);border-bottom:2px solid var(--gold);padding:70px 60px 60px;text-align:center;}
+    .module-tag{display:inline-block;background:#0d1a30;border:1px solid var(--gold);color:var(--gold);font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:5px 16px;border-radius:20px;margin-bottom:22px;}
+    .hero h1{font-size:48px;font-weight:900;color:var(--gold);margin-bottom:12px;}
+    .hero h1 em{color:var(--cyan);font-style:normal;}
+    .hero p{font-size:18px;color:var(--muted);max-width:720px;margin:0 auto;}
+    .content{max-width:900px;margin:0 auto;padding:60px;}
+    h2{font-size:32px;font-weight:900;color:var(--gold);margin:60px 0 16px;}
+    h2.first{margin-top:0;}
+    h3{font-size:21px;font-weight:900;color:var(--cyan);margin:36px 0 12px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    p em{color:var(--gold);font-style:normal;font-weight:700;}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:10px;padding:22px 24px;font-family:'Source Code Pro',monospace;font-size:13px;line-height:1.9;overflow-x:auto;margin:20px 0;}
+    .kw{color:var(--purple);font-weight:700;}.fn{color:var(--cyan);}.str{color:var(--green);}.cm{color:#3d5970;font-style:italic;}.num{color:var(--orange);}
+    .callout{border-radius:0 10px 10px 0;padding:20px 24px;margin:24px 0;font-size:15px;line-height:1.7;}
+    .callout.gold{background:#141000;border-left:4px solid var(--gold);}.callout.gold strong{color:var(--gold);}
+    .callout.red{background:#140404;border-left:4px solid var(--red);}.callout.red strong{color:var(--red);}
+    .callout.cyan{background:#040e14;border-left:4px solid var(--cyan);}.callout.cyan strong{color:var(--cyan);}
+    .callout p{color:var(--muted);margin:0;}.callout p+p{margin-top:10px;}
+    table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px;}
+    th{background:var(--card2);color:var(--gold);font-weight:700;padding:11px 14px;border:1px solid var(--border);text-align:left;}
+    td{padding:11px 14px;border:1px solid var(--border);color:var(--muted);vertical-align:top;}
+    tr:nth-child(even) td{background:var(--card);}
+    td strong{color:var(--text);}
+    code{background:#060a12;border:1px solid var(--border);padding:2px 6px;border-radius:4px;font-family:'Source Code Pro',monospace;font-size:13px;color:var(--cyan);}
+    hr{border:none;border-top:1px solid var(--border);margin:50px 0;}
+    .exercise-box{background:var(--bg2);border:2px solid var(--gold);border-radius:12px;padding:28px 32px;margin:40px 0;}
+    .ex-title{font-weight:900;font-size:20px;color:var(--gold);margin-bottom:16px;}
+    .ex-body ol{color:var(--muted);padding-left:22px;}
+    .ex-body li{margin-bottom:8px;}
+    .ex-body li strong{color:var(--text);}
+    .ex-body code{background:#060a12;border:1px solid var(--border);padding:1px 6px;border-radius:4px;font-family:'Source Code Pro',monospace;font-size:13px;color:var(--cyan);}
+  </style>
+</head>
+<body>
+<div class="hero">
+  <div class="module-tag">Module 09 · NeuralTab</div>
+  <h1>Network Layer:<br><em>declarativeNetRequest & webNavigation</em></h1>
+  <p>Every HTTP request your browser makes passes through a pipeline. Extensions can intercept that pipeline — blocking ads, redirecting URLs, injecting headers — without running a single line of JavaScript at intercept time. This is the architecture that makes ad blockers possible in MV3.</p>
+</div>
+<div class="content">
+
+<h2 class="first">The Request Lifecycle</h2>
+
+<p>When you type a URL and press Enter, or when a page loads a script tag, Chrome's networking stack processes the request through a series of stages. Extensions can observe or modify requests at specific checkpoints:</p>
+
+<table>
+  <tr><th>Stage</th><th>API</th><th>Can block?</th><th>Can modify?</th></tr>
+  <tr><td>Before navigation starts</td><td><code>webNavigation.onBeforeNavigate</code></td><td>No</td><td>No (observe only)</td></tr>
+  <tr><td>Before request sent</td><td><code>declarativeNetRequest</code></td><td><strong>Yes</strong></td><td><strong>Yes (headers, redirect)</strong></td></tr>
+  <tr><td>Before request sent (legacy)</td><td><code>webRequest.onBeforeRequest</code> (blocking)</td><td>MV2 only</td><td>MV2 only</td></tr>
+  <tr><td>Response headers received</td><td><code>webRequest.onHeadersReceived</code></td><td>Observe MV3</td><td>MV2 blocking only</td></tr>
+  <tr><td>Navigation committed</td><td><code>webNavigation.onCommitted</code></td><td>No</td><td>No</td></tr>
+  <tr><td>DOM ready</td><td><code>webNavigation.onDOMContentLoaded</code></td><td>No</td><td>No</td></tr>
+  <tr><td>Navigation complete</td><td><code>webNavigation.onCompleted</code></td><td>No</td><td>No</td></tr>
+</table>
+
+<p><em>The key shift from MV2 to MV3:</em> blocking `webRequest` was removed. Everything that needs to modify or block a request must now use `declarativeNetRequest`. The observation APIs (`webNavigation`, non-blocking `webRequest`) still exist.</p>
+
+<h2>declarativeNetRequest — How It Works</h2>
+
+<p>DNR rules are not JavaScript. They are JSON objects that describe matching conditions and actions. Chrome's C++ networking engine reads them and applies them without starting your service worker, without any IPC latency, without running any of your code.</p>
+
+<p>This is architecturally significant: <strong>an extension using only DNR rules can block millions of requests per hour without waking its service worker even once</strong>. The service worker's idle timer is never reset. This is why MV3 extensions can have much better battery and memory profiles than MV2 extensions that used blocking `webRequest`.</p>
+
+<h3>Rule Anatomy</h3>
+
+<pre>{
+  <span class="str">"id"</span>: <span class="num">1</span>,           <span class="cm">// unique integer per ruleset, 1-indexed</span>
+  <span class="str">"priority"</span>: <span class="num">1</span>,    <span class="cm">// higher number = higher priority when rules conflict</span>
+  <span class="str">"action"</span>: {
+    <span class="str">"type"</span>: <span class="str">"block"</span>  <span class="cm">// block | redirect | modifyHeaders | allow | allowAllRequests</span>
+  },
+  <span class="str">"condition"</span>: {
+    <span class="str">"urlFilter"</span>: <span class="str">"||doubleclick.net^"</span>,
+    <span class="str">"resourceTypes"</span>: [<span class="str">"script"</span>, <span class="str">"image"</span>, <span class="str">"xmlhttprequest"</span>]
+  }
+}</pre>
+
+<p>The `urlFilter` syntax comes from uBlock Origin / Adblock Plus filter syntax, adopted directly by the DNR spec:</p>
+<ul>
+  <li><code>||example.com^</code> — matches any URL whose domain is example.com or a subdomain. The `||` anchors to the domain start; `^` is a separator character (slash, query start, etc.).</li>
+  <li><code>*example*</code> — wildcard matches anywhere in the URL.</li>
+  <li><code>|https://|</code> — anchors to the literal start of the URL.</li>
+  <li><code>/tracking.js</code> — matches the path component.</li>
+</ul>
+
+<h3>The Five Action Types</h3>
+
+<table>
+  <tr><th>Action</th><th>What it does</th><th>Common use</th></tr>
+  <tr><td><code>block</code></td><td>Network error returned to requester</td><td>Ad blocking, tracker blocking</td></tr>
+  <tr><td><code>redirect</code></td><td>Sends browser to a different URL</td><td>Forced HTTPS, privacy-respecting search</td></tr>
+  <tr><td><code>modifyHeaders</code></td><td>Add/set/remove request or response headers</td><td>CORS bypass (dev), custom auth headers</td></tr>
+  <tr><td><code>allow</code></td><td>Explicitly allow — overrides lower-priority blocks</td><td>Allow-listing specific resources</td></tr>
+  <tr><td><code>allowAllRequests</code></td><td>Allow all sub-requests from a document or frame</td><td>White-list entire domains</td></tr>
+</table>
+
+<h3>Static vs Dynamic Rules</h3>
+
+<pre><span class="cm">// Static rules: declared in manifest.json, loaded from dnr_rules.json</span>
+<span class="cm">// Evaluated at install time. No runtime code needed.</span>
+<span class="cm">// Quota: up to 30,000 rules per extension</span>
+
+<span class="cm">// Dynamic rules: managed via API at runtime</span>
+<span class="kw">await</span> chrome.declarativeNetRequest.<span class="fn">updateDynamicRules</span>({
+  addRules: [{
+    id: <span class="num">100</span>, priority: <span class="num">1</span>,
+    action: { type: <span class="str">'block'</span> },
+    condition: { urlFilter: <span class="str">'||tracker.example.com^'</span>, resourceTypes: [<span class="str">'script'</span>] }
+  }],
+  removeRuleIds: [<span class="num">99</span>] <span class="cm">// remove old rule if it exists</span>
+});
+<span class="cm">// Dynamic rules quota: 5,000 rules. Survive extension updates.</span>
+
+<span class="cm">// Session rules: cleared on browser restart</span>
+<span class="kw">await</span> chrome.declarativeNetRequest.<span class="fn">updateSessionRules</span>({ addRules: [...] });
+<span class="cm">// Session rules quota: 5,000. Use for per-session overrides.</span></pre>
+
+<h2>Priority and Conflict Resolution</h2>
+
+<p>Multiple rules can match the same request. Chrome resolves conflicts using priority + action precedence:</p>
+
+<pre><span class="cm">// Priority 3 allow beats priority 1 block — user's allow-list wins</span>
+{ id: 1, priority: 1, action: { type: 'block'  }, condition: { urlFilter: '||ads.com^' } }
+{ id: 2, priority: 3, action: { type: 'allow'  }, condition: { urlFilter: '||ads.com/cdn^' } }
+<span class="cm">// Result: ads.com/cdn/* is allowed; all other ads.com/* is blocked</span>
+
+<span class="cm">// If priorities are equal, Chrome uses action precedence:</span>
+<span class="cm">// allow > allowAllRequests > block > redirect > modifyHeaders</span></pre>
+
+<div class="callout red">
+  <p><strong>The modifyHeaders action does not apply to cross-origin response headers.</strong> You can modify request headers (what you send) and same-origin response headers. Modifying Cross-Origin response headers (e.g., adding CORS headers to a third-party API) requires the `declarativeNetRequestWithHostAccess` permission and host permissions for the target origin.</p>
+</div>
+
+<h2>webNavigation — Observation Without Blocking</h2>
+
+<p>While DNR handles interception, `chrome.webNavigation` handles observation. It fires events at each stage of the browser's navigation lifecycle. NeuralTab uses three of them:</p>
+
+<pre><span class="cm">// Fires when a navigation is about to begin (before any network request)</span>
+chrome.webNavigation.onBeforeNavigate.<span class="fn">addListener</span>(details => {
+  <span class="kw">if</span> (details.frameId === <span class="num">0</span>) <span class="cm">// main frame only — excludes iframes</span>
+    <span class="fn">logNetworkEvent</span>(<span class="str">'beforenavigate'</span>, details.url);
+});
+
+<span class="cm">// Fires when navigation is committed (page starts loading)</span>
+chrome.webNavigation.onCommitted.<span class="fn">addListener</span>(details => { <span class="cm">/* ... */</span> });
+
+<span class="cm">// Fires when navigation is fully complete (all resources loaded)</span>
+chrome.webNavigation.onCompleted.<span class="fn">addListener</span>(details => { <span class="cm">/* ... */</span> });
+
+<span class="cm">// Fires when navigation fails (network error, block, etc.)</span>
+chrome.webNavigation.onErrorOccurred.<span class="fn">addListener</span>(details => { <span class="cm">/* ... */</span> });</pre>
+
+<p>The `details` object contains: `tabId`, `frameId`, `url`, `timeStamp`, `transitionType` (link/typed/auto_subframe/etc.), and `transitionQualifiers`.</p>
+
+<p>NeuralTab stores navigation events in `chrome.storage.local` (capped at 500) and displays them in the Network Monitor via `storage.onChanged`. This is the same Pattern 4 (storage pub/sub) from Module 06, applied to network telemetry.</p>
+
+<h2>Testing DNR Rules</h2>
+
+<p>Unlike JavaScript code that you can set breakpoints in, DNR rules are opaque — when they fire, nothing in your JavaScript context runs. Testing requires external tools:</p>
+
+<pre><span class="cm"># In Chrome DevTools → Network tab:</span>
+<span class="cm"># Filter by "blocked" to see requests killed by DNR</span>
+<span class="cm"># Right-click a request → "View request details" shows which rule ID blocked it</span>
+
+<span class="cm"># chrome://net-internals/#events shows raw DNR rule matches</span>
+
+<span class="cm"># In the extension's background console:</span>
+<span class="kw">const</span> matched = <span class="kw">await</span> chrome.declarativeNetRequest.<span class="fn">testMatchOutcome</span>({
+  url:          <span class="str">'https://doubleclick.net/ad.js'</span>,
+  initiator:    <span class="str">'https://example.com'</span>,
+  type:         <span class="str">'script'</span>,
+  tabId:        chrome.tabs.TAB_ID_NONE,
+  frameId:      chrome.tabs.TAB_ID_NONE
+});
+<span class="cm">// Returns: { matchedRule: { ruleId: 1, rulesetId: 'neuraltab_rules' } }</span></pre>
+
+<div class="callout cyan">
+  <p><strong>declarativeNetRequestFeedback permission:</strong> Required to use `testMatchOutcome()` and to get rule match information via `onRuleMatchedDebug`. This is a developer-facing permission — the Chrome Web Store displays a warning to users if your published extension includes it. Remove it from production builds and only use it during development.</p>
+</div>
+
+<hr/>
+
+<div class="exercise-box">
+  <div class="ex-title">Exercise 1 — Watch a Block in Action</div>
+  <div class="ex-body">
+    <ol>
+      <li>Load the extension. Open the Network Monitor (popup → Network button, or direct URL).</li>
+      <li>Navigate to any major news site (nytimes.com, theguardian.com, etc.).</li>
+      <li>Open the Network Monitor. <strong>Observe:</strong> The beforenavigate event appears immediately when you click a link, before the page loads.</li>
+      <li>Open DevTools on the news site → Network tab → filter by "blocked". <strong>Observe:</strong> Requests to doubleclick.net appear with a red blocked status.</li>
+      <li>In the DevTools Network tab, right-click one blocked request → "View matching extension rules". Chrome shows which rule ID matched.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="exercise-box">
+  <div class="ex-title">Exercise 2 — Add a Custom Block Rule</div>
+  <div class="ex-body">
+    <ol>
+      <li>Open <code>dnr_rules.json</code>. Add a rule with id=6 that blocks all requests to <code>||facebook.com/tr</code> (Facebook tracking pixel).</li>
+      <li>Rebuild and reload the extension.</li>
+      <li>In the background console, call: <code>chrome.declarativeNetRequest.testMatchOutcome({ url: 'https://www.facebook.com/tr?id=123', type: 'image', initiator: 'https://example.com', tabId: -1, frameId: -1 })</code></li>
+      <li><strong>Observe:</strong> The response shows <code>matchedRule: { ruleId: 6, rulesetId: 'neuraltab_rules' }</code>.</li>
+      <li><strong>Thought experiment:</strong> Why does the Facebook tracking pixel appear on thousands of websites that have nothing to do with Facebook? What are they tracking?</li>
+    </ol>
+  </div>
+</div>
+
+<div class="exercise-box">
+  <div class="ex-title">Exercise 3 — Dynamic Rule via Console</div>
+  <div class="ex-body">
+    <ol>
+      <li>Open the extension's background service worker console (<code>chrome://extensions</code> → NeuralTab → Inspect Views: service worker).</li>
+      <li>Run: <code>await chrome.declarativeNetRequest.updateDynamicRules({ addRules: [{ id: 100, priority: 1, action: { type: 'block' }, condition: { urlFilter: '||twitter.com/i/api^', resourceTypes: ['xmlhttprequest'] } }] })</code></li>
+      <li>Navigate to twitter.com. <strong>Observe:</strong> The timeline fails to load. API calls to twitter.com/i/api/* are blocked.</li>
+      <li>Remove the rule: <code>await chrome.declarativeNetRequest.updateDynamicRules({ removeRuleIds: [100] })</code></li>
+      <li>Reload twitter.com. <strong>Observe:</strong> Timeline loads again.</li>
+      <li><strong>Write:</strong> What is the difference between a dynamic rule you just added and the static rules in dnr_rules.json? Which survives an extension update? Which survives a browser restart?</li>
+    </ol>
+  </div>
+</div>
+
+<div class="callout gold" style="margin-top:40px;">
+  <p><strong>Coming up in Module 10 — V8 Engine & Isolated Worlds:</strong> You have been injecting content scripts for several modules. In Module 10, we go deeper: why content scripts cannot read the page's JavaScript variables, how Chrome's V8 engine creates separate heaps for the page world and the isolated world, and how to deliberately cross that boundary using <code>chrome.scripting.executeScript</code> with <code>world: 'MAIN'</code>.</p>
+</div>
+
+</div>
+</body>
+</html>
