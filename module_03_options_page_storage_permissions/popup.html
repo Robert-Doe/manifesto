@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <div class="header">
+    <div class="logo">
+      <span class="logo-icon">⚡</span>
+      <span class="logo-text">NeuralTab</span>
+    </div>
+    <span class="version-badge">v0.3.0</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="section">
+    <div class="section-label">ACTIVE TAB</div>
+    <div class="url-box">
+      <span class="url-icon">🔗</span>
+      <span id="current-url" class="url-text">Loading...</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">QUICK SETTINGS</div>
+
+    <div class="quick-row">
+      <span class="quick-label">Highlight colour</span>
+      <div class="quick-color-wrap">
+        <input type="color" id="qs-color" class="quick-color" />
+        <span id="qs-color-hex" class="quick-color-hex">#f5c842</span>
+      </div>
+    </div>
+
+    <div class="quick-row">
+      <span class="quick-label">Show button</span>
+      <label class="toggle">
+        <input type="checkbox" id="qs-visible" checked />
+        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+      </label>
+    </div>
+
+    <div class="quick-row">
+      <span class="quick-label">Summaries total</span>
+      <span class="quick-stat" id="qs-summaries">—</span>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <div class="section-label">PAGE ACTIONS</div>
+    <div class="action-grid">
+      <button class="btn btn-cyan"   id="btn-highlight">Highlight</button>
+      <button class="btn btn-red"    id="btn-clear">Clear</button>
+      <button class="btn btn-gold"   id="btn-settings">Settings</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    Module 03 of 25 — Options, Storage &amp; Permissions
+  </div>
+
+  <script src="storage_manager.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

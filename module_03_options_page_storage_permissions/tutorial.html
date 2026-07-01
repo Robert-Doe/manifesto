@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab — Module 03: Options Page, chrome.storage & Permissions UX</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;0,900;1,400&family=Source+Code+Pro:wght@400;600&display=swap');
+
+    :root {
+      --bg:       #0b0f1a;
+      --bg2:      #0f1623;
+      --card:     #141c2e;
+      --card2:    #1a2540;
+      --border:   #1e3a5f;
+      --gold:     #f5c842;
+      --gold2:    #e0a800;
+      --cyan:     #38bdf8;
+      --purple:   #a78bfa;
+      --green:    #4ade80;
+      --red:      #f87171;
+      --orange:   #fb923c;
+      --text:     #e2e8f0;
+      --muted:    #7a9bbf;
+      --code-bg:  #060d1a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Lato', sans-serif;
+      font-size: 16px;
+      line-height: 1.85;
+    }
+
+    /* ── layout ── */
+    .page-wrap { max-width: 900px; margin: 0 auto; padding: 48px 28px 96px; }
+
+    /* ── module badge + hero ── */
+    .module-badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 24px; padding: 6px 18px;
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      color: var(--muted); text-transform: uppercase; margin-bottom: 28px;
+    }
+    .module-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
+    .hero-title {
+      font-size: 42px; font-weight: 900; line-height: 1.2;
+      color: var(--gold); margin-bottom: 10px;
+    }
+    .hero-sub {
+      font-size: 19px; color: var(--cyan); margin-bottom: 20px; font-weight: 700;
+    }
+    .hero-desc {
+      font-size: 16px; color: var(--text); max-width: 700px;
+      margin-bottom: 36px; line-height: 1.9;
+    }
+
+    /* ── section headings ── */
+    h2 {
+      font-size: 26px; font-weight: 900; color: var(--gold);
+      margin: 60px 0 16px; padding-bottom: 8px;
+      border-bottom: 2px solid var(--border);
+    }
+    h3 { font-size: 19px; font-weight: 700; color: var(--cyan); margin: 36px 0 12px; }
+    h4 { font-size: 15px; font-weight: 700; color: var(--purple); margin: 24px 0 8px; text-transform: uppercase; letter-spacing: 0.8px; }
+
+    p { margin-bottom: 18px; }
+    strong { color: var(--gold); }
+    em { color: var(--cyan); font-style: italic; }
+
+    /* ── info cards ── */
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 10px; padding: 24px 28px; margin: 24px 0;
+    }
+    .card.gold  { border-color: var(--gold2);   background: #1a160a; }
+    .card.cyan  { border-color: var(--cyan);     background: #0a1520; }
+    .card.green { border-color: var(--green);    background: #091510; }
+    .card.red   { border-color: var(--red);      background: #160a0a; }
+    .card.purple{ border-color: var(--purple);   background: #120a1a; }
+    .card-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+    .card.gold   .card-label { color: var(--gold); }
+    .card.cyan   .card-label { color: var(--cyan); }
+    .card.green  .card-label { color: var(--green); }
+    .card.red    .card-label { color: var(--red); }
+    .card.purple .card-label { color: var(--purple); }
+
+    /* ── code blocks ── */
+    pre {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 20px 24px;
+      font-family: 'Source Code Pro', monospace; font-size: 13px;
+      line-height: 1.7; overflow-x: auto; margin: 18px 0;
+      color: var(--text);
+    }
+    code {
+      font-family: 'Source Code Pro', monospace; font-size: 13px;
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 6px; color: var(--cyan);
+    }
+    pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+
+    /* syntax highlights inside pre */
+    .kw  { color: #c792ea; }   /* keyword */
+    .fn  { color: #82aaff; }   /* function */
+    .str { color: #c3e88d; }   /* string */
+    .cmt { color: #546e7a; font-style: italic; } /* comment */
+    .num { color: #f78c6c; }   /* number */
+    .key { color: var(--gold); } /* object key */
+    .api { color: var(--cyan); } /* chrome API */
+    .gt  { color: var(--green); }
+    .rd  { color: var(--red); }
+
+    /* ── table ── */
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; }
+    th { background: var(--card2); color: var(--gold); font-weight: 700;
+         text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--border); }
+    td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    tr:nth-child(even) td { background: var(--card); }
+
+    /* ── exercises ── */
+    .exercise {
+      background: var(--card); border-left: 4px solid var(--gold);
+      border-radius: 0 10px 10px 0; padding: 20px 24px; margin: 20px 0;
+    }
+    .exercise .ex-label {
+      font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
+      color: var(--gold); text-transform: uppercase; margin-bottom: 8px;
+    }
+    .exercise.core  { border-left-color: var(--cyan); }
+    .exercise.core  .ex-label { color: var(--cyan); }
+    .exercise.stretch { border-left-color: var(--purple); }
+    .exercise.stretch .ex-label { color: var(--purple); }
+
+    /* ── deliverable list ── */
+    .deliverable-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0;
+    }
+    .deliverable-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 16px; font-size: 14px;
+      display: flex; gap: 10px; align-items: flex-start;
+    }
+    .deliverable-item .icon { color: var(--green); font-size: 16px; flex-shrink: 0; }
+
+    /* ── step list ── */
+    .steps { list-style: none; display: flex; flex-direction: column; gap: 14px; margin: 18px 0; }
+    .steps li { display: flex; gap: 14px; align-items: flex-start; }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--gold); color: #000; font-weight: 900;
+      font-size: 13px; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+
+    /* ── diagram boxes ── */
+    .diagram {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 24px; font-family: 'Source Code Pro', monospace;
+      font-size: 13px; line-height: 1.9; margin: 18px 0; overflow-x: auto;
+    }
+    .d-box {
+      display: inline-block; border: 1px solid var(--border);
+      border-radius: 6px; padding: 4px 12px; background: var(--card);
+    }
+    .d-gold   { border-color: var(--gold);   color: var(--gold); }
+    .d-cyan   { border-color: var(--cyan);   color: var(--cyan); }
+    .d-purple { border-color: var(--purple); color: var(--purple); }
+    .d-green  { border-color: var(--green);  color: var(--green); }
+    .d-orange { border-color: var(--orange); color: var(--orange); }
+
+    /* ── what's next ── */
+    .next-card {
+      background: linear-gradient(135deg, #0f1e35 0%, #1a0f35 100%);
+      border: 1px solid var(--purple); border-radius: 12px;
+      padding: 28px 32px; margin-top: 60px;
+    }
+    .next-card h3 { color: var(--purple); margin-top: 0; }
+
+    /* ── spec ref ── */
+    .spec-ref {
+      display: inline-block; background: var(--card);
+      border: 1px solid var(--border); border-radius: 6px;
+      font-size: 12px; padding: 3px 10px; color: var(--muted);
+      font-family: 'Source Code Pro', monospace; margin: 2px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border); margin-top: 80px;
+      padding-top: 24px; text-align: center;
+      font-size: 13px; color: var(--muted);
+    }
+
+    @media (max-width: 640px) {
+      .deliverable-grid { grid-template-columns: 1fr; }
+      .hero-title { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- ── HERO ── -->
+  <div class="module-badge"><span class="dot"></span> MODULE 03 OF 25 — NEURALTAB</div>
+  <h1 class="hero-title">Options Page, chrome.storage<br>& Permissions UX Psychology</h1>
+  <p class="hero-sub">The difference between a toy and a product: persistent, reactive, user-controlled settings.</p>
+  <p class="hero-desc">
+    Modules 01 and 02 built a floating button that could inject UI and read page variables.
+    But every setting — highlight colour, button visibility, minimum word length — was hardcoded.
+    There was no way for the user to customise anything, no way for changes to persist across
+    page loads, and no way for multiple extension contexts (popup, options page, content script)
+    to stay in sync with each other. Module 03 changes all of that. By the time you have worked
+    through this lesson, NeuralTab will have a full settings system, a polished options page,
+    and a permissions UX that follows the same psychological patterns used by the most successful
+    commercial extensions on the Chrome Web Store.
+  </p>
+
+  <!-- ── PREREQUISITES ── -->
+  <div class="card gold">
+    <div class="card-label">Prerequisites</div>
+    <p style="margin-bottom:0;">
+      You must have completed Modules 01 and 02, including running the extension in Chrome and
+      confirming that the content script's floating button appears, the word counter works,
+      and the world-0 injection sends data via postMessage. This module builds directly on
+      top of those files — every file here is a cumulative edit of its Module 02 counterpart.
+    </p>
+  </div>
+
+  <!-- ── DELIVERABLES ── -->
+  <h2>What You Will Build</h2>
+  <div class="deliverable-grid">
+    <div class="deliverable-item"><span class="icon">✓</span><span><strong>StorageManager</strong> — a typed abstraction layer over chrome.storage.local with defaults, quota checking, and reactive change events</span></div>
+    <div class="deliverable-item"><span class="icon">✓</span><span><strong>options.html / options.css / options.js</strong> — a full-page settings UI with 5 sections: Appearance, Behaviour, Permissions, Storage, About</span></div>
+    <div class="deliverable-item"><span class="icon">✓</span><span><strong>Optional Permissions UI</strong> — warm-ask pattern for tabs, bookmarks, and history permissions with Grant/Revoke buttons</span></div>
+    <div class="deliverable-item"><span class="icon">✓</span><span><strong>Live cross-context sync</strong> — change a setting in the options page; see it take effect in the content script and popup instantly without any page reload</span></div>
+    <div class="deliverable-item"><span class="icon">✓</span><span><strong>Quick Settings in popup</strong> — colour picker and toggle that write directly to storage</span></div>
+    <div class="deliverable-item"><span class="icon">✓</span><span><strong>Storage quota display</strong> — visual indicator of bytes used vs 10MB limit, plus export to JSON</span></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       CONCEPT 1: WHY chrome.storage — NOT localStorage
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 1 — Why chrome.storage and Not localStorage?</h2>
+
+  <p>
+    Almost every beginner's first instinct is to use <code>localStorage</code> for persistence.
+    It is synchronous, simple, and it works in the browser — so why not? The answer is in how
+    storage is partitioned. The browser partitions <code>localStorage</code> by <strong>origin</strong>.
+    Your popup and options page run at the origin <code>chrome-extension://[extensionId]/</code>.
+    Your content script is injected into <code>https://example.com/</code>. Even though the
+    content script's JavaScript runs inside your extension's process, it is injected into a
+    page at a different origin — which means if your content script writes to
+    <code>localStorage</code>, it writes to <em>that page's</em> localStorage partition, not
+    your extension's.
+  </p>
+  <p>
+    The popup cannot read from a page's localStorage without first scripting into that page.
+    The options page cannot either. If you had three browser tabs open with three different
+    websites, each content script would read from a completely different localStorage. There is
+    no shared store. This is fatal for any feature that needs to know a setting regardless of
+    which page it is running on.
+  </p>
+  <p>
+    <code>chrome.storage</code> is different in a fundamental way: it is <strong>extension-scoped</strong>.
+    Every context inside your extension — popup, options page, content scripts on any page,
+    background worker, side panel — reads and writes the same key-value database. The origin of
+    the host page is irrelevant. This is the only API that can serve as a shared source of truth
+    across all extension contexts.
+  </p>
+
+  <div class="diagram">
+<span class="d-gold d-box">popup.html</span>       chrome-extension://id/popup.html
+<span class="d-cyan d-box">options.html</span>     chrome-extension://id/options.html
+<span class="d-purple d-box">content.js</span>      injected into https://news.ycombinator.com
+<span class="d-purple d-box">content.js</span>      injected into https://github.com
+<span class="d-green d-box">background.js</span>   service worker
+
+          ALL of these access the same chrome.storage.local database.
+          localStorage would give each a DIFFERENT partition.
+  </div>
+
+  <h3>The Three Storage Tiers</h3>
+  <p>
+    <code>chrome.storage</code> has three separate stores, each designed for different use cases.
+    Mixing them up is a common source of subtle bugs.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Store</th>
+        <th>Quota</th>
+        <th>Persists across restart?</th>
+        <th>Syncs across devices?</th>
+        <th>Use for</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>chrome.storage.local</code></td>
+        <td>10 MB</td>
+        <td>Yes</td>
+        <td>No</td>
+        <td>All NeuralTab settings, history, cached data</td>
+      </tr>
+      <tr>
+        <td><code>chrome.storage.sync</code></td>
+        <td>100 KB total / 8 KB per item</td>
+        <td>Yes</td>
+        <td>Yes — across all Chrome profiles with same Google account</td>
+        <td>User preferences that should follow them across machines (tiny data only)</td>
+      </tr>
+      <tr>
+        <td><code>chrome.storage.session</code></td>
+        <td>10 MB</td>
+        <td>No — cleared when browser closes</td>
+        <td>No</td>
+        <td>Per-session ephemeral state: "user dismissed tutorial", "current request in flight"</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    NeuralTab uses <code>chrome.storage.local</code> for everything in this module. We
+    introduce <code>chrome.storage.session</code> in Module 07 for caching DOM analysis
+    results so we do not re-process a page if the user clicks Summarize twice.
+    <code>chrome.storage.sync</code> is seductive but dangerous — the 8 KB per-item limit
+    means you cannot store a list of blocked domains there without careful chunking. We cover
+    sync chunking strategies in Module 07 as well.
+  </p>
+
+  <h3>The Asynchronous Requirement</h3>
+  <p>
+    Every <code>chrome.storage</code> operation is asynchronous. There is no synchronous
+    variant. This is by design: writes are committed to SQLite on disk, which cannot happen
+    on the main thread without freezing the browser's rendering pipeline. The consequence for
+    your code is that you cannot read a setting at the top level of a content script and use
+    it immediately. You must structure your code around <code>async/await</code>:
+  </p>
+<pre><span class="cmt">// ✗ WRONG — cannot read storage synchronously at top level</span>
+<span class="kw">const</span> settings = <span class="api">chrome.storage.local</span>.<span class="fn">get</span>(<span class="str">'highlightColor'</span>); <span class="cmt">// returns a Promise</span>
+<span class="fn">highlight</span>(settings); <span class="cmt">// settings is a Promise object, not the value</span>
+
+<span class="cmt">// ✓ CORRECT — use async init() and await the result</span>
+<span class="kw">async function</span> <span class="fn">init</span>() {
+  <span class="kw">const</span> settings = <span class="kw">await</span> <span class="api">chrome.storage.local</span>.<span class="fn">get</span>({ <span class="key">highlightColor</span>: <span class="str">'#f5c842'</span> });
+  <span class="fn">highlight</span>(settings.highlightColor); <span class="cmt">// now this is the actual colour string</span>
+}
+<span class="fn">init</span>();</pre>
+
+  <p>
+    The <code>get()</code> call in the correct version passes an object as the argument. This
+    object serves double duty as both the list of keys to read AND the default values to use
+    if those keys do not exist in storage yet. This is how Chrome's storage API handles
+    defaults natively — no <code>if (value === undefined)</code> guards needed.
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       CONCEPT 2: StorageManager
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 2 — The StorageManager Abstraction</h2>
+
+  <p>
+    Calling <code>chrome.storage.local.get()</code> and <code>.set()</code> directly throughout
+    your codebase creates a fragile system. The default values are duplicated wherever you read
+    a key. The key strings are scattered across files. There is no single place to see "what
+    settings does this extension have?" StorageManager solves all of this.
+  </p>
+
+  <h3>The DEFAULTS Object — Your Single Source of Truth</h3>
+<pre><span class="kw">const</span> DEFAULTS = {
+  <span class="key">highlightColor</span>:  <span class="str">'#f5c842'</span>,   <span class="cmt">// gold — matches NeuralTab brand</span>
+  <span class="key">highlightMinLen</span>: <span class="num">8</span>,            <span class="cmt">// highlight words ≥ 8 chars</span>
+  <span class="key">buttonVisible</span>:  <span class="kw">true</span>,         <span class="cmt">// show the floating ⚡ button</span>
+  <span class="key">buttonPosition</span>: <span class="str">'bottom-right'</span>,
+  <span class="key">readingSpeed</span>:   <span class="num">200</span>,           <span class="cmt">// words per minute</span>
+  <span class="key">blockedDomains</span>: [],            <span class="cmt">// hostnames where NeuralTab is disabled</span>
+  <span class="key">theme</span>:          <span class="str">'dark'</span>,
+  <span class="key">clickCount</span>:     <span class="num">0</span>,
+  <span class="key">installDate</span>:    <span class="kw">null</span>,
+  <span class="key">totalSummaries</span>: <span class="num">0</span>,
+};</pre>
+
+  <p>
+    Every setting lives here once. The default value is self-documenting. When you add a new
+    setting in a later module, you add it here and every existing read immediately gets the
+    correct default without any migration code. Chrome's storage API merges this object with
+    stored values when you call <code>get(DEFAULTS)</code> — the stored value wins for keys
+    that exist, the default wins for keys that don't.
+  </p>
+
+  <h3>get() — Reading Settings with Defaults</h3>
+<pre><span class="kw">const</span> StorageManager = {
+  DEFAULTS,
+
+  <span class="kw">async</span> <span class="fn">get</span>(keys = <span class="kw">null</span>) {
+    <span class="kw">if</span> (keys === <span class="kw">null</span>) {
+      <span class="cmt">// No argument → return all settings with defaults merged</span>
+      <span class="kw">return</span> <span class="api">chrome.storage.local</span>.<span class="fn">get</span>(DEFAULTS);
+    }
+    <span class="cmt">// Specific keys requested — build a partial defaults object</span>
+    <span class="kw">const</span> subset = {};
+    (<span class="kw">Array</span>.<span class="fn">isArray</span>(keys) ? keys : [keys]).<span class="fn">forEach</span>(k => {
+      <span class="kw">if</span> (k <span class="kw">in</span> DEFAULTS) subset[k] = DEFAULTS[k];
+    });
+    <span class="kw">return</span> <span class="api">chrome.storage.local</span>.<span class="fn">get</span>(subset);
+  },
+  <span class="cmt">// ... set, reset, onChange, etc.</span>
+};</pre>
+
+  <p>
+    Notice that <code>get()</code> with no arguments reads ALL settings in a single
+    <code>chrome.storage.local.get()</code> call. This is deliberately efficient: one
+    storage read on page load fetches everything, and the result is used throughout the
+    session. Making individual storage reads for each setting is wasteful — each call
+    is an async database query.
+  </p>
+
+  <h3>onChange() — The Pub/Sub Bridge Between Contexts</h3>
+<pre><span class="fn">onChange</span>(callback) {
+  <span class="api">chrome.storage.onChanged</span>.<span class="fn">addListener</span>((changes, areaName) => {
+    <span class="kw">if</span> (areaName !== <span class="str">'local'</span>) <span class="kw">return</span>; <span class="cmt">// ignore sync/session changes</span>
+    <span class="cmt">// Chrome gives us: { keyName: { oldValue, newValue } }</span>
+    <span class="cmt">// We flatten to: { keyName: newValue } for simpler consumers</span>
+    <span class="kw">const</span> newValues = {};
+    <span class="kw">for</span> (<span class="kw">const</span> [key, change] <span class="kw">of</span> <span class="kw">Object</span>.<span class="fn">entries</span>(changes)) {
+      newValues[key] = change.newValue;
+    }
+    <span class="fn">callback</span>(newValues, changes);
+  });
+},</pre>
+
+  <p>
+    <code>chrome.storage.onChanged</code> is Chrome's built-in reactive pub/sub mechanism
+    for storage. It fires in <em>every</em> extension context simultaneously — the popup,
+    the options page, every content script in every tab — whenever any value changes.
+    The callback receives both the old and the new value, which is essential for knowing
+    <em>what</em> changed so you can apply only the necessary DOM update rather than
+    re-rendering the entire UI.
+  </p>
+
+  <div class="diagram">
+User changes highlight colour in options.html
+
+  options.js calls: chrome.storage.local.set({ highlightColor: '#38bdf8' })
+
+Chrome fires chrome.storage.onChanged in ALL contexts simultaneously:
+
+  ┌──────────────────────────────────────┐
+  │  popup.js onChange listener          │
+  │  → updates colour picker to #38bdf8  │
+  └──────────────────────────────────────┘
+  ┌──────────────────────────────────────┐
+  │  content.js onChange listener        │
+  │  → re-highlights words in #38bdf8    │
+  │  (NO page reload required)           │
+  └──────────────────────────────────────┘
+  ┌──────────────────────────────────────┐
+  │  options.js onChange listener        │
+  │  → updates the live preview box      │
+  └──────────────────────────────────────┘
+  </div>
+
+  <p>
+    This single mechanism replaces what would otherwise require polling, a message-passing
+    protocol between contexts, or page reloads. It is one of the most powerful primitives in
+    the Chrome extension API, and it is drastically underused by beginner extension developers.
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       CONCEPT 3: OPTIONS PAGE ANATOMY
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 3 — Options Page Anatomy</h2>
+
+  <h3>How Chrome Integrates the Options Page</h3>
+  <p>
+    Declaring <code>"options_page": "options.html"</code> in the manifest tells Chrome to
+    integrate your options page into its extensions UI. This gives the user three ways to
+    reach it:
+  </p>
+  <ul class="steps">
+    <li><div class="step-num">1</div><div><strong>Right-click the toolbar icon</strong> → select "Options". Available only if <code>options_page</code> is declared. Missing this declaration is the #1 reason developers wonder "where did the Options menu item go?"</div></li>
+    <li><div class="step-num">2</div><div><strong>chrome://extensions → Details → Extension options</strong>. Always available after installation.</div></li>
+    <li><div class="step-num">3</div><div><strong>Programmatically from your extension</strong> via <code>chrome.runtime.openOptionsPage()</code>. This is what NeuralTab's popup's Settings button calls.</div></li>
+  </ul>
+
+  <p>
+    The options page is just an HTML page hosted at <code>chrome-extension://[id]/options.html</code>.
+    It has full access to all extension APIs — the same as popup.html. The key difference is
+    lifecycle: the popup is destroyed every time the user clicks away; the options page persists
+    until the user explicitly closes the tab.
+  </p>
+
+  <h3>The options_page vs options_ui Choice</h3>
+<pre><span class="cmt">// Option A — opens in a new tab (what NeuralTab uses)</span>
+{
+  <span class="key">"options_page"</span>: <span class="str">"options.html"</span>
+}
+
+<span class="cmt">// Option B — embeds inside chrome://extensions (small fixed iframe)</span>
+{
+  <span class="key">"options_ui"</span>: {
+    <span class="key">"page"</span>: <span class="str">"options.html"</span>,
+    <span class="key">"open_in_tab"</span>: <span class="kw">false</span>
+  }
+}
+
+<span class="cmt">// Option C — equivalent to options_page but more explicit API</span>
+{
+  <span class="key">"options_ui"</span>: {
+    <span class="key">"page"</span>: <span class="str">"options.html"</span>,
+    <span class="key">"open_in_tab"</span>: <span class="kw">true</span>
+  }
+}</pre>
+
+  <p>
+    <code>options_ui</code> with <code>open_in_tab: false</code> was introduced to reduce
+    context-switching for simple extensions. The tradeoff is a fixed viewport of roughly
+    640×480px inside the Extensions panel — no sidebar navigation, no charts, no room for
+    permission cards. NeuralTab's options page is too rich for that constraint, so we use
+    <code>options_page</code> for full-page layout.
+  </p>
+
+  <h3>Autosave — The Correct Pattern for Settings Pages</h3>
+  <p>
+    NeuralTab's options page has no Save button. Every setting is saved the instant the user
+    interacts with its control. This is not laziness — it is the correct UX pattern for a
+    settings page backed by an async, durable store.
+  </p>
+<pre><span class="cmt">// Colour picker — save immediately on every colour change</span>
+document.<span class="fn">getElementById</span>(<span class="str">'highlight-color'</span>).<span class="fn">addEventListener</span>(<span class="str">'input'</span>, <span class="kw">async</span> (e) => {
+  <span class="kw">await</span> StorageManager.<span class="fn">set</span>({ <span class="key">highlightColor</span>: e.target.value });
+  <span class="fn">updatePreview</span>(e.target.value);
+  <span class="cmt">// chrome.storage.onChanged fires in content script → highlights update live</span>
+});
+
+<span class="cmt">// Textarea — debounce to avoid saving on every keystroke</span>
+<span class="kw">let</span> debounceTimer;
+document.<span class="fn">getElementById</span>(<span class="str">'blocked-domains'</span>).<span class="fn">addEventListener</span>(<span class="str">'input'</span>, (e) => {
+  <span class="fn">clearTimeout</span>(debounceTimer);
+  debounceTimer = <span class="fn">setTimeout</span>(<span class="kw">async</span> () => {
+    <span class="kw">const</span> domains = e.target.value
+      .<span class="fn">split</span>(<span class="str">'\n'</span>)
+      .<span class="fn">map</span>(d => d.<span class="fn">trim</span>().<span class="fn">toLowerCase</span>())
+      .<span class="fn">filter</span>(Boolean);
+    <span class="kw">await</span> StorageManager.<span class="fn">set</span>({ <span class="key">blockedDomains</span>: domains });
+  }, <span class="num">400</span>); <span class="cmt">// 400ms debounce — user likely still typing</span>
+});</pre>
+
+  <p>
+    Note the debounce on the textarea. A colour picker emits an <code>input</code> event
+    roughly once every 16ms while the user drags the slider — roughly 60 events per second.
+    Each event triggers a storage write, and each write triggers <code>onChanged</code> in the
+    content script, which re-highlights all words on the page. This is actually fine for the
+    colour picker because the write is cheap and the visual feedback is valuable. But for a
+    textarea where the user types a domain name character by character, saving on every
+    keystroke wastes writes and makes the content script update unnecessarily. The 400ms
+    debounce waits for a natural pause in typing before committing.
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       CONCEPT 4: PERMISSIONS UX PSYCHOLOGY
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 4 — Permissions UX Psychology</h2>
+
+  <p>
+    The Chrome permission model divides permissions into two categories: <strong>required</strong>
+    (declared in <code>"permissions"</code> in the manifest, shown at install time) and
+    <strong>optional</strong> (declared in <code>"optional_permissions"</code>, requested at
+    runtime). The distinction seems technical, but its implications for user acquisition are
+    profound.
+  </p>
+
+  <h3>Why Upfront Permission Requests Fail</h3>
+  <p>
+    When a user installs an extension, they see a modal dialog listing every required permission.
+    Chrome's phrasing is deliberately alarming: "Read your browsing history", "Read and change
+    all your data on all websites." Users encounter this dialog at the moment of lowest trust —
+    they just found the extension and have not yet experienced any of its value. Cognitive
+    research on permission dialogs consistently shows that users' primary heuristic when faced
+    with a scary-sounding permission is not "do I trust this extension?" but rather "does the
+    permission sound like it matches what this extension should need?" An ad blocker asking to
+    read all URLs makes sense. A colour-picker extension asking for the same permission is
+    alarming. Extensions that declare too many required permissions at install time see
+    significantly lower install completion rates.
+  </p>
+
+  <h3>The Optional Permission Pattern</h3>
+<pre><span class="cmt">// manifest.json — declare as optional, NOT required</span>
+{
+  <span class="key">"optional_permissions"</span>: [<span class="str">"tabs"</span>, <span class="str">"bookmarks"</span>, <span class="str">"history"</span>]
+}
+
+<span class="cmt">// options.js — check current status</span>
+<span class="kw">async function</span> <span class="fn">checkPermission</span>(name) {
+  <span class="kw">return</span> <span class="api">chrome.permissions</span>.<span class="fn">contains</span>({ permissions: [name] });
+}
+
+<span class="cmt">// options.js — request ONLY from a user gesture (button click)</span>
+grantBtn.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, <span class="kw">async</span> () => {
+  <span class="cmt">// chrome.permissions.request() REQUIRES a user gesture — calling it</span>
+  <span class="cmt">// programmatically from a timeout or promise chain will throw silently</span>
+  <span class="kw">const</span> granted = <span class="kw">await</span> <span class="api">chrome.permissions</span>.<span class="fn">request</span>({ permissions: [<span class="str">'tabs'</span>] });
+  <span class="fn">updatePermissionUI</span>(<span class="str">'tabs'</span>, granted);
+});
+
+<span class="cmt">// options.js — revoke (can be called without a user gesture)</span>
+revokeBtn.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, <span class="kw">async</span> () => {
+  <span class="kw">await</span> <span class="api">chrome.permissions</span>.<span class="fn">remove</span>({ permissions: [<span class="str">'tabs'</span>] });
+  <span class="fn">updatePermissionUI</span>(<span class="str">'tabs'</span>, <span class="kw">false</span>);
+});</pre>
+
+  <div class="card red">
+    <div class="card-label">Critical Constraint</div>
+    <p style="margin-bottom:0;">
+      <code>chrome.permissions.request()</code> <strong>must be called from a user gesture</strong>
+      — a direct event handler for a click, keypress, or similar interaction. If you call it
+      from a Promise chain, a setTimeout, or any code path that is not directly triggered by
+      the user's action, Chrome silently refuses the request and returns <code>false</code>
+      without showing any dialog. This is a security measure that prevents extensions from
+      trigger-harvesting permissions without the user's active participation. The "warm ask"
+      pattern works precisely because the Grant button's click handler is a user gesture.
+    </p>
+  </div>
+
+  <h3>The Three-Step Warm Ask</h3>
+  <p>
+    The warm ask pattern has three steps that must happen in order:
+  </p>
+  <ul class="steps">
+    <li><div class="step-num">1</div><div><strong>Show the value first.</strong> Before the permission card shows a Grant button, it shows a description of exactly what feature the permission enables. "This lets NeuralTab see which tabs you have open so it can build a tab dashboard." The user understands the exchange before being asked to make it.</div></li>
+    <li><div class="step-num">2</div><div><strong>Require deliberate intent.</strong> The Grant button is not shown until the user navigates to the Permissions section of settings — they actively sought out this page. An automatically shown modal would be premature.</div></li>
+    <li><div class="step-num">3</div><div><strong>Degrade gracefully on denial.</strong> If the user clicks Grant and then denies the Chrome dialog, or clicks Revoke later, the feature that uses that permission must fall back cleanly. It must not throw errors or show broken UI.</div></li>
+  </ul>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       CONCEPT 5: LIVE CROSS-CONTEXT SYNC IN PRACTICE
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 5 — Live Cross-Context Sync in Practice</h2>
+
+  <p>
+    Let's trace exactly what happens when the user changes the highlight colour in options.html
+    while a page with NeuralTab running is open in another tab.
+  </p>
+
+  <div class="diagram">
+1. User drags colour picker in options.html
+   → options.js: addEventListener('input', handler)
+   → handler calls: StorageManager.set({ highlightColor: '#38bdf8' })
+   → StorageManager.set calls: chrome.storage.local.set({ highlightColor: '#38bdf8' })
+   → Chrome commits write to SQLite database
+
+2. Chrome fires chrome.storage.onChanged in ALL contexts
+   ┌─────────────────────────────────────────────────────────────┐
+   │ In popup.js (if popup is open):                             │
+   │   onChanged receives: { highlightColor: { newValue: '#38bdf8' } }  │
+   │   StorageManager.onChange callback runs                     │
+   │   → quickColor.value = '#38bdf8'                           │
+   │   → hexInput.value   = '#38bdf8'                           │
+   └─────────────────────────────────────────────────────────────┘
+   ┌─────────────────────────────────────────────────────────────┐
+   │ In content.js (on every matching tab):                      │
+   │   onChanged receives: { highlightColor: { newValue: '#38bdf8' } }  │
+   │   StorageManager.onChange callback runs                     │
+   │   → settings.highlightColor = '#38bdf8'                    │
+   │   → clearHighlights() removes old gold highlights          │
+   │   → if panel is visible: highlightLongWords() adds new cyan │
+   └─────────────────────────────────────────────────────────────┘
+   ┌─────────────────────────────────────────────────────────────┐
+   │ In options.js itself:                                       │
+   │   onChanged callback runs                                   │
+   │   → updatePreview('#38bdf8') updates the preview div       │
+   └─────────────────────────────────────────────────────────────┘
+
+3. Zero page reloads. Zero polling. Zero explicit messaging.
+  </div>
+
+  <h3>The content.js onChange Handler</h3>
+<pre><span class="fn">onSettingsChange</span>(changes) {
+  <span class="kw">if</span> (changes.highlightColor !== <span class="kw">undefined</span>) {
+    settings.highlightColor = changes.highlightColor;
+    <span class="cmt">// Only re-highlight if the summary panel is currently visible</span>
+    <span class="kw">if</span> (document.<span class="fn">querySelector</span>(<span class="str">'#neuraltab-host'</span>)?.<span class="fn">shadowRoot</span>
+                 ?.<span class="fn">querySelector</span>(<span class="str">'#summary-panel'</span>)?.style.display !== <span class="str">'none'</span>) {
+      <span class="fn">clearHighlights</span>();
+      <span class="fn">highlightLongWords</span>();
+    }
+  }
+  <span class="kw">if</span> (changes.highlightMinLen !== <span class="kw">undefined</span>) {
+    settings.highlightMinLen = changes.highlightMinLen;
+  }
+  <span class="kw">if</span> (changes.buttonVisible !== <span class="kw">undefined</span>) {
+    settings.buttonVisible = changes.buttonVisible;
+    <span class="kw">const</span> host = document.<span class="fn">getElementById</span>(<span class="str">'neuraltab-host'</span>);
+    <span class="kw">if</span> (host) host.style.display = changes.buttonVisible ? <span class="str">''</span> : <span class="str">'none'</span>;
+  }
+  <span class="kw">if</span> (changes.buttonPosition !== <span class="kw">undefined</span>) {
+    settings.buttonPosition = changes.buttonPosition;
+    <span class="fn">applyButtonPosition</span>(changes.buttonPosition);
+  }
+},</pre>
+
+  <p>
+    The guard checking whether the summary panel is visible before re-highlighting is an
+    important performance consideration. If the user is rapidly dragging the colour picker
+    slider, <code>onChanged</code> fires at ~60 events/second. Running the TreeWalker word
+    highlighter 60 times per second on a large article would cause noticeable jank. The guard
+    ensures we only re-highlight when the panel is visible and the user can actually see the
+    result. We add full highlight debouncing in Module 20's performance optimization pass.
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       ANNOTATED CODE: storage_manager.js
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 6 — Annotated Code: storage_manager.js</h2>
+
+  <p>
+    Let's read through the full StorageManager carefully, paying attention to every design
+    choice. The full file is ~80 lines. Study it until you understand why each line exists.
+  </p>
+
+<pre><span class="cmt">// storage_manager.js — NeuralTab Module 03
+// Loaded by: content scripts (via manifest), popup.html, options.html</span>
+
+<span class="cmt">// ① DEFAULTS is the schema of our storage.
+//   Adding a new setting here is the ONLY place you need to touch.
+//   chrome.storage.local.get(DEFAULTS) returns the default for any key
+//   that hasn't been explicitly set yet — zero migration code needed.</span>
+<span class="kw">const</span> DEFAULTS = {
+  <span class="key">highlightColor</span>:  <span class="str">'#f5c842'</span>,
+  <span class="key">highlightMinLen</span>: <span class="num">8</span>,
+  <span class="key">buttonVisible</span>:  <span class="kw">true</span>,
+  <span class="key">buttonPosition</span>: <span class="str">'bottom-right'</span>,
+  <span class="key">readingSpeed</span>:   <span class="num">200</span>,
+  <span class="key">blockedDomains</span>: [],
+  <span class="key">theme</span>:          <span class="str">'dark'</span>,
+  <span class="key">clickCount</span>:     <span class="num">0</span>,
+  <span class="key">installDate</span>:    <span class="kw">null</span>,
+  <span class="key">totalSummaries</span>: <span class="num">0</span>,
+};
+
+<span class="kw">const</span> StorageManager = {
+  DEFAULTS,
+
+  <span class="cmt">// ② get(null) → all settings with defaults merged
+  //   get(['a','b']) → just those keys with their defaults
+  //   get('a')       → single key with its default</span>
+  <span class="kw">async</span> <span class="fn">get</span>(keys = <span class="kw">null</span>) {
+    <span class="kw">if</span> (keys === <span class="kw">null</span>) <span class="kw">return</span> <span class="api">chrome.storage.local</span>.<span class="fn">get</span>(DEFAULTS);
+    <span class="kw">const</span> subset = {};
+    (<span class="kw">Array</span>.<span class="fn">isArray</span>(keys) ? keys : [keys]).<span class="fn">forEach</span>(k => {
+      <span class="kw">if</span> (k <span class="kw">in</span> DEFAULTS) subset[k] = DEFAULTS[k];
+    });
+    <span class="kw">return</span> <span class="api">chrome.storage.local</span>.<span class="fn">get</span>(subset);
+  },
+
+  <span class="cmt">// ③ set() wraps chrome.storage.local.set().
+  //   Returns a Promise so callers can await it.
+  //   After the Promise resolves, the write IS durable.</span>
+  <span class="kw">async</span> <span class="fn">set</span>(data) {
+    <span class="kw">return</span> <span class="api">chrome.storage.local</span>.<span class="fn">set</span>(data);
+  },
+
+  <span class="cmt">// ④ reset() restores defaults for either specific keys or ALL keys.
+  //   Useful for the "Reset to defaults" button in the Storage section.</span>
+  <span class="kw">async</span> <span class="fn">reset</span>(keys = <span class="kw">null</span>) {
+    <span class="kw">if</span> (keys === <span class="kw">null</span>) <span class="kw">return</span> <span class="api">chrome.storage.local</span>.<span class="fn">set</span>(DEFAULTS);
+    <span class="kw">const</span> subset = {};
+    (<span class="kw">Array</span>.<span class="fn">isArray</span>(keys) ? keys : [keys]).<span class="fn">forEach</span>(k => {
+      <span class="kw">if</span> (k <span class="kw">in</span> DEFAULTS) subset[k] = DEFAULTS[k];
+    });
+    <span class="kw">return</span> <span class="api">chrome.storage.local</span>.<span class="fn">set</span>(subset);
+  },
+
+  <span class="cmt">// ⑤ getQuota() — returns { used, total, pct } for the UI quota bar.
+  //   getBytesInUse(null) measures ALL keys, not just NeuralTab's.
+  //   In practice this is fine since NeuralTab owns this storage area.</span>
+  <span class="kw">async</span> <span class="fn">getQuota</span>() {
+    <span class="kw">const</span> used = <span class="kw">await</span> <span class="api">chrome.storage.local</span>.<span class="fn">getBytesInUse</span>(<span class="kw">null</span>);
+    <span class="kw">const</span> total = <span class="api">chrome.storage.local</span>.QUOTA_BYTES; <span class="cmt">// 10,485,760 (10 MB)</span>
+    <span class="kw">return</span> { used, total, pct: <span class="kw">Math</span>.<span class="fn">round</span>((used / total) * <span class="num">100</span>) };
+  },
+
+  <span class="cmt">// ⑥ onChange() wraps chrome.storage.onChanged.addListener.
+  //   Filters to 'local' only — we don't want sync/session events.
+  //   Flattens { key: { oldValue, newValue } } → { key: newValue }
+  //   because most callers only need the new value.</span>
+  <span class="fn">onChange</span>(callback) {
+    <span class="api">chrome.storage.onChanged</span>.<span class="fn">addListener</span>((changes, areaName) => {
+      <span class="kw">if</span> (areaName !== <span class="str">'local'</span>) <span class="kw">return</span>;
+      <span class="kw">const</span> newValues = {};
+      <span class="kw">for</span> (<span class="kw">const</span> [key, change] <span class="kw">of</span> <span class="kw">Object</span>.<span class="fn">entries</span>(changes)) {
+        newValues[key] = change.newValue;
+      }
+      <span class="fn">callback</span>(newValues, changes); <span class="cmt">// raw changes available if needed</span>
+    });
+  },
+
+  <span class="cmt">// ⑦ isBlocked() checks if a hostname is in the blocked list.
+  //   Content script calls this before injecting the UI.</span>
+  <span class="kw">async</span> <span class="fn">isBlocked</span>(hostname) {
+    <span class="kw">const</span> { blockedDomains } = <span class="kw">await</span> <span class="kw">this</span>.<span class="fn">get</span>([<span class="str">'blockedDomains'</span>]);
+    <span class="kw">return</span> blockedDomains.<span class="fn">some</span>(d => hostname.<span class="fn">endsWith</span>(d));
+  },
+
+  <span class="cmt">// ⑧ recordSummary() increments the lifetime summary counter.
+  //   Uses a read-then-write pattern. Not atomic — if two contexts
+  //   call this simultaneously, one increment could be lost.
+  //   We address atomic counters with IndexedDB in Module 07.</span>
+  <span class="kw">async</span> <span class="fn">recordSummary</span>() {
+    <span class="kw">const</span> { totalSummaries } = <span class="kw">await</span> <span class="kw">this</span>.<span class="fn">get</span>([<span class="str">'totalSummaries'</span>]);
+    <span class="kw">return</span> <span class="kw">this</span>.<span class="fn">set</span>({ <span class="key">totalSummaries</span>: totalSummaries + <span class="num">1</span> });
+  },
+
+  <span class="fn">_formatBytes</span>(bytes) {
+    <span class="kw">if</span> (bytes < <span class="num">1024</span>) <span class="kw">return</span> bytes + <span class="str">' B'</span>;
+    <span class="kw">if</span> (bytes < <span class="num">1048576</span>) <span class="kw">return</span> (<span class="num">bytes / <span class="num">1024</span></span>).<span class="fn">toFixed</span>(<span class="num">1</span>) + <span class="str">' KB'</span>;
+    <span class="kw">return</span> (<span class="num">bytes / <span class="num">1048576</span></span>).<span class="fn">toFixed</span>(<span class="num">2</span>) + <span class="str">' MB'</span>;
+  },
+};</pre>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       ANNOTATED CODE: options.js Key Sections
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 7 — Annotated Code: options.js Key Sections</h2>
+
+  <h3>Section Navigation</h3>
+<pre><span class="kw">const</span> navLinks = document.<span class="fn">querySelectorAll</span>(<span class="str">'.nav-link'</span>);
+<span class="kw">const</span> sections = document.<span class="fn">querySelectorAll</span>(<span class="str">'.settings-section'</span>);
+
+navLinks.<span class="fn">forEach</span>(link => {
+  link.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, (e) => {
+    e.<span class="fn">preventDefault</span>();
+    <span class="kw">const</span> targetId = link.<span class="fn">getAttribute</span>(<span class="str">'href'</span>).<span class="fn">slice</span>(<span class="num">1</span>);
+    navLinks.<span class="fn">forEach</span>(l => l.<span class="fn">classList</span>.<span class="fn">remove</span>(<span class="str">'active'</span>));
+    sections.<span class="fn">forEach</span>(s => s.<span class="fn">classList</span>.<span class="fn">remove</span>(<span class="str">'active'</span>));
+    link.<span class="fn">classList</span>.<span class="fn">add</span>(<span class="str">'active'</span>);
+    document.<span class="fn">getElementById</span>(targetId).<span class="fn">classList</span>.<span class="fn">add</span>(<span class="str">'active'</span>);
+    <span class="cmt">// Update URL hash so the user can bookmark a specific section</span>
+    history.<span class="fn">replaceState</span>(<span class="kw">null</span>, <span class="str">''</span>, link.<span class="fn">getAttribute</span>(<span class="str">'href'</span>));
+  });
+});
+
+<span class="cmt">// Restore the active section from the URL hash on load</span>
+<span class="kw">const</span> hash = location.hash || <span class="str">'#appearance'</span>;
+<span class="kw">const</span> initial = document.<span class="fn">querySelector</span>(<span class="str">`[href="${hash}"]`</span>);
+<span class="kw">if</span> (initial) initial.<span class="fn">click</span>();</pre>
+
+  <h3>Loading All Settings into the Form</h3>
+<pre><span class="kw">async function</span> <span class="fn">loadSettings</span>() {
+  <span class="cmt">// One storage read fetches everything with defaults merged</span>
+  <span class="kw">const</span> s = <span class="kw">await</span> StorageManager.<span class="fn">get</span>();
+
+  <span class="cmt">// Populate every control from the settings object</span>
+  document.<span class="fn">getElementById</span>(<span class="str">'highlight-color'</span>).value  = s.highlightColor;
+  document.<span class="fn">getElementById</span>(<span class="str">'color-hex'</span>).value        = s.highlightColor;
+  document.<span class="fn">getElementById</span>(<span class="str">'min-len-range'</span>).value    = s.highlightMinLen;
+  document.<span class="fn">getElementById</span>(<span class="str">'min-len-value'</span>).textContent = s.highlightMinLen;
+  document.<span class="fn">getElementById</span>(<span class="str">'btn-position'</span>).value      = s.buttonPosition;
+  document.<span class="fn">getElementById</span>(<span class="str">'btn-visible'</span>).checked    = s.buttonVisible;
+  document.<span class="fn">getElementById</span>(<span class="str">'reading-speed'</span>).value     = s.readingSpeed;
+  document.<span class="fn">getElementById</span>(<span class="str">'speed-value'</span>).textContent  = s.readingSpeed;
+  document.<span class="fn">getElementById</span>(<span class="str">'blocked-domains'</span>).value   = s.blockedDomains.<span class="fn">join</span>(<span class="str">'\n'</span>);
+  <span class="fn">updatePreview</span>(s.highlightColor);
+
+  <span class="cmt">// Populate About section with extension metadata</span>
+  <span class="kw">const</span> mf = <span class="api">chrome.runtime</span>.<span class="fn">getManifest</span>();
+  document.<span class="fn">getElementById</span>(<span class="str">'about-name'</span>).textContent    = mf.name;
+  document.<span class="fn">getElementById</span>(<span class="str">'about-version'</span>).textContent = mf.version;
+  document.<span class="fn">getElementById</span>(<span class="str">'about-install'</span>).textContent =
+    s.installDate ? <span class="kw">new</span> <span class="fn">Date</span>(s.installDate).<span class="fn">toLocaleDateString</span>() : <span class="str">'Today'</span>;
+}</pre>
+
+  <h3>Luminance Check for Preview Text Colour</h3>
+<pre><span class="kw">function</span> <span class="fn">isLightColor</span>(hex) {
+  <span class="cmt">// Parse hex to RGB, compute perceived luminance (ITU-R BT.709)
+  // Values above 0.5 are "light" — use dark text on them</span>
+  <span class="kw">const</span> r = <span class="kw">parseInt</span>(hex.<span class="fn">slice</span>(<span class="num">1</span>,<span class="num">3</span>), <span class="num">16</span>) / <span class="num">255</span>;
+  <span class="kw">const</span> g = <span class="kw">parseInt</span>(hex.<span class="fn">slice</span>(<span class="num">3</span>,<span class="num">5</span>), <span class="num">16</span>) / <span class="num">255</span>;
+  <span class="kw">const</span> b = <span class="kw">parseInt</span>(hex.<span class="fn">slice</span>(<span class="num">5</span>,<span class="num">7</span>), <span class="num">16</span>) / <span class="num">255</span>;
+  <span class="kw">const</span> luminance = <span class="num">0.2126</span> * r + <span class="num">0.7152</span> * g + <span class="num">0.0722</span> * b;
+  <span class="kw">return</span> luminance > <span class="num">0.5</span>;
+}
+
+<span class="kw">function</span> <span class="fn">updatePreview</span>(color) {
+  <span class="kw">const</span> preview = document.<span class="fn">getElementById</span>(<span class="str">'color-preview'</span>);
+  preview.style.background = color;
+  <span class="cmt">// Ensure preview text remains readable regardless of chosen colour</span>
+  preview.style.color = <span class="fn">isLightColor</span>(color) ? <span class="str">'#000'</span> : <span class="str">'#fff'</span>;
+  preview.textContent = color;
+}</pre>
+
+  <p>
+    The luminance formula here is the ITU-R BT.709 weighted average, which reflects how
+    humans perceive brightness differently in each colour channel: green contributes ~72%
+    of perceived brightness, red ~21%, and blue only ~7%. Without weighting, a colour like
+    <code>#0000ff</code> (pure blue) would appear "bright" despite being quite dark visually.
+    With weighting, the formula correctly identifies it as dark and uses white text over it.
+  </p>
+
+  <h3>Storage Export</h3>
+<pre>document.<span class="fn">getElementById</span>(<span class="str">'btn-export'</span>).<span class="fn">addEventListener</span>(<span class="str">'click'</span>, <span class="kw">async</span> () => {
+  <span class="kw">const</span> data = <span class="kw">await</span> StorageManager.<span class="fn">get</span>();
+  <span class="kw">const</span> json = <span class="kw">JSON</span>.<span class="fn">stringify</span>(data, <span class="kw">null</span>, <span class="num">2</span>);
+  <span class="kw">const</span> blob = <span class="kw">new</span> <span class="fn">Blob</span>([json], { type: <span class="str">'application/json'</span> });
+  <span class="kw">const</span> url  = <span class="kw">URL</span>.<span class="fn">createObjectURL</span>(blob);
+  <span class="kw">const</span> a    = document.<span class="fn">createElement</span>(<span class="str">'a'</span>);
+  a.href     = url;
+  a.download = <span class="str">`neuraltab-settings-${new Date().toISOString().slice(0,10)}.json`</span>;
+  a.<span class="fn">click</span>();
+  <span class="kw">URL</span>.<span class="fn">revokeObjectURL</span>(url); <span class="cmt">// release memory — blob URL is no longer needed</span>
+});</pre>
+
+  <p>
+    <code>URL.createObjectURL()</code> creates a temporary <code>blob:</code> URL pointing
+    to the in-memory Blob. The browser treats it like a file download when assigned to an
+    anchor element's <code>href</code> with a <code>download</code> attribute. Calling
+    <code>URL.revokeObjectURL()</code> immediately after the click is important: the object
+    URL holds a reference to the Blob in memory. Without revoking, the Blob remains in
+    memory until the page is closed. For a small JSON file this is trivial, but in Module 07
+    when we export full reading histories (potentially megabytes of data), the revoke call
+    becomes essential for memory hygiene.
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       HOW TO BUILD AND RUN
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 8 — Build and Run</h2>
+
+  <ol class="steps">
+    <li><div class="step-num">1</div><div>Copy all Module 03 files into the same folder you used for Modules 01–02. The Module 03 versions of <code>manifest.json</code>, <code>popup.html</code>, <code>popup.css</code>, <code>popup.js</code>, and <code>content.js</code> replace their Module 02 counterparts. The new files are <code>storage_manager.js</code>, <code>options.html</code>, <code>options.css</code>, and <code>options.js</code>.</div></li>
+    <li><div class="step-num">2</div><div>Open <code>chrome://extensions</code>, enable Developer Mode, click "Load unpacked", select the folder. If NeuralTab was already loaded, click the circular reload arrow next to it instead.</div></li>
+    <li><div class="step-num">3</div><div>Open the demo page (<code>demo/index.html</code>) by dragging it into Chrome or using <code>File → Open File</code>. You should see the gold ⚡ button appear at bottom-right.</div></li>
+    <li><div class="step-num">4</div><div>Right-click the NeuralTab toolbar icon → select "Options". The settings page should open in a new tab. If you see no "Options" item in the menu, the extension did not load the new manifest — force-reload it in chrome://extensions.</div></li>
+    <li><div class="step-num">5</div><div>In the Appearance section, change the highlight colour. Go back to the demo page and click the Summarize button, then click "Highlight words". The highlights should use your new colour without any page reload.</div></li>
+    <li><div class="step-num">6</div><div>In the Behaviour section, toggle "Show button" OFF. Without reloading the demo page, watch the ⚡ button disappear in real time.</div></li>
+    <li><div class="step-num">7</div><div>In the Permissions section, click Grant next to "Read all tab URLs". Chrome shows a permission dialog. Grant it, then Revoke it, and observe the button label change.</div></li>
+    <li><div class="step-num">8</div><div>In the Storage section, note the quota display. Click Export — a JSON file should download with today's date in the filename.</div></li>
+  </ol>
+
+  <div class="card green">
+    <div class="card-label">Verification</div>
+    <p style="margin-bottom:0;">
+      Every item in the demo page's verification checklist should now pass. The most
+      important ones are the live-update tests (steps 5 and 6 above) — if the content script
+      does not react to storage changes in real time, check that <code>storage_manager.js</code>
+      is listed before <code>content.js</code> in the <code>content_scripts.js</code> array
+      in <code>manifest.json</code>. If the options page doesn't open from right-click, verify
+      the manifest declares <code>"options_page": "options.html"</code> (not <code>options_ui</code>).
+    </p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       COMMON MISTAKES
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 9 — Common Mistakes and How to Avoid Them</h2>
+
+  <table>
+    <thead>
+      <tr><th>Mistake</th><th>Symptom</th><th>Fix</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Calling <code>chrome.permissions.request()</code> outside a user gesture</td>
+        <td>Dialog never appears; function returns <code>false</code> silently</td>
+        <td>Ensure the call is in a direct <code>click</code> event handler, not in a Promise chain or setTimeout</td>
+      </tr>
+      <tr>
+        <td>Declaring <code>"tabs"</code> in <code>"permissions"</code> instead of <code>"optional_permissions"</code></td>
+        <td>Chrome adds it to the install-time permission dialog, reducing install conversion</td>
+        <td>Move sensitive permissions to <code>"optional_permissions"</code> and use the warm-ask pattern</td>
+      </tr>
+      <tr>
+        <td>Using <code>localStorage</code> in a content script to communicate with the popup</td>
+        <td>Popup reads undefined; localStorage partitioned by page origin, not extension</td>
+        <td>Use <code>chrome.storage.local</code> for all cross-context state</td>
+      </tr>
+      <tr>
+        <td>Adding the onChange listener inside a function that runs multiple times</td>
+        <td>Multiple duplicate listener calls; settings change triggers the handler N times</td>
+        <td>Add <code>StorageManager.onChange()</code> once, at module initialization, not inside event handlers</td>
+      </tr>
+      <tr>
+        <td>Not listing <code>storage_manager.js</code> before <code>content.js</code> in manifest content_scripts</td>
+        <td>Content script throws <code>StorageManager is not defined</code></td>
+        <td>Scripts in the <code>js</code> array execute in order — shared utilities must come first</td>
+      </tr>
+      <tr>
+        <td>Forgetting <code>"storage"</code> in <code>"permissions"</code></td>
+        <td><code>chrome.storage</code> is undefined or throws; extension silently fails</td>
+        <td>Add <code>"storage"</code> to <code>"permissions"</code> in manifest.json</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       EXERCISES
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Part 10 — Exercises</h2>
+
+  <div class="exercise">
+    <div class="ex-label">Warm-Up Exercise 1</div>
+    <p><strong>Storage inspector.</strong> Open DevTools on the NeuralTab options page
+    (right-click → Inspect). In the Console, type:</p>
+    <pre>chrome.storage.local.get(null, console.log)</pre>
+    <p>You should see all NeuralTab storage keys and their current values. Now type:</p>
+    <pre>chrome.storage.local.set({ totalSummaries: 42 })</pre>
+    <p>Without reloading anything, open the popup. The "Summaries total" counter should
+    display 42 immediately. This confirms <code>chrome.storage.onChanged</code> fired in the
+    popup context and the onChange listener updated the UI.</p>
+    <p><strong>What you learn:</strong> You can use DevTools Console to directly manipulate
+    extension storage during development. This is invaluable for testing edge cases without
+    needing to click through the UI 42 times.</p>
+  </div>
+
+  <div class="exercise core">
+    <div class="ex-label">Core Exercise 2</div>
+    <p><strong>Add a "font size" setting.</strong> Add a new setting <code>summaryFontSize</code>
+    with a default value of <code>14</code> (pixels) to <code>StorageManager.DEFAULTS</code>.
+    Add a range input to the Appearance section of <code>options.html</code> (range: 11–20,
+    step: 1). Wire it up in <code>options.js</code> with autosave. Then update
+    <code>content.js</code>'s <code>getButtonStyles()</code> function to apply the font size
+    to the summary panel's text. Finally, add it to the <code>onSettingsChange()</code>
+    handler so changing the slider in the options page updates the open summary panel in
+    real time.</p>
+    <p><strong>Files to modify:</strong> storage_manager.js, options.html, options.css,
+    options.js, content.js</p>
+    <p><strong>What you learn:</strong> The full lifecycle of adding a new setting — from
+    DEFAULTS through storage through options UI through live content script reaction.</p>
+  </div>
+
+  <div class="exercise core">
+    <div class="ex-label">Core Exercise 3</div>
+    <p><strong>Reset with undo toast.</strong> The current Reset button immediately writes
+    all defaults to storage. This is destructive — the user loses their custom colour, blocked
+    domains, etc. with no way to recover. Implement the "toast with undo" pattern:
+    (1) When Reset is clicked, snapshot the current settings into a local variable.
+    (2) Write defaults to storage.
+    (3) Show a notification bar at the top of the options page: "Settings reset.
+    <u>Undo</u>" with a 5-second countdown.
+    (4) If the user clicks Undo within 5 seconds, write the snapshot back to storage.
+    (5) After 5 seconds, remove the notification bar.</p>
+    <p><strong>What you learn:</strong> The snapshot-undo pattern for destructive settings
+    operations. This pattern appears in Gmail, Notion, Linear, and virtually every
+    production settings page.</p>
+  </div>
+
+  <div class="exercise stretch">
+    <div class="ex-label">Stretch Exercise 4</div>
+    <p><strong>Settings import.</strong> Build the inverse of the Export button: an Import
+    button that accepts a JSON file (via a hidden <code>&lt;input type="file"&gt;</code>
+    click), reads it with the FileReader API, validates that it contains only known keys
+    (keys present in <code>StorageManager.DEFAULTS</code>), rejects invalid keys with a
+    visible error message, and writes valid keys to storage. After import, reload all form
+    controls using <code>loadSettings()</code>.</p>
+    <p><strong>Bonus:</strong> Add a version field to the export JSON (<code>"_version": 3</code>)
+    and handle the case where a user imports a settings file from an older version of
+    NeuralTab that is missing keys introduced in later modules.</p>
+    <p><strong>What you learn:</strong> File input handling, FileReader API, input validation
+    as a security boundary (never trust imported data), forward-compatibility design.</p>
+  </div>
+
+  <div class="exercise stretch">
+    <div class="ex-label">Stretch Exercise 5</div>
+    <p><strong>Per-domain settings.</strong> The current blocked-domains list completely
+    disables NeuralTab on blocked hostnames. Build a richer per-domain override system:
+    store a <code>domainOverrides</code> object in storage where each key is a hostname and
+    each value is a partial settings object (e.g., <code>{ "github.com": { "highlightMinLen": 12 } }</code>).
+    In <code>content.js</code>'s <code>init()</code>, after loading global settings, check
+    whether <code>location.hostname</code> has an entry in <code>domainOverrides</code> and
+    merge those values over the global settings. Add a simple UI to the options page where
+    the user can add domain-specific overrides.</p>
+    <p><strong>What you learn:</strong> Hierarchical settings — global defaults, user preferences,
+    per-site overrides — which is the architecture used by Grammarly, uBlock Origin, and every
+    major extension with per-site behaviour.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       SPEC REFERENCES
+       ══════════════════════════════════════════════════════════════════ -->
+  <h2>Specification References</h2>
+  <p>
+    Every API used in this module is documented at the following official Chrome Extensions
+    developer reference pages:
+  </p>
+  <p>
+    <span class="spec-ref">chrome.storage</span>
+    <span class="spec-ref">chrome.storage.local</span>
+    <span class="spec-ref">chrome.storage.sync</span>
+    <span class="spec-ref">chrome.storage.session</span>
+    <span class="spec-ref">chrome.storage.onChanged</span>
+    <span class="spec-ref">chrome.permissions</span>
+    <span class="spec-ref">chrome.permissions.request()</span>
+    <span class="spec-ref">chrome.permissions.contains()</span>
+    <span class="spec-ref">chrome.permissions.remove()</span>
+    <span class="spec-ref">chrome.runtime.openOptionsPage()</span>
+    <span class="spec-ref">manifest: options_page</span>
+    <span class="spec-ref">manifest: optional_permissions</span>
+    <span class="spec-ref">manifest: permissions</span>
+    <span class="spec-ref">URL.createObjectURL()</span>
+    <span class="spec-ref">Blob</span>
+    <span class="spec-ref">chrome.runtime.getManifest()</span>
+  </p>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       WHAT'S NEXT
+       ══════════════════════════════════════════════════════════════════ -->
+  <div class="next-card">
+    <h3>What's Next — Module 04: Tab API, Bookmarks & Browser API Survey</h3>
+    <p>
+      Module 03 wired up the optional <code>"tabs"</code> permission with a Grant button —
+      but never actually used it. In Module 04, we use it. The <code>chrome.tabs</code> API
+      unlocks a completely different level of extension capability: NeuralTab gains a tab
+      manager that can see all open tabs, group them by domain, detect which tabs have been
+      idle for more than 30 minutes, and move or close them programmatically.
+    </p>
+    <p>
+      Module 04 also surveys the full browser API surface — <code>chrome.bookmarks</code>
+      for reading and writing the bookmark tree, <code>chrome.history</code> for querying
+      the browser's visit history, <code>chrome.alarms</code> for scheduling periodic tasks
+      that survive service worker restarts, and <code>chrome.notifications</code> for
+      desktop-level toast notifications. Each API gets a feature added to NeuralTab and
+      a warm-ask permission card added to the options page.
+    </p>
+    <p>
+      <strong>Key concepts you will learn in Module 04:</strong> The difference between
+      <code>chrome.tabs.query()</code> with and without the <code>"tabs"</code> permission
+      (URLs are redacted to empty strings without it). The <code>chrome.tabs.onUpdated</code>
+      and <code>chrome.tabs.onRemoved</code> events. The structure of the bookmark tree
+      (folders vs leaves, the special "Other Bookmarks" node ID). How <code>chrome.alarms</code>
+      schedules persistent periodic work even after the service worker has been killed by the
+      5-minute idle timer. How to compose multiple APIs into a feature (e.g., use history
+      to find articles read in the last week and bookmark the ones that were visited for more
+      than 2 minutes).
+    </p>
+    <p>
+      By the end of Module 04, you will understand why extension developers describe the
+      Chrome API surface as "the web with superpowers" — and why getting a user to grant
+      the right permissions, using the warm-ask pattern you learned here, is the critical
+      unlock to building truly powerful experiences.
+    </p>
+  </div>
+
+  <footer>
+    NeuralTab Curriculum · Module 03 of 25 · Options Page, chrome.storage &amp; Permissions UX Psychology<br>
+    Head First Extension Development Series · All code MIT licensed
+  </footer>
+
+</div>
+</body>
+</html>

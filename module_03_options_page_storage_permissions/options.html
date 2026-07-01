@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab — Settings</title>
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body>
+
+  <!-- ── Sidebar ──────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">⚡</span>
+      <span class="brand-name">NeuralTab</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#appearance"   class="nav-link active" data-section="appearance">Appearance</a>
+      <a href="#behaviour"    class="nav-link"         data-section="behaviour">Behaviour</a>
+      <a href="#permissions"  class="nav-link"         data-section="permissions">Permissions</a>
+      <a href="#storage"      class="nav-link"         data-section="storage">Storage</a>
+      <a href="#about"        class="nav-link"         data-section="about">About</a>
+    </nav>
+    <div class="sidebar-footer">v0.3.0 · Module 03</div>
+  </aside>
+
+  <!-- ── Main content ─────────────────────────────────────── -->
+  <main class="main">
+
+    <div class="page-header">
+      <h1 class="page-title">Settings</h1>
+      <div class="save-status" id="save-status"></div>
+    </div>
+
+    <!-- ─ Appearance ─ -->
+    <section class="settings-section" id="appearance">
+      <div class="section-header">
+        <h2>Appearance</h2>
+        <p>Control how NeuralTab looks on every page you visit.</p>
+      </div>
+
+      <div class="setting-group">
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Highlight colour</div>
+            <div class="setting-desc">The background colour applied to highlighted words on the page.</div>
+          </div>
+          <div class="setting-control">
+            <div class="color-row">
+              <input type="color" id="highlight-color" class="color-input" value="#f5c842" />
+              <span class="color-hex" id="color-hex">#f5c842</span>
+            </div>
+            <div class="color-presets">
+              <button class="preset-dot" style="background:#f5c842" data-color="#f5c842" title="Gold"></button>
+              <button class="preset-dot" style="background:#38bdf8" data-color="#38bdf8" title="Cyan"></button>
+              <button class="preset-dot" style="background:#4ade80" data-color="#4ade80" title="Green"></button>
+              <button class="preset-dot" style="background:#a78bfa" data-color="#a78bfa" title="Purple"></button>
+              <button class="preset-dot" style="background:#f87171" data-color="#f87171" title="Red"></button>
+              <button class="preset-dot" style="background:#fb923c" data-color="#fb923c" title="Orange"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Minimum word length to highlight</div>
+            <div class="setting-desc">Words shorter than this number of characters are skipped. Default is 9.</div>
+          </div>
+          <div class="setting-control">
+            <div class="range-row">
+              <input type="range" id="highlight-min-len" min="4" max="16" value="9" class="range-input" />
+              <span class="range-val" id="highlight-min-len-val">9 chars</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Button position</div>
+            <div class="setting-desc">Where the floating Summarize button appears on the page.</div>
+          </div>
+          <div class="setting-control">
+            <select id="button-position" class="select-input">
+              <option value="bottom-right">Bottom right</option>
+              <option value="bottom-left">Bottom left</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Live preview -->
+      <div class="preview-box" id="preview-box">
+        <div class="preview-label">LIVE PREVIEW</div>
+        <p class="preview-text" id="preview-text">
+          Understanding the architecture of modern web browsers requires grappling with
+          an <mark id="preview-mark" class="preview-highlight">extraordinary</mark> complexity
+          of interconnected subsystems. The rendering engine, JavaScript runtime, networking
+          stack, and security sandbox all interact in ways that are simultaneously elegant
+          and <mark class="preview-highlight" id="preview-mark-2" style="background: #f5c842">astonishing</mark>.
+        </p>
+        <div class="preview-button-wrap">
+          <button class="preview-nt-btn" id="preview-nt-btn">⚡ Summarize</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ─ Behaviour ─ -->
+    <section class="settings-section hidden" id="behaviour">
+      <div class="section-header">
+        <h2>Behaviour</h2>
+        <p>Control what NeuralTab does automatically on each page.</p>
+      </div>
+
+      <div class="setting-group">
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Show floating button</div>
+            <div class="setting-desc">Display the Summarize button on all pages. Disable to hide it globally.</div>
+          </div>
+          <div class="setting-control">
+            <label class="toggle">
+              <input type="checkbox" id="button-visible" checked />
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Reading speed</div>
+            <div class="setting-desc">Your average reading speed in words per minute. Used to calculate reading time estimates. The average adult reads ~238 wpm.</div>
+          </div>
+          <div class="setting-control">
+            <div class="range-row">
+              <input type="range" id="reading-speed" min="100" max="500" step="10" value="238" class="range-input" />
+              <span class="range-val" id="reading-speed-val">238 wpm</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-row setting-row--top">
+          <div class="setting-info">
+            <div class="setting-label">Blocked domains</div>
+            <div class="setting-desc">
+              NeuralTab will not inject on these domains. One domain per line.
+              Example: <code>facebook.com</code>
+            </div>
+          </div>
+          <div class="setting-control">
+            <textarea
+              id="blocked-domains"
+              class="textarea-input"
+              placeholder="facebook.com&#10;twitter.com&#10;mail.google.com"
+              rows="5"
+            ></textarea>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─ Permissions ─ -->
+    <section class="settings-section hidden" id="permissions">
+      <div class="section-header">
+        <h2>Permissions</h2>
+        <p>Optional capabilities that unlock additional NeuralTab features. You can grant or revoke these at any time.</p>
+      </div>
+
+      <div class="setting-group">
+
+        <div class="permission-card" id="perm-tabs">
+          <div class="perm-icon">📑</div>
+          <div class="perm-body">
+            <div class="perm-name">Read all tab URLs &amp; titles</div>
+            <div class="perm-desc">
+              Required for the Tab Manager feature (Module 04). Allows NeuralTab to
+              read the URL and title of every open tab — not just the active one.
+              Without this, background tabs show as "(restricted)" in the Tab Manager.
+            </div>
+            <div class="perm-why">
+              <strong>Why you might want this:</strong> The Tab Manager lists, searches,
+              and de-duplicates all your open tabs. That requires reading all tab URLs,
+              which needs this permission.
+            </div>
+          </div>
+          <div class="perm-action">
+            <button class="perm-btn" id="btn-grant-tabs" data-permission="tabs">Grant</button>
+            <div class="perm-status" id="status-tabs">Not granted</div>
+          </div>
+        </div>
+
+        <div class="permission-card" id="perm-bookmarks">
+          <div class="perm-icon">🔖</div>
+          <div class="perm-body">
+            <div class="perm-name">Read &amp; write bookmarks</div>
+            <div class="perm-desc">
+              Required for the Bookmark Organiser feature (Module 04). Allows NeuralTab
+              to read your bookmark tree and create/move/delete bookmarks.
+            </div>
+            <div class="perm-why">
+              <strong>Why you might want this:</strong> The Bookmark Organiser can
+              automatically group your bookmarks by domain and remove duplicates.
+            </div>
+          </div>
+          <div class="perm-action">
+            <button class="perm-btn" id="btn-grant-bookmarks" data-permission="bookmarks">Grant</button>
+            <div class="perm-status" id="status-bookmarks">Not granted</div>
+          </div>
+        </div>
+
+        <div class="permission-card" id="perm-history">
+          <div class="perm-icon">📅</div>
+          <div class="perm-body">
+            <div class="perm-name">Read browsing history</div>
+            <div class="perm-desc">
+              Required for the History Search feature (Module 04). Allows NeuralTab
+              to search your browsing history by keyword and date range.
+            </div>
+            <div class="perm-why">
+              <strong>Why you might want this:</strong> Find any page you visited in
+              the last 90 days by searching keywords — faster than Chrome's own history search.
+            </div>
+          </div>
+          <div class="perm-action">
+            <button class="perm-btn" id="btn-grant-history" data-permission="history">Grant</button>
+            <div class="perm-status" id="status-history">Not granted</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="callout-box callout-info">
+        <div class="callout-box-title">How Optional Permissions Work</div>
+        <p>
+          NeuralTab requests these permissions <em>only when you click Grant above</em> —
+          never at install time. Chrome shows a targeted permission dialog explaining
+          exactly what will be granted. You can revoke any permission at any time by
+          clicking Revoke, without affecting other features. This is the "warm ask"
+          pattern: show the user the value of the permission before asking, then ask
+          with a single targeted click.
+        </p>
+      </div>
+    </section>
+
+    <!-- ─ Storage ─ -->
+    <section class="settings-section hidden" id="storage">
+      <div class="section-header">
+        <h2>Storage</h2>
+        <p>See how much space NeuralTab is using and manage your data.</p>
+      </div>
+
+      <div class="setting-group">
+
+        <div class="quota-display" id="quota-display">
+          <div class="quota-top">
+            <div class="quota-used" id="quota-used">— B</div>
+            <div class="quota-total" id="quota-total">of — MB</div>
+          </div>
+          <div class="quota-bar-wrap">
+            <div class="quota-bar-fill" id="quota-bar-fill" style="width:0%"></div>
+          </div>
+          <div class="quota-percent" id="quota-percent">—%</div>
+        </div>
+
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total summaries</div>
+            <div class="stat-value" id="stat-summaries">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Install date</div>
+            <div class="stat-value" id="stat-install">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Storage tier</div>
+            <div class="stat-value">local</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Max quota</div>
+            <div class="stat-value">10 MB</div>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label" style="color: var(--red)">Reset all settings</div>
+            <div class="setting-desc">Restore all settings to their defaults. Your storage data is deleted. This cannot be undone.</div>
+          </div>
+          <div class="setting-control">
+            <button class="btn-danger" id="btn-reset">Reset Everything</button>
+          </div>
+        </div>
+
+        <div class="setting-row">
+          <div class="setting-info">
+            <div class="setting-label">Export settings</div>
+            <div class="setting-desc">Download your settings as a JSON file for backup or sharing.</div>
+          </div>
+          <div class="setting-control">
+            <button class="btn-secondary" id="btn-export">Export JSON</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ─ About ─ -->
+    <section class="settings-section hidden" id="about">
+      <div class="section-header">
+        <h2>About NeuralTab</h2>
+        <p>Course project — built module by module across 25 lessons.</p>
+      </div>
+      <div class="about-grid">
+        <div class="about-row"><span class="about-key">Version</span><span class="about-val">0.3.0</span></div>
+        <div class="about-row"><span class="about-key">Current module</span><span class="about-val">03 of 25 — Options, Storage, Permissions UX</span></div>
+        <div class="about-row"><span class="about-key">Manifest version</span><span class="about-val">3</span></div>
+        <div class="about-row"><span class="about-key">Permissions granted</span><span class="about-val" id="about-perms">storage</span></div>
+        <div class="about-row"><span class="about-key">Extension ID</span><span class="about-val" id="about-id">—</span></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="storage_manager.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

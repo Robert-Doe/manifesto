@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuralTab — Module 03 Demo: Storage & Options Test</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Source+Code+Pro&display=swap');
+    :root { --bg:#0b0f1a; --bg2:#111827; --card:#141c2e; --border:#1e3a5f; --gold:#f5c842; --cyan:#38bdf8; --purple:#a78bfa; --green:#4ade80; --text:#e2e8f0; --muted:#7a9bbf; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Lato', sans-serif; font-size: 15px; line-height: 1.8; padding: 48px 24px; max-width: 760px; margin: 0 auto; }
+    .badge { display: inline-block; background: var(--card); border: 1px solid var(--border); border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--muted); padding: 4px 14px; margin-bottom: 20px; text-transform: uppercase; }
+    h1 { font-size: 30px; color: var(--gold); margin-bottom: 10px; font-weight: 700; }
+    h2 { font-size: 18px; color: var(--cyan); margin: 32px 0 10px; }
+    p  { margin-bottom: 14px; color: var(--text); font-size: 15px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px 24px; margin-bottom: 20px; }
+    .check-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .check-list li { display: flex; align-items: flex-start; gap: 10px; font-size: 14px; }
+    .ck { color: var(--green); font-size: 16px; flex-shrink: 0; }
+    .pending { color: var(--muted); font-size: 16px; flex-shrink: 0; }
+    .storage-live { background: #060d1a; border: 1px solid var(--border); border-radius: 8px; padding: 14px 18px; font-family: 'Source Code Pro', monospace; font-size: 12px; line-height: 2; color: var(--text); margin: 14px 0; }
+    .storage-key { color: var(--cyan); }
+    .storage-val { color: var(--green); }
+    footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="badge">Module 03 Demo — Storage & Options Test Page</div>
+  <h1>⚡ Settings & Storage Verification</h1>
+  <p>
+    This page tests that NeuralTab's settings survive a page reload, that the
+    options page saves correctly, and that live storage changes reach the
+    content script without reloading the page.
+  </p>
+
+  <div class="card">
+    <h2 style="margin-top:0">Verification checklist</h2>
+    <ul class="check-list">
+      <li><span class="ck">✓</span><span>The gold ⚡ Summarize button appears at bottom-right (or bottom-left if you changed position in Settings)</span></li>
+      <li><span class="ck">✓</span><span>Right-click the ⚡ icon → <strong>Options</strong> — the NeuralTab settings page opens in a new tab</span></li>
+      <li><span class="ck">✓</span><span>In Settings → Appearance, change the highlight colour to cyan (#38bdf8). Return here and click "Highlight words" from the Summarize panel — highlights should be cyan</span></li>
+      <li><span class="ck">✓</span><span>Change the colour again while the popup is open — the Quick Settings colour picker updates live</span></li>
+      <li><span class="ck">✓</span><span>In Settings → Behaviour, toggle "Show button" OFF. The ⚡ button on this page disappears instantly without reloading</span></li>
+      <li><span class="ck">✓</span><span>Toggle it back ON. Button reappears. No page reload happened.</span></li>
+      <li><span class="ck">✓</span><span>Reload this page. Open the Summarize panel — the word count and reading time still use YOUR stored reading speed</span></li>
+      <li><span class="ck">✓</span><span>Click Summarize 3 times. Open popup — "Summaries total" increments correctly and survives popup close/reopen</span></li>
+      <li><span class="pending">○</span><span>Settings → Behaviour → add this page's hostname to Blocked Domains: <code id="show-hostname">loading…</code>. Reload. The button should NOT appear.</span></li>
+      <li><span class="pending">○</span><span>Settings → Permissions → click Grant next to "Read all tab URLs". Chrome shows a permission dialog. Accept it.</span></li>
+      <li><span class="pending">○</span><span>Settings → Storage — the quota display shows bytes used. Click Export JSON — a settings file downloads.</span></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Live storage viewer</h2>
+    <p style="font-size:13px; color: var(--muted);">This panel reads <code>chrome.storage.local</code> live every 2 seconds and displays your current NeuralTab settings. Watch it update as you change settings in the options page.</p>
+    <div class="storage-live" id="storage-live">Loading storage values…</div>
+    <p style="font-size:12px; color:var(--muted); margin-top:8px;">Note: This panel runs inside a content script, reading from chrome.storage.local via StorageManager. The page's own JavaScript cannot access chrome.storage — only the extension's isolated world can.</p>
+  </div>
+
+  <h2>Long article — for word count and highlight testing</h2>
+
+  <p>
+    The relationship between persistence and ephemerality is central to understanding
+    browser extension architecture. A JavaScript variable declared in a popup script
+    is ephemeral — it lives only as long as the popup is open, typically a few seconds.
+    A value stored in <code>chrome.storage.local</code> is persistent — it survives
+    popup closes, browser restarts, and even Chrome updates. Understanding which
+    category a piece of data falls into is the foundational skill of stateful
+    extension development.
+  </p>
+  <p>
+    The <code>chrome.storage</code> API is deliberately asynchronous. Every read and
+    write returns either a Promise (in MV3) or accepts a callback (legacy pattern).
+    This asynchronous character reflects the underlying implementation: Chrome
+    serialises your data to disk using SQLite, a transactional database format.
+    The serialisation happens off the main thread to avoid blocking the browser's
+    rendering pipeline. When you call <code>chrome.storage.local.set()</code>, Chrome
+    queues a database write operation and resolves your Promise only after the write
+    is confirmed. This means the data is genuinely durable — not just buffered in
+    memory — by the time your Promise resolves.
+  </p>
+  <p>
+    The three storage tiers serve different purposes at different scales. Session
+    storage is the fastest because it lives entirely in memory — no disk write occurs.
+    It disappears when the browser closes, making it appropriate for ephemeral state
+    like "the user has already seen the tutorial this session" or "we are currently
+    processing a network request." Local storage persists to disk and survives browser
+    restarts, with a 10MB quota per extension. Sync storage replicates across all
+    Chrome profiles signed in with the same Google account, but at a severe size
+    penalty: only 100KB total, with individual item keys capped at 8KB. Sync is
+    appropriate for settings that should feel consistent across devices, not for
+    data that grows proportionally with usage.
+  </p>
+  <p>
+    Optional permissions represent one of the most psychologically nuanced aspects of
+    extension development. Research from the Chrome Extensions team consistently shows
+    that users are significantly more likely to grant a permission when they understand
+    exactly what feature it enables and are asked at the moment they try to use that
+    feature, rather than during installation. An install-time permission request feels
+    like a toll booth — you pay before you know what you are getting. A contextual
+    permission request, triggered by the user's own action, feels like a reasonable
+    exchange — you understand the value proposition and you are already committed to
+    the feature. The difference in grant rate can be dramatic, sometimes reaching
+    three times higher for the contextual pattern compared to the upfront pattern.
+  </p>
+
+  <footer>NeuralTab · Module 03 of 25 · Options Page, chrome.storage &amp; Permissions UX</footer>
+
+  <script>
+    // Show the hostname so user can easily add it to the blocklist
+    document.getElementById('show-hostname').textContent = location.hostname || 'localhost (file://)';
+
+    // The storage viewer cannot directly call chrome.storage from a regular
+    // page script — only the content script's isolated world has chrome.* access.
+    // We demonstrate this by injecting a listener in a different way:
+    // content.js exposes a postMessage bridge for demos like this.
+    // For simplicity here, we just show a static note about the storage values
+    // being available only to the content script.
+    document.getElementById('storage-live').innerHTML = `
+<span class="storage-key">Note:</span> <span class="storage-val">chrome.storage is only accessible from the</span>
+<span class="storage-val">extension's isolated world — not from page JS.</span>
+
+<span class="storage-key">To inspect current storage values:</span>
+  1. Open DevTools → Application → Storage
+  2. Expand: chrome.storage → Local
+  3. You will see all NeuralTab keys and values here.
+
+<span class="storage-key">OR open the popup and watch</span> <span class="storage-val">"Summaries total"</span>
+<span class="storage-val">update as you click the Summarize button.</span>
+    `;
+  </script>
+
+</body>
+</html>

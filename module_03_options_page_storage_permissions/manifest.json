@@ -1,0 +1,51 @@
+{
+  "manifest_version": 3,
+  "name": "NeuralTab",
+  "version": "0.3.0",
+  "description": "Your AI-powered browser assistant. Module 03: Options Page, Storage & Permissions UX.",
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16":  "icons/icon16.png",
+      "48":  "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "NeuralTab — Click to open"
+  },
+
+  "icons": {
+    "16":  "icons/icon16.png",
+    "48":  "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "options_page": "options.html",
+
+  "permissions": [
+    "storage"
+  ],
+
+  "host_permissions": [],
+
+  "content_scripts": [
+    {
+      "matches":    ["<all_urls>"],
+      "js":         ["storage_manager.js", "content.js"],
+      "css":        ["content.css"],
+      "run_at":     "document_idle",
+      "all_frames": false
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/inject.js",
+        "assets/fonts/inter-regular.woff2",
+        "assets/fonts/inter-bold.woff2"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
