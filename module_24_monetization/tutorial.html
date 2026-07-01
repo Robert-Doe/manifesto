@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Module 24 — Monetization</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:48px 64px;max-width:860px;margin:0 auto;line-height:1.8;}
+    h1{color:var(--gold);font-size:38px;font-weight:900;margin-bottom:6px;}
+    .byline{color:var(--muted);font-size:14px;margin-bottom:40px;letter-spacing:1px;}
+    h2{color:var(--cyan);font-size:22px;font-weight:900;margin:44px 0 14px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+    h3{color:var(--gold);font-size:17px;font-weight:700;margin:28px 0 10px;}
+    p{color:var(--muted);margin-bottom:16px;}
+    p strong{color:var(--text);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:18px;font-family:'Source Code Pro',monospace;font-size:12px;line-height:1.9;overflow-x:auto;color:var(--text);margin:18px 0;}
+    .callout{background:var(--card);border-left:4px solid var(--gold);border-radius:0 8px 8px 0;padding:16px 20px;margin:20px 0;}
+    .callout p{margin:0;color:var(--text);}
+    .callout .label{color:var(--gold);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;}
+    .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
+    .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+    code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+    table{width:100%;border-collapse:collapse;margin:20px 0;}
+    th{background:var(--card);color:var(--cyan);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:10px 14px;text-align:left;border-bottom:2px solid var(--border);}
+    td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:13px;}
+    td:first-child{color:var(--text);}
+  </style>
+</head>
+<body>
+  <h1>Module 24 — Monetization</h1>
+  <div class="byline">NeuralTab Curriculum · Module 24 of 25</div>
+
+  <h2>The Business Reality</h2>
+  <p>Building a browser extension takes months of work. Maintaining it — responding to Chrome updates that break APIs, handling user support, publishing security fixes — takes years. If there's no revenue, the developer burns out or sells. Both outcomes harm users. The question isn't whether to monetize, but how to do it without betraying the trust users placed in your extension.</p>
+
+  <h2>Revenue Models Compared</h2>
+  <table>
+    <tr><th>Model</th><th>Revenue Stability</th><th>User Trust Risk</th><th>CWS Compliance</th></tr>
+    <tr><td>Freemium (license key)</td><td>Recurring (renewal)</td><td>Low — users know what they pay for</td><td>Fully allowed</td></tr>
+    <tr><td>One-time purchase</td><td>Lumpy (acquisition-dependent)</td><td>Low</td><td>Fully allowed</td></tr>
+    <tr><td>Donation / tip jar</td><td>Unreliable</td><td>Very low</td><td>Fully allowed</td></tr>
+    <tr><td>Affiliate links</td><td>Variable</td><td>Medium — must disclose</td><td>Allowed with disclosure</td></tr>
+    <tr><td>Selling browsing data</td><td>Stable</td><td>Very high</td><td>Not allowed</td></tr>
+    <tr><td>Cryptomining</td><td>Variable</td><td>Extreme</td><td>Not allowed</td></tr>
+    <tr><td>Injecting ads into pages</td><td>Stable</td><td>Extreme</td><td>Not allowed</td></tr>
+  </table>
+
+  <h2>Freemium: The 5% Rule</h2>
+  <p>A realistic freemium conversion rate is 2-5%. If your extension has 100,000 active users and you charge $9/year, 5,000 paying users = $45,000/year. That sustains a solo developer. To reach 100,000 users, you need a strong free tier that genuinely solves a problem — not a crippled demo.</p>
+  <p>NeuralTab's license validation pattern: the background SW checks the license key against a remote endpoint, caches the result for 24 hours in <code>chrome.storage.local</code>, and enforces premium features on the cached result. The 24-hour cache means the SW doesn't make a network call on every browser start — which would slow startup and depend on server availability.</p>
+  <pre>// License validation with 24-hour cache:
+async function isLicensed() {
+  const { licenseKey, licenseValidUntil } = await chrome.storage.local.get(
+    ['licenseKey', 'licenseValidUntil']
+  );
+  if (!licenseKey) return false;
+  if (licenseValidUntil && Date.now() < licenseValidUntil) {
+    return true;   // cached valid license
+  }
+  // Cache expired — re-validate with server:
+  const valid = await validateWithServer(licenseKey);
+  if (valid) {
+    await chrome.storage.local.set({
+      licenseValidUntil: Date.now() + 24 * 60 * 60 * 1000
+    });
+  }
+  return valid;
+}</pre>
+
+  <h2>Local Analytics — Measure Without Surveillance</h2>
+  <p>Knowing which features users actually use helps prioritize development. You don't need to send this data to a server. NeuralTab's analytics_manager.js stores event counts locally, keyed by date. A 30-day rolling window gives you enough signal to see trends without building a permanent record of individual behavior.</p>
+  <pre>// analytics_manager.js — no server, no user tracking
+function track(event, props = {}) {
+  const today = new Date().toISOString().slice(0, 10);   // "2024-01-15"
+  chrome.storage.local.get('analyticsData', ({ analyticsData = {} }) => {
+    const day = analyticsData[today] || {};
+    day[event] = (day[event] || 0) + 1;
+    analyticsData[today] = day;
+    // Prune to 30 days:
+    const cutoff = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+    Object.keys(analyticsData).forEach(d => { if (d < cutoff) delete analyticsData[d]; });
+    chrome.storage.local.set({ analyticsData });
+  });
+}</pre>
+
+  <div class="callout">
+    <div class="label">The Acquisition Trap</div>
+    <p>Selling your extension is a valid exit, but it's also the most common vector for clean extensions to become malicious. If you sell, build protections for users into the sale agreement: public disclosure of new ownership, open-source code, or an escrow period where the new owner operates under the original privacy policy. These protect your reputation even after you're no longer involved.</p>
+  </div>
+
+  <h2>Exercises</h2>
+  <div class="exercise">
+    <div class="ex-label">Exercise 24-A — Read Your Analytics</div>
+    <p>Open monetization.html in NeuralTab. Use the extension for 10 minutes — open the popup, visit pages, open the side panel. Return to monetization.html and click "View Analytics Report." You should see counts for the events tracked so far. Which event fires most? What does this tell you about how users interact with NeuralTab?</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 24-B — Design the Free Tier</div>
+    <p>Assume NeuralTab goes freemium. Design the feature split: list which of NeuralTab's 25 modules' features belong in the free tier and which in the paid tier. The free tier must be genuinely useful — enough that users recommend it to others. The paid tier must contain enough value to convert 3-5% of power users. Write the reasoning for each placement.</p>
+  </div>
+  <div class="exercise">
+    <div class="ex-label">Exercise 24-C — Calculate the Numbers</div>
+    <p>Using the 5% conversion assumption: if NeuralTab reaches 50,000 active users in year 1 and grows 100% year-over-year, and you charge $7/year with 80% annual renewal rate, build a 3-year revenue projection. At what point does this sustain a single full-time developer at $80,000/year? At what user count does it support two developers?</p>
+  </div>
+</body>
+</html>

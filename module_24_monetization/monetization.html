@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>NeuralTab — Monetization</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Source+Code+Pro&display=swap');
+    :root{--bg:#0b0f1a;--card:#141c2e;--border:#1e3a5f;--gold:#f5c842;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--orange:#fb923c;--purple:#a78bfa;--text:#e2e8f0;--muted:#7a9bbf;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;padding:32px;max-width:960px;margin:0 auto;}
+    h1{color:var(--gold);font-size:26px;font-weight:900;margin-bottom:6px;}
+    .sub{color:var(--muted);margin-bottom:28px;font-size:13px;line-height:1.6;}
+    h2{color:var(--cyan);font-size:17px;font-weight:900;margin:24px 0 12px;}
+    .model-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
+    .model{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;}
+    .m-title{font-size:14px;font-weight:900;margin-bottom:8px;}
+    .m-title.free{color:var(--green);}
+    .m-title.pay{color:var(--gold);}
+    .m-title.sub{color:var(--cyan);}
+    .m-desc{color:var(--muted);font-size:12px;line-height:1.6;margin-bottom:10px;}
+    .m-pros{font-size:11px;}
+    .m-pros li{color:var(--green);margin-bottom:3px;padding-left:2px;}
+    .m-pros li.con{color:var(--red);}
+    .analytics-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;}
+    .ac-title{color:var(--gold);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;}
+    .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+    .stat{background:#060a12;border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;}
+    .stat-val{color:var(--cyan);font-size:22px;font-weight:900;font-family:'Source Code Pro',monospace;}
+    .stat-label{color:var(--muted);font-size:10px;margin-top:4px;}
+    .btn{background:var(--cyan);color:#000;border:none;border-radius:6px;font-family:'Lato',sans-serif;font-weight:700;font-size:12px;padding:8px 16px;cursor:pointer;margin-right:8px;}
+    .btn.red{background:var(--red);color:#fff;}
+    table{width:100%;border-collapse:collapse;}
+    th{background:var(--card);color:var(--gold);padding:9px 12px;font-size:12px;text-align:left;border:1px solid var(--border);}
+    td{padding:9px 12px;border:1px solid var(--border);font-size:12px;color:var(--muted);}
+    .good{color:var(--green);}
+    .bad{color:var(--red);}
+    pre{background:#060a12;border:1px solid var(--border);border-radius:6px;padding:12px;font-family:'Source Code Pro',monospace;font-size:11px;color:var(--muted);margin:10px 0;}
+  </style>
+</head>
+<body>
+  <h1>💰 Monetization</h1>
+  <p class="sub">How to make money from your Chrome extension without selling your users' data, spamming them with ads, or violating CWS policy. Ethical monetization is possible — and it builds better products.</p>
+
+  <h2>Revenue Models</h2>
+  <div class="model-grid">
+    <div class="model">
+      <div class="m-title free">Freemium</div>
+      <div class="m-desc">Core features free, premium features behind a license key or subscription validated server-side.</div>
+      <ul class="m-pros">
+        <li>Large free user base for word-of-mouth</li>
+        <li>Predictable recurring revenue</li>
+        <li>No ads, no data selling</li>
+        <li class="con">Requires backend for validation</li>
+        <li class="con">Chargeback risk</li>
+      </ul>
+    </div>
+    <div class="model">
+      <div class="m-title pay">One-time Purchase</div>
+      <div class="m-desc">User pays once, owns forever. License key validated locally or via lightweight server.</div>
+      <ul class="m-pros">
+        <li>Simple mental model for users</li>
+        <li>No subscription fatigue</li>
+        <li>Lower churn than subscriptions</li>
+        <li class="con">Revenue decreases over time</li>
+        <li class="con">Hard to fund ongoing development</li>
+      </ul>
+    </div>
+    <div class="model">
+      <div class="m-title sub">Donations / Open Source</div>
+      <div class="m-desc">Extension is free and open source. Revenue via GitHub Sponsors, Patreon, or Ko-fi.</div>
+      <ul class="m-pros">
+        <li>Maximum user trust</li>
+        <li>Community contributions</li>
+        <li>No CWS policy risk</li>
+        <li class="con">Income is unpredictable</li>
+        <li class="con">Requires audience building</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Local Analytics (Privacy-First)</h2>
+  <div class="analytics-card">
+    <div class="ac-title">Usage Report — Stored Locally, Never Sent</div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-val" id="a-days">—</div><div class="stat-label">Days tracked</div></div>
+      <div class="stat"><div class="stat-val" id="a-opens">—</div><div class="stat-label">Popup opens</div></div>
+      <div class="stat"><div class="stat-val" id="a-searches">—</div><div class="stat-label">History searches</div></div>
+      <div class="stat"><div class="stat-val" id="a-features">—</div><div class="stat-label">Feature uses</div></div>
+    </div>
+    <button class="btn" id="btn-track">Track Sample Event</button>
+    <button class="btn" id="btn-refresh">Refresh Report</button>
+    <button class="btn red" id="btn-clear">Clear Analytics</button>
+  </div>
+
+  <h2>What NOT to Do</h2>
+  <table>
+    <tr><th>Practice</th><th>CWS Policy</th><th>User Impact</th></tr>
+    <tr><td>Selling browsing data to data brokers</td><td class="bad">Removal</td><td class="bad">Privacy violation</td></tr>
+    <tr><td>Injecting third-party ads into pages</td><td class="bad">Removal</td><td class="bad">User experience harm</td></tr>
+    <tr><td>Affiliate link hijacking</td><td class="bad">Removal if undisclosed</td><td class="bad">Creator revenue theft</td></tr>
+    <tr><td>Cryptomining</td><td class="bad">Immediate removal</td><td class="bad">CPU theft</td></tr>
+    <tr><td>Requiring account for free features</td><td class="good">Allowed</td><td class="bad">Friction</td></tr>
+    <tr><td>Optional local analytics (this module)</td><td class="good">Allowed</td><td class="good">No impact</td></tr>
+    <tr><td>Freemium with clear upgrade path</td><td class="good">Allowed</td><td class="good">User chooses</td></tr>
+  </table>
+
+  <h2>License Validation Pattern</h2>
+  <pre>// background.js — validate license key server-side
+async function validateLicense(key) {
+  const res = await fetch('https://yourapi.example/validate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key, extensionId: chrome.runtime.id })
+  });
+  const { valid, tier, expiresAt } = await res.json();
+  if (valid) {
+    await chrome.storage.local.set({ license: { key, tier, expiresAt, validatedAt: Date.now() } });
+  }
+  return { valid, tier };
+}
+
+// Cache validation — re-validate after 24 hours, not every feature use
+async function isPremium() {
+  const { license } = await chrome.storage.local.get('license');
+  if (!license) return false;
+  const stale = Date.now() - license.validatedAt > 86_400_000;
+  if (stale) return (await validateLicense(license.key)).valid;
+  return license.tier === 'premium';
+}</pre>
+
+  <script>
+    async function refreshReport() {
+      const res = await chrome.runtime.sendMessage({ type: 'getAnalyticsReport' });
+      if (!res) return;
+      document.getElementById('a-days').textContent = res.dayCount || 0;
+      document.getElementById('a-opens').textContent = res.totals?.popup_open || 0;
+      document.getElementById('a-searches').textContent = res.totals?.history_search || 0;
+      document.getElementById('a-features').textContent = res.totals?.feature_use || 0;
+    }
+    document.getElementById('btn-track').addEventListener('click', async () => {
+      await chrome.runtime.sendMessage({ type: 'trackEvent', event: 'feature_use', props: { feature: 'monetization_demo' } });
+      await refreshReport();
+    });
+    document.getElementById('btn-refresh').addEventListener('click', refreshReport);
+    document.getElementById('btn-clear').addEventListener('click', async () => {
+      await chrome.runtime.sendMessage({ type: 'clearAnalytics' });
+      await refreshReport();
+    });
+    refreshReport();
+  </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>NeuralTab — Options</title>
+  <link rel="stylesheet" href="options.css"/>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="brand"><span class="bolt">⚡</span><span class="brand-name">NeuralTab</span></div>
+    <nav class="nav">
+      <button class="nav-item active" data-section="general">General</button>
+      <button class="nav-item" data-section="storage">Storage</button>
+      <button class="nav-item" data-section="messages">Messages</button>
+      <button class="nav-item" data-section="sw">Service Worker</button>
+      <button class="nav-item" data-section="permissions">Permissions</button>
+    </nav>
+  </div>
+  <div class="main">
+    <section id="section-general" class="section active">
+      <h2>General</h2>
+      <div class="field-group">
+        <label>Theme
+          <select id="opt-theme"><option value="dark">Dark</option><option value="light">Light</option></select>
+        </label>
+        <label>Font Size
+          <input type="range" id="opt-fontsize" min="12" max="20" step="1"/>
+          <span id="opt-fontsize-val">14px</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="opt-wordcount"/> Show word count overlay
+        </label>
+        <label>Bookmark folder name
+          <input type="text" id="opt-bookmark-folder"/>
+        </label>
+      </div>
+      <button class="btn btn-gold" id="btn-save-general">Save</button>
+      <div class="save-status" id="save-status-general"></div>
+    </section>
+
+    <section id="section-storage" class="section">
+      <h2>Storage</h2>
+      <div class="storage-quota-card">
+        <div class="quota-row">
+          <span class="quota-label">chrome.storage.local used</span>
+          <span class="quota-val" id="sq-used">—</span>
+        </div>
+        <div class="quota-bar-wrap"><div class="quota-bar" id="sq-bar"></div></div>
+        <div class="quota-detail" id="sq-detail"></div>
+      </div>
+      <div class="storage-type-grid">
+        <div class="storage-type-card">
+          <div class="st-name">local</div>
+          <div class="st-desc">Up to 5 MB (unlimitedStorage: no cap). Per-device. Never synced.</div>
+          <div class="st-use">History DB metadata, message log, all NeuralTab state.</div>
+        </div>
+        <div class="storage-type-card">
+          <div class="st-name">sync</div>
+          <div class="st-desc">100 KB total / 8 KB per item. Synced across Chrome profiles via Google account.</div>
+          <div class="st-use">User preferences (theme, font size) — small, cross-device.</div>
+        </div>
+        <div class="storage-type-card">
+          <div class="st-name">session</div>
+          <div class="st-desc">Ephemeral. Cleared on browser restart. No persistence.</div>
+          <div class="st-use">Transient state that should not survive restart.</div>
+        </div>
+        <div class="storage-type-card">
+          <div class="st-name">IndexedDB</div>
+          <div class="st-desc">Structured, queryable, indexed. Handles millions of rows. Requires unlimitedStorage.</div>
+          <div class="st-use">NeuralTab browsing history (up to 10,000 visits).</div>
+        </div>
+      </div>
+      <div class="history-stats" id="idb-stats">Loading IDB stats…</div>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="btn btn-ghost" id="btn-refresh-storage">Refresh</button>
+        <button class="btn btn-ghost" id="btn-open-history">Open History DB</button>
+      </div>
+    </section>
+
+    <section id="section-messages" class="section">
+      <h2>Messages</h2>
+      <div class="msg-stat-grid">
+        <div class="msg-stat"><div class="ms-num" id="ms-count">—</div><div class="ms-label">Total messages</div></div>
+        <div class="msg-stat"><div class="ms-num" id="ms-counter">—</div><div class="ms-label">Demo counter</div></div>
+        <div class="msg-stat"><div class="ms-num" id="ms-streams">—</div><div class="ms-label">Active streams</div></div>
+      </div>
+      <div class="log-header">
+        <span>Message Log (last 20)</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" id="btn-refresh-log">Refresh</button>
+          <button class="btn btn-ghost btn-sm" id="btn-open-lab">Open Lab</button>
+          <button class="btn btn-danger btn-sm" id="btn-clear-log">Clear</button>
+        </div>
+      </div>
+      <div class="log-container" id="msg-log"></div>
+    </section>
+
+    <section id="section-sw" class="section">
+      <h2>Service Worker</h2>
+      <div class="sw-stat-grid">
+        <div class="sw-stat"><div class="sw-num" id="sw-starts">—</div><div class="sw-label">SW restarts</div></div>
+        <div class="sw-stat"><div class="sw-num" id="sw-log-count">—</div><div class="sw-label">Lifecycle events</div></div>
+      </div>
+      <div class="log-header"><span>Lifecycle Log (last 20)</span>
+        <button class="btn btn-ghost btn-sm" id="btn-open-swmon">Open Monitor</button>
+      </div>
+      <div class="log-container" id="sw-log"></div>
+    </section>
+
+    <section id="section-permissions" class="section">
+      <h2>Permissions</h2>
+      <div class="perm-grid" id="perm-grid"></div>
+    </section>
+  </div>
+  <script src="storage_manager.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
