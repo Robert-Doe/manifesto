@@ -42,6 +42,22 @@
     .ex-body li{margin-bottom:8px;}
     .ex-body li strong{color:var(--text);}
     .ex-body code{background:#060a12;border:1px solid var(--border);padding:1px 6px;border-radius:4px;font-family:'Source Code Pro',monospace;font-size:13px;color:var(--cyan);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -286,5 +302,37 @@ req.onsuccess = e => {
 </div>
 
 </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.storage API</strong> — Quota limits per area (local vs sync vs the unlimitedStorage permission) — the numbers this module’s eviction policy is built around.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/storage" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/storage</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>IndexedDB API (MDN)</strong> — The definitive reference for object stores, indexes, transactions, and cursors — everything idb_manager.js wraps.<br>
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API" target="_blank" rel="noopener">https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.tabGroups API</strong> — The tabGroups permission this module moves from optional to granted-at-install, used alongside the history store.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/tabGroups" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/tabGroups</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

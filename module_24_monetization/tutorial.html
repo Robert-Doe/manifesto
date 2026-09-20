@@ -25,6 +25,22 @@
     th{background:var(--card);color:var(--cyan);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:10px 14px;text-align:left;border-bottom:2px solid var(--border);}
     td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:13px;}
     td:first-child{color:var(--text);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -102,5 +118,29 @@ function track(event, props = {}) {
     <div class="ex-label">Exercise 24-C — Calculate the Numbers</div>
     <p>Using the 5% conversion assumption: if NeuralTab reaches 50,000 active users in year 1 and grows 100% year-over-year, and you charge $7/year with 80% annual renewal rate, build a 3-year revenue projection. At what point does this sustain a single full-time developer at $80,000/year? At what user count does it support two developers?</p>
   </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Chrome Web Store Developer Program Policies</strong> — The monetization and ads sections that govern what analytics_manager.js and any freemium gating are allowed to do.<br>
+      <a href="https://developer.chrome.com/docs/webstore/program-policies/" target="_blank" rel="noopener">https://developer.chrome.com/docs/webstore/program-policies/</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Chrome Web Store — User Data FAQ</strong> — Disclosure requirements for analytics collection specifically — what must be surfaced to the user before any usage data leaves the device.<br>
+      <a href="https://developer.chrome.com/docs/webstore/user_data" target="_blank" rel="noopener">https://developer.chrome.com/docs/webstore/user_data</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

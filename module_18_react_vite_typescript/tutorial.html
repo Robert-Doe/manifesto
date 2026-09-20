@@ -21,6 +21,22 @@
     .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
     .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
     code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -117,5 +133,37 @@ export default function Popup() {
     <div class="ex-label">Exercise 18-C — Add a React Component</div>
     <p>Create <code>src/popup/StorageCard.tsx</code> that displays the current <code>storageQuota</code> from <code>chrome.storage.local.getBytesInUse()</code>. Import it into <code>Popup.tsx</code> and render it. Verify the build succeeds and the quota number appears in the popup. Use TypeScript generics for the <code>useState</code> holding the quota value.</p>
   </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>vite-plugin-web-extension</strong> — The plugin that reads manifest.json, builds every HTML entry point, and bundles content scripts and the service worker — what makes this module’s Vite config work at all.<br>
+      <a href="https://github.com/aklinker1/vite-plugin-web-extension" target="_blank" rel="noopener">https://github.com/aklinker1/vite-plugin-web-extension</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Vite</strong> — Official Vite documentation — dev server, HMR, and the production build (rollup-based) this module’s npm run build invokes.<br>
+      <a href="https://vite.dev/" target="_blank" rel="noopener">https://vite.dev/</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>@types/chrome</strong> — TypeScript type definitions for the full chrome.* surface — what catches a wrong tabId type or a missing parameter at build time in this module.<br>
+      <a href="https://www.npmjs.com/package/@types/chrome" target="_blank" rel="noopener">https://www.npmjs.com/package/@types/chrome</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

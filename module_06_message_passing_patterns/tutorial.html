@@ -113,6 +113,22 @@
     .cd-opt{background:#020a04;border-color:var(--green);color:var(--green);}
     .cd-arrow{color:var(--muted);font-size:11px;}
     .cd-note{font-size:11px;color:var(--muted);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -965,5 +981,37 @@ port.onDisconnect.<span class="fn">addListener</span>(() => {
   </div>
 
 </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Message Passing</strong> — Official concepts guide covering all message-passing shapes: one-off requests, long-lived connections (ports), and messaging across extensions.<br>
+      <a href="https://developer.chrome.com/docs/extensions/develop/concepts/messaging" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/develop/concepts/messaging</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.runtime API</strong> — onMessage, sendMessage, connect(), and the Port object — the four real patterns this module’s background.js router implements.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/runtime" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/runtime</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Window: postMessage() (MDN)</strong> — The underlying structured-clone message-passing primitive — useful context for why sendResponse must be called synchronously unless you "return true".<br>
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage" target="_blank" rel="noopener">https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

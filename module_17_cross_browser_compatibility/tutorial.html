@@ -28,6 +28,22 @@
     .yes{color:var(--green);}
     .no{color:var(--red);}
     .partial{color:var(--gold);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -116,5 +132,29 @@ if (NTCompat.hasSidePanel()) {
     <div class="ex-label">Exercise 17-C — Promise vs Callback</div>
     <p>Without the polyfill, write <code>chrome.tabs.query</code> in callback style and in Promise style (using the native Promise that Chrome 99+ returns). Then write the same call using the <code>browser.*</code> polyfill. Compare readability. Identify one scenario where the native Chrome Promise API and the <code>browser.*</code> polyfill behave differently (hint: error handling in older Chrome versions).</p>
   </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Browser Extensions (MDN)</strong> — Firefox’s WebExtensions documentation — the promise-based browser.* namespace this module’s polyfill shims Chrome’s callback-based chrome.* onto.<br>
+      <a href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions" target="_blank" rel="noopener">https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>webextension-polyfill</strong> — Mozilla’s official polyfill library — the actual browser_polyfill.js this module loads first in every content script.<br>
+      <a href="https://github.com/mozilla/webextension-polyfill" target="_blank" rel="noopener">https://github.com/mozilla/webextension-polyfill</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

@@ -23,6 +23,22 @@
     .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
     .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
     code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -98,5 +114,29 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     <div class="ex-label">Exercise 20-C — Add chrome.alarms Scheduling</div>
     <p>Add a <code>chrome.alarms.create('cleanup', { periodInMinutes: 60 })</code> to background.js that runs <code>StorageManager.pruneOldData()</code> every hour. Add a "Last Cleanup" timestamp to the perf_monitor.html dashboard. Verify via the alarms API that the alarm is registered: <code>chrome.alarms.getAll(console.log)</code> in the background console.</p>
   </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Performance API (MDN)</strong> — performance.now(), marks, and measures — the timing primitives perf_monitor.html uses to graph service-worker wake latency.<br>
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/Performance_API" target="_blank" rel="noopener">https://developer.mozilla.org/en-US/docs/Web/API/Performance_API</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Memory Management (MDN)</strong> — How JS garbage collection and memory leaks actually work — background context for interpreting this module’s memory-growth charts.<br>
+      <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_management" target="_blank" rel="noopener">https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_management</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

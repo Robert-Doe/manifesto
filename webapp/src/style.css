@@ -124,6 +124,81 @@ pre.manifest .punct { color: var(--text-dim); }
 .no-live a { color: var(--accent); text-decoration: none; cursor: pointer; }
 .no-live a:hover { text-decoration: underline; }
 
+/* ── Tab strip ───────────────────────────────────────────── */
+.tab-strip {
+  display: flex; gap: 4px; flex-wrap: wrap; border-bottom: 1px solid var(--border);
+  margin: 4px 0 18px; padding-bottom: 2px;
+}
+.tab-btn {
+  font-family: var(--body); font-size: 12.5px; font-weight: 600; color: var(--text-dim);
+  background: transparent; border: none; padding: 8px 12px; cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s, border-color 0.15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Real Code tab ───────────────────────────────────────── */
+.file-tab-strip { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.file-tab {
+  font-family: var(--mono); font-size: 11px; color: var(--text-dim); background: var(--bg-elevated);
+  border: 1px solid var(--border); border-radius: 6px; padding: 5px 9px; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.file-tab:hover { border-color: var(--accent); color: var(--text); }
+.file-tab.active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+pre.code-view {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 16px; font-family: var(--mono); font-size: 12px; line-height: 1.65;
+  overflow-x: auto; margin: 0; max-height: 60vh; overflow-y: auto;
+}
+pre.code-view code { white-space: pre; }
+
+/* highlight.js token colors, mapped onto this page's own palette */
+.hljs-comment, .hljs-quote { color: var(--text-dim); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-tag { color: var(--accent); }
+.hljs-string, .hljs-attr, .hljs-template-tag, .hljs-name { color: var(--success); }
+.hljs-number, .hljs-attribute { color: #7cc4f7; }
+.hljs-title, .hljs-built_in, .hljs-title.function_ { color: #a78bfa; }
+.hljs-variable, .hljs-params { color: var(--text); }
+.hljs-deletion, .hljs-regexp { color: var(--danger); }
+
+/* ── Why These Decisions tab ─────────────────────────────── */
+.decision-card {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+  padding: 16px 18px; margin-bottom: 14px;
+}
+.decision-title { font-family: var(--display); font-weight: 700; font-size: 14px; margin-bottom: 10px; }
+.decision-body, .decision-field { font-size: 13px; line-height: 1.65; color: var(--text-dim); }
+.decision-body p, .decision-field p { margin: 0 0 10px; }
+.decision-body p:last-child, .decision-field p:last-child { margin-bottom: 0; }
+.decision-body ul, .decision-field ul { margin: 0 0 10px; padding-left: 20px; }
+.decision-body code, .decision-field code {
+  font-family: var(--mono); font-size: 12px; background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 4px; padding: 1px 5px;
+}
+.decision-field { margin-top: 10px; padding-left: 12px; border-left: 3px solid var(--border); }
+.decision-field.decision { border-left-color: var(--accent); }
+.decision-field.why { border-left-color: #7cc4f7; }
+.decision-field.tradeoff { border-left-color: var(--danger); }
+.field-label {
+  display: block; font-family: var(--mono); font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text); margin-bottom: 4px;
+}
+a.mod-ref { color: var(--accent); text-decoration: none; cursor: pointer; font-weight: 600; }
+a.mod-ref:hover { text-decoration: underline; }
+
+/* ── Official Docs tab ──────────────────────────────────────*/
+.doc-card {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 18px; margin-bottom: 12px; font-size: 13.5px; display: flex;
+  align-items: flex-start; gap: 12px;
+}
+.doc-card-icon { font-size: 18px; flex-shrink: 0; }
+.doc-card-body { color: var(--text-dim); line-height: 1.6; }
+.doc-card-body strong { color: var(--text); }
+.doc-card-body a { color: #7cc4f7; word-break: break-all; }
+
 /* ── Live simulator ──────────────────────────────────────── */
 .sim { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 6px; }
 @media (max-width: 700px) { .sim { grid-template-columns: 1fr; } }

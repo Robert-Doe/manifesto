@@ -6,10 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate-content": "node scripts/generate-content.mjs"
   },
   "devDependencies": {
     "typescript": "^5.5.4",
     "vite": "^5.4.0"
+  },
+  "dependencies": {
+    "highlight.js": "^11.12.0"
   }
 }

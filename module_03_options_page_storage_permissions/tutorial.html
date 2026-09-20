@@ -202,6 +202,22 @@
       .deliverable-grid { grid-template-columns: 1fr; }
       .hero-title { font-size: 30px; }
     }
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -1154,5 +1170,37 @@ navLinks.<span class="fn">forEach</span>(link => {
   </footer>
 
 </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.storage API</strong> — Reference for storage.local, storage.sync, storage.session, and the onChanged event this module’s options page listens to.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/storage" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/storage</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.permissions API</strong> — request(), contains(), and remove() — the runtime permissions API this module uses instead of asking for everything at install time.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/permissions" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/permissions</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Declare Permissions</strong> — Official guide to permissions, optional_permissions, host_permissions, and optional_host_permissions — and why least-privilege matters for install-time trust.<br>
+      <a href="https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

@@ -131,6 +131,22 @@
     .summary-box li{margin-bottom:8px;font-size:14px;}
 
     @media(max-width:700px){.layout{flex-direction:column;}.toc{width:100%;height:auto;position:static;}.main{padding:32px 20px;}.two-counter{grid-template-columns:1fr;}}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -634,5 +650,37 @@ lastAccessHtml = lastAccess
 
 </main>
 </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Extension Service Worker Lifecycle</strong> — The official page this whole module is built on: exact idle/shutdown conditions ("30 seconds of inactivity", the 5-minute request cap), the install/onInstalled/activate sequence, and why global variables don’t survive a restart.<br>
+      <a href="https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.alarms API</strong> — The keepalive/heartbeat mechanism this module’s background.js uses to survive past the idle timeout for scheduled work.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/alarms" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/alarms</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Service Worker API (MDN)</strong> — The underlying web-platform primitive Chrome extension service workers are built on — install/activate events, and why they’re fundamentally different from a persistent background page.<br>
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API" target="_blank" rel="noopener">https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

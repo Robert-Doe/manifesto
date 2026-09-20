@@ -21,6 +21,22 @@
     .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
     .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
     code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -118,5 +134,29 @@ describe('StorageManager', () => {
     <div class="ex-label">Exercise 19-C — Mock sendMessage</div>
     <p>Write a test for a message handler function extracted from background.js. The handler receives <code>{ type: 'getStorageQuota' }</code> and calls <code>sendResponse</code> with the quota info. Mock <code>chrome.storage.local.getBytesInUse</code> to return 1024, and assert that <code>sendResponse</code> was called with <code>{ bytesInUse: 1024 }</code>.</p>
   </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Jest</strong> — The unit test runner this module uses to mock chrome.* and test storage_manager.js and idb_manager.js in isolation.<br>
+      <a href="https://jestjs.io/" target="_blank" rel="noopener">https://jestjs.io/</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Playwright — Chrome Extensions</strong> — Official guide to testing MV3 extensions with launchPersistentContext, including how to grab the service worker and extension ID for e2e assertions.<br>
+      <a href="https://playwright.dev/docs/chrome-extensions" target="_blank" rel="noopener">https://playwright.dev/docs/chrome-extensions</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

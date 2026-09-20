@@ -70,6 +70,22 @@
     .next-card h3 { color:var(--purple); margin-top:0; }
     .spec-ref { display:inline-block; background:var(--card); border:1px solid var(--border); border-radius:6px; font-size:12px; padding:3px 10px; color:var(--muted); font-family:'Source Code Pro',monospace; margin:2px; }
     footer { border-top:1px solid var(--border); margin-top:80px; padding-top:24px; text-align:center; font-size:13px; color:var(--muted); }
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -786,5 +802,45 @@ chrome.alarms.getAll(console.log);</pre>
   </footer>
 
 </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.tabs API</strong> — query(), create(), remove(), update(), group(), and the onUpdated/onActivated/onRemoved events.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/tabs" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/tabs</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.bookmarks API</strong> — create(), getRecent(), search() — the bookmarks tree this module reads and writes.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/bookmarks" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/bookmarks</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.history API</strong> — search() and getVisits() — querying the browser’s history store, one of the optional permissions this module requests on demand.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/history" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/history</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.alarms API</strong> — create() and the onAlarm event — the only way a service worker can reliably wake up later, since setTimeout does not survive a worker being killed.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/alarms" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/alarms</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

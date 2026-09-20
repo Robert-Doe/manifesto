@@ -41,6 +41,22 @@
     .ex-body li{margin-bottom:8px;}
     .ex-body li strong{color:var(--text);}
     .ex-body code{background:#060a12;border:1px solid var(--border);padding:1px 6px;border-radius:4px;font-family:'Source Code Pro',monospace;font-size:13px;color:var(--cyan);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -226,5 +242,29 @@ req.onupgradeneeded = e => {
 </div>
 
 </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.runtime API</strong> — The onInstalled event and its "reason" field ("install" vs "update") that this module’s migration system branches on.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/runtime" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/runtime</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>IDBOpenDBRequest: upgradeneeded event (MDN)</strong> — How IndexedDB’s own version-bump mechanism works — the same oldVersion/newVersion pattern this module’s schema migrations mirror for chrome.storage.<br>
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/IDBOpenDBRequest/upgradeneeded_event" target="_blank" rel="noopener">https://developer.mozilla.org/en-US/docs/Web/API/IDBOpenDBRequest/upgradeneeded_event</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

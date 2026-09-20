@@ -40,6 +40,22 @@
     .ex-body li{margin-bottom:8px;}
     .ex-body li strong{color:var(--text);}
     .ex-body code{background:#060a12;border:1px solid var(--border);padding:1px 6px;border-radius:4px;font-family:'Source Code Pro',monospace;font-size:13px;color:var(--cyan);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -237,5 +253,37 @@ chrome.webNavigation.onErrorOccurred.<span class="fn">addListener</span>(details
 </div>
 
 </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.declarativeNetRequest API</strong> — The full rule schema (condition/action, priority, resource types) that replaced MV2’s blocking webRequest.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Network Requests (concepts)</strong> — Official guide to making and intercepting network requests from an extension, including host_permissions requirements.<br>
+      <a href="https://developer.chrome.com/docs/extensions/develop/concepts/network-requests" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/develop/concepts/network-requests</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.webNavigation API</strong> — Event-based visibility into navigations (onBeforeNavigate, onCommitted) that this module pairs with declarativeNetRequest for observability.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/webNavigation" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/webNavigation</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

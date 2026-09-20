@@ -24,6 +24,22 @@
     .final h3{color:var(--gold);font-size:22px;margin-bottom:10px;}
     .final p{color:var(--text);margin:0;}
     code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -110,5 +126,37 @@ publish-to-cws:
     <h3>You've Built NeuralTab</h3>
     <p>25 modules. Every Chrome extension API that matters. Storage, networking, content scripts, isolated worlds, fingerprinting, OAuth, WebAssembly, CDP, side panels, cross-browser compatibility, React builds, testing, performance, security analysis, monetization, and shipping. The extension on your machine right now is a working demonstration of all of it. Everything you build next is a remix of these patterns.</p>
   </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Use the Chrome Web Store API</strong> — The REST API this module’s GitHub Actions "publish-to-cws" job calls — OAuth credential setup, upload, and publish endpoints.<br>
+      <a href="https://developer.chrome.com/docs/webstore/using-api" target="_blank" rel="noopener">https://developer.chrome.com/docs/webstore/using-api</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Publish in the Chrome Web Store</strong> — The manual dashboard submission flow this module’s CI pipeline automates — required listing fields, review, and staged rollout.<br>
+      <a href="https://developer.chrome.com/docs/webstore/publish" target="_blank" rel="noopener">https://developer.chrome.com/docs/webstore/publish</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>GitHub Actions Documentation</strong> — Workflow syntax, jobs, and secrets — what this module’s three-job pipeline (lint-and-validate, build, publish-to-cws) is built with.<br>
+      <a href="https://docs.github.com/en/actions" target="_blank" rel="noopener">https://docs.github.com/en/actions</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

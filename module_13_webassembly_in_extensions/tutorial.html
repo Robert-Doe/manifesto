@@ -21,6 +21,22 @@
     .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
     .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
     code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -87,5 +103,37 @@ const instance = await WebAssembly.instantiate(cachedModule);</pre>
     <div class="ex-label">Exercise 13-C — Load from File</div>
     <p>Convert the inline Uint8Array in wasm_runner.js to load from a .wasm file instead. Create assets/fib.wasm using the wat2wasm online tool (watfiddle.com), add it to web_accessible_resources, and update wasm_runner.js to fetch it. Verify the benchmark still works.</p>
   </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Manifest — Content Security Policy</strong> — The minimum required extension-page CSP, including 'wasm-unsafe-eval' — the exact directive that must be present before WebAssembly.instantiate() is allowed to run.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/manifest/content-security-policy" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/manifest/content-security-policy</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>WebAssembly (MDN)</strong> — The JS API surface (WebAssembly.instantiate, .compile, Memory, Table) this module’s wasm_demo.html calls into.<br>
+      <a href="https://developer.mozilla.org/en-US/docs/WebAssembly" target="_blank" rel="noopener">https://developer.mozilla.org/en-US/docs/WebAssembly</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Web Accessible Resources</strong> — Why the compiled .wasm binary must be explicitly allowlisted here before fetch() from an extension page can load it.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/manifest/web-accessible-resources" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/manifest/web-accessible-resources</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

@@ -21,6 +21,22 @@
     .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
     .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
     code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -69,5 +85,29 @@ img.src = 'chrome-extension://abcdefghijklmnopqrstuvwxyzabcdef/icon.png';</pre>
     <div class="ex-label">Exercise 11-C — Add a New Probe</div>
     <p>Add a probe to fingerprint.js that checks whether <code>chrome.storage.session</code> is available AND whether <code>chrome.sidePanel</code> is available AND derives the minimum Chrome version from the combination. Chrome 116+ has both; 114-115 has sidePanel but no session; below 114 has neither.</p>
   </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Web Accessible Resources</strong> — Why an unlisted resource 404s from a page context, and why listing one makes it fingerprintable — the manifest key at the center of extension detection.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/manifest/web-accessible-resources" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/manifest/web-accessible-resources</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Content Scripts (concepts)</strong> — What a page actually can and cannot observe about an injected content script — the boundary this module’s detection techniques probe.<br>
+      <a href="https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

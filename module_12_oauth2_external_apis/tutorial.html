@@ -23,6 +23,22 @@
     .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
     .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
     code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -80,5 +96,37 @@ const token = new URL(redirectUrl).hash
     <div class="ex-label">Exercise 12-C — Cache User Info</div>
     <p>Add a <code>cachedUserInfo</code> function that stores the <code>getUserInfo()</code> response in <code>chrome.storage.session</code> with a 5-minute TTL. The popup should show the user's name and avatar without making a network request on every open.</p>
   </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.identity API</strong> — launchWebAuthFlow() — the sanctioned way to run an OAuth redirect flow without a bundled webview, including the interactive-flow UX requirement.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/identity" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/identity</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>RFC 6749 — The OAuth 2.0 Authorization Framework</strong> — The actual IETF standard: authorization code, implicit, client credentials grants, and the redirect-URI security model this module implements against.<br>
+      <a href="https://www.rfc-editor.org/rfc/rfc6749" target="_blank" rel="noopener">https://www.rfc-editor.org/rfc/rfc6749</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Using OAuth 2.0 to Access Google APIs</strong> — Google’s own OAuth2 implementation guide — concrete client-ID setup and scopes for a real external API this module talks to.<br>
+      <a href="https://developers.google.com/identity/protocols/oauth2" target="_blank" rel="noopener">https://developers.google.com/identity/protocols/oauth2</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

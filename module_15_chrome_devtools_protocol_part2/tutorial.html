@@ -21,6 +21,22 @@
     .exercise{background:#05100a;border:2px solid var(--green);border-radius:10px;padding:20px 24px;margin:28px 0;}
     .exercise .ex-label{color:var(--green);font-weight:900;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
     code{font-family:'Source Code Pro',monospace;background:#060a12;padding:2px 6px;border-radius:3px;font-size:12px;color:var(--cyan);}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -115,5 +131,29 @@ document.getElementById('preview').src = url;</pre>
     <div class="ex-label">Exercise 15-C — Full-Page Screenshot Tool</div>
     <p>Build a "screenshot" button in the popup.html that: (1) attaches the debugger to the active tab, (2) calls Page.captureScreenshot, (3) detaches the debugger, (4) opens a new tab with the image as a data URL. Handle the case where the debugger is already attached. Add a download button on the screenshot tab.</p>
   </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Chrome DevTools Protocol Viewer — Network domain</strong> — Network.enable, requestWillBeSent, responseReceived — the events this module’s network interception builds on.<br>
+      <a href="https://chromedevtools.github.io/devtools-protocol/tot/Network/" target="_blank" rel="noopener">https://chromedevtools.github.io/devtools-protocol/tot/Network/</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.debugger API</strong> — Same permission and transport as Part 1 — this module goes deeper into the same attach/sendCommand/onEvent surface.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/debugger" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/debugger</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>

@@ -28,6 +28,22 @@
     td{padding:10px 14px;border:1px solid var(--border);color:var(--muted);font-size:13px;}
     .yes{color:var(--green);font-weight:700;}
     .no{color:var(--red);font-weight:700;}
+  
+    /* ── Spec reference (added by generate-content.mjs) ────── */
+    .gen-spec-ref {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      margin: 24px 0;
+      font-size: 13.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .gen-spec-ref-icon { font-size: 18px; flex-shrink: 0; }
+    .gen-spec-ref-body { color: var(--muted); line-height: 1.6; }
+    .gen-spec-ref-body a { color: var(--cyan); }
   </style>
 </head>
 <body>
@@ -165,5 +181,29 @@ chrome.runtime.onMessage.addListener((msg) => {
     <div class="ex-label">Exercise 10-D — The Bridge</div>
     <p>Build a minimal bridge: add a MAIN-world content script declaration to the manifest for <code>assets/inject.js</code>. In that file, listen for <code>window.postMessage({ type: 'PING' })</code> and respond with the current <code>window.location.href</code> (which the isolated world could also read, but this demonstrates the pattern). In <code>content.js</code>, send the PING and log the response. Verify it works by checking the console on any page.</p>
   </div>
+
+<section>
+  <h2>Read the Primary Sources</h2>
+
+  <p>Every claim in this tutorial is backed by one of these documents. When something does not work as expected, the spec is your ground truth.</p>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>chrome.scripting API</strong> — executeScript() and the "world" option (ISOLATED vs MAIN) — the exact mechanism this module is about.<br>
+      <a href="https://developer.chrome.com/docs/extensions/reference/api/scripting" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/reference/api/scripting</a>
+    </div>
+  </div>
+
+  <div class="gen-spec-ref">
+    <span class="gen-spec-ref-icon">📄</span>
+    <div class="gen-spec-ref-body">
+      <strong>Content Scripts (concepts)</strong> — Chrome’s own explanation of isolated worlds: a private execution environment sharing the DOM but not the page’s JS heap.<br>
+      <a href="https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts" target="_blank" rel="noopener">https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts</a>
+    </div>
+  </div>
+
+</section>
+
 </body>
 </html>
