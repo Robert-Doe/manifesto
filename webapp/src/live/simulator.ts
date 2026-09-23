@@ -2,14 +2,14 @@
  * Live Message Passing + Service Worker Lifecycle simulator.
  *
  * Chrome extensions can't run as a plain webpage, so this is an honest
- * simulator rather than the real extension — but the two message patterns
+ * simulator rather than the real extension, but the two message patterns
  * and the worker lifecycle state machine are ported directly from the real
  * module_06_message_passing_patterns/background.js and
  * module_05_service_worker_internals/sw_monitor.js:
  *
- *   - Pattern 1 (one-way fire-and-forget): 'oneWayLog' — sender does not
+ *   - Pattern 1 (one-way fire-and-forget): 'oneWayLog', sender does not
  *     await a response; the handler returns without calling sendResponse.
- *   - Pattern 2 (async request/response): 'echoRequest' — the real handler
+ *   - Pattern 2 (async request/response): 'echoRequest', the real handler
  *     MUST keep the message channel open ("return true") because it
  *     responds asynchronously; we mirror that with a real setTimeout delay
  *     here rather than resolving synchronously.
@@ -17,13 +17,13 @@
  *     exist for the life of the current worker instance, an idle timeout
  *     that puts the worker to sleep, and a "wake" that resets the in-memory
  *     counter to 0 while a separate, longer-lived "wakes" count keeps
- *     incrementing — exactly the swStartCount / inMemoryEventCounter split
+ *     incrementing, exactly the swStartCount / inMemoryEventCounter split
  *     in the real background.js.
  *
  * The "content script" and "background service worker" below are two plain
  * JS objects in this same page, deliberately talking to each other only
- * through window.postMessage — a real, asynchronous, structured-clone
- * message pass, not a direct function call — so the demo is genuinely
+ * through window.postMessage, a real, asynchronous, structured-clone
+ * message pass, not a direct function call, so the demo is genuinely
  * message-passing, not just two panels sharing a variable.
  */
 
@@ -92,7 +92,7 @@ export function mountLiveSimulator(root: HTMLElement) {
       el(
         'div',
         { className: 'sim-note' },
-        'Pattern 1: oneWayLog fires and forgets — no response is awaited. Pattern 2: echoRequest awaits an async response from the worker.'
+        'Pattern 1: oneWayLog fires and forgets, no response is awaited. Pattern 2: echoRequest awaits an async response from the worker.'
       )
     )
   );
@@ -155,10 +155,10 @@ export function mountLiveSimulator(root: HTMLElement) {
     clearTimers();
     idleTimer = window.setTimeout(() => {
       setStatus('IDLE');
-      logLine(bgLog, 'evt', 'IDLE', `No events for ${IDLE_AFTER_MS / 1000}s — Chrome may reclaim this worker at any moment.`);
+      logLine(bgLog, 'evt', 'IDLE', `No events for ${IDLE_AFTER_MS / 1000}s, Chrome may reclaim this worker at any moment.`);
       terminateTimer = window.setTimeout(() => {
         setStatus('TERMINATED');
-        logLine(bgLog, 'err', 'TERMINATED', 'Worker instance destroyed. In-memory counter and uptime are gone — only the next event can bring it back.');
+        logLine(bgLog, 'err', 'TERMINATED', 'Worker instance destroyed. In-memory counter and uptime are gone, only the next event can bring it back.');
       }, TERMINATE_AFTER_MS);
     }, IDLE_AFTER_MS);
   }
@@ -169,7 +169,7 @@ export function mountLiveSimulator(root: HTMLElement) {
       counter = 0;
       startTime = Date.now();
       statWakes.textContent = String(wakes);
-      logLine(bgLog, 'evt', 'START', `wake #${wakes} — fresh worker instance, counter reset to 0.`);
+      logLine(bgLog, 'evt', 'START', `wake #${wakes}, fresh worker instance, counter reset to 0.`);
     }
     setStatus('ACTIVE');
     armIdleTimers();
@@ -181,13 +181,13 @@ export function mountLiveSimulator(root: HTMLElement) {
     statCounter.textContent = String(counter);
 
     if (msg.action === 'oneWayLog') {
-      logLine(bgLog, 'in', 'IN oneWayLog', `"${msg.text}" — fire-and-forget, no response sent (matches real StorageManager.logMessage('IN', ...) with no sendResponse call).`);
+      logLine(bgLog, 'in', 'IN oneWayLog', `"${msg.text}", fire-and-forget, no response sent (matches real StorageManager.logMessage('IN', ...) with no sendResponse call).`);
       return;
     }
 
     if (msg.action === 'echoRequest') {
       const receivedAt = Date.now();
-      logLine(bgLog, 'in', 'IN echoRequest', `payload="${msg.payload}" — responding asynchronously (real handler must "return true" to keep the channel open)`);
+      logLine(bgLog, 'in', 'IN echoRequest', `payload="${msg.payload}", responding asynchronously (real handler must "return true" to keep the channel open)`);
       window.setTimeout(() => {
         const uptime = Date.now() - startTime;
         logLine(bgLog, 'out', 'OUT echoResponse', `#${msg.id} after ${Date.now() - receivedAt}ms`);
@@ -217,17 +217,17 @@ export function mountLiveSimulator(root: HTMLElement) {
     const id = 'req_' + Math.random().toString(36).slice(2, 9);
     const text = contentInput.value || '(empty)';
     pending.set(id, Date.now());
-    logLine(contentLog, 'out', 'OUT echoRequest', `#${id} payload="${text}" — awaiting response…`);
+    logLine(contentLog, 'out', 'OUT echoRequest', `#${id} payload="${text}", awaiting response…`);
     send({ source: BUS_SOURCE, to: 'background', action: 'echoRequest', id, payload: text });
   });
 
   btnForceIdle.addEventListener('click', () => {
     clearTimers();
     setStatus('IDLE');
-    logLine(bgLog, 'evt', 'IDLE', 'Manually skipped ahead — no events for a while now.');
+    logLine(bgLog, 'evt', 'IDLE', 'Manually skipped ahead, no events for a while now.');
     terminateTimer = window.setTimeout(() => {
       setStatus('TERMINATED');
-      logLine(bgLog, 'err', 'TERMINATED', 'Worker instance destroyed. In-memory counter and uptime are gone — only the next event can bring it back.');
+      logLine(bgLog, 'err', 'TERMINATED', 'Worker instance destroyed. In-memory counter and uptime are gone, only the next event can bring it back.');
     }, 900);
   });
 
@@ -244,7 +244,7 @@ export function mountLiveSimulator(root: HTMLElement) {
         contentLog,
         'in',
         'IN echoResponse',
-        `#${data.id} echo="${data.echo}" ${rtt !== undefined ? `— round trip ${rtt}ms` : ''} (worker uptime ${Math.round((data.workerUptime || 0) / 100) / 10}s)`
+        `#${data.id} echo="${data.echo}" ${rtt !== undefined ? `(round trip ${rtt}ms)` : ''} (worker uptime ${Math.round((data.workerUptime || 0) / 100) / 10}s)`
       );
     }
   });

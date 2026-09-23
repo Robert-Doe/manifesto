@@ -1,6 +1,6 @@
 /**
  * Minimal markdown-lite renderer for DECISIONS.md prose: paragraphs, "- "
- * bullet lists, **bold**, and `code` spans. Not a general markdown parser —
+ * bullet lists, **bold**, and `code` spans. Not a general markdown parser,
  * just enough to render the real DECISIONS.md text without a wall-of-text
  * flatten or literal asterisks showing up in the UI. Also auto-links
  * "Module NN" mentions to jump the picker to that module.

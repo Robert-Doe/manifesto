@@ -51,7 +51,7 @@ function renderApp() {
     el(
       'p',
       { className: 'tagline' },
-      'Chrome extensions can’t run as a plain webpage, so this is an honest reference and simulator instead: pick a module for its real, annotated manifest.json, every real source file it ships, the actual DECISIONS.md trade-offs behind it, and the official docs to confirm it all yourself. Message passing and the service worker also get a genuine live simulator — a real content-script ↔ background-worker exchange over real postMessage calls.'
+      'Chrome extensions can’t run as a plain webpage, so this is an honest reference and simulator instead: pick a module for its real, annotated manifest.json, every real source file it ships, the actual DECISIONS.md trade-offs behind it, and the official docs to confirm it all yourself. Message passing and the service worker also get a genuine live simulator, a real content-script ↔ background-worker exchange over real postMessage calls.'
     )
   );
 
@@ -143,7 +143,7 @@ function renderApp() {
 
     for (const d of content.decisions) {
       const card = el('div', { className: 'decision-card' });
-      card.append(el('div', { className: 'decision-title' }, `Decision ${d.num} — ${d.title}`));
+      card.append(el('div', { className: 'decision-title' }, `Decision ${d.num}, ${d.title}`));
 
       if (d.body !== undefined) {
         const box = el('div', { className: 'decision-body', innerHTML: mdLite(d.body) });
@@ -176,7 +176,7 @@ function renderApp() {
             'div',
             { className: 'doc-card-body' },
             el('strong', {}, doc.title),
-            ' — ',
+            ', ',
             doc.description,
             el('br'),
             el('a', { href: doc.url, target: '_blank', rel: 'noopener' }, doc.url)
@@ -196,11 +196,11 @@ function renderApp() {
         el(
           'div',
           { className: 'no-live' },
-          'This module doesn’t have a live simulation — an extension can’t run as a plain webpage, so most modules are best explored through their real code and manifest. ',
+          'This module doesn’t have a live simulation, an extension can’t run as a plain webpage, so most modules are best explored through their real code and manifest. ',
           'Try ',
-          linkTo('Module 05 — Service Worker Internals', 5),
+          linkTo('Module 05, Service Worker Internals', 5),
           ' or ',
-          linkTo('Module 06 — Message Passing', 6),
+          linkTo('Module 06, Message Passing', 6),
           ' for a genuinely interactive demo.'
         )
       );

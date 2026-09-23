@@ -1,10 +1,10 @@
 /**
  * Extremely small "syntax highlighter" for the annotated manifest.json
  * snippets shown in the module picker. These snippets carry `//` teaching
- * comments (real manifest.json can't have comments — these are display-only,
+ * comments (real manifest.json can't have comments, these are display-only,
  * pulled from the actual module manifests and annotated for the reader).
  *
- * This is intentionally not a JSON parser — it's a few regex passes that are
+ * This is intentionally not a JSON parser, it's a few regex passes that are
  * good enough to color keys, string values, and trailing comments.
  */
 export function highlightManifest(src: string): string {
