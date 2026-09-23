@@ -1,29 +1,25 @@
 # Manifesto
 
-**A 25-module (+1) Chrome Extension Manifest V3 mastery course, taught by building one real, cumulative extension — NeuralTab — from a zero-permission "hello world" to a published, CI/CD-shipped product.**
+Most extension tutorials show you one feature in a demo you'll delete an hour later. I didn't want to teach that way, because that's not how real extensions get built, and it's not how you actually learn to maintain one. So every module in this course adds real functionality to the same extension, NeuralTab, an AI-assisted reading and tab-management tool, until by the later modules you're reading and extending files that already carry production history. A real `storage_manager.js` used across three different contexts. A real migration system with three schema versions that actually shipped. A real IndexedDB-backed history store with a 10,000-entry eviction policy I had to think through properly. None of this is a toy you throw away when the module ends.
 
-## What this is
+## Why this exists
 
-Most extension tutorials show you one isolated feature in a throwaway demo. This course does the opposite: every module adds real functionality to the same extension, NeuralTab (an AI-assisted reading/tab-management tool), so that by the later modules you are reading and extending files that already have production history — a real `storage_manager.js` used by three different contexts, a real migration system with three shipped schema versions, a real IndexedDB-backed history store with a 10,000-entry eviction policy. Nothing here is a toy you throw away after the module ends.
+Manifest V3 rewrote almost everything a Chrome extension developer thought they knew. No more persistent background pages. No more blocking `webRequest`. A five-minute service-worker idle kill that will absolutely ruin your day if you don't design around it. A strict CSP that blocks inline scripts and `eval` outright. I built this course to teach the platform as it actually exists right now, not as a list of API references, but as a sequence of real engineering decisions that MV3's constraints force on you, each one demonstrated in running code.
 
-Each module ships a `tutorial.html` (the narrated walkthrough) and a `DECISIONS.md` — six or so numbered decisions per module, each stated as **choice → why → trade-off**, with an explicit forward-reference to the later module that revisits or fixes that trade-off. The course is deliberately honest about its own compromises: Module 01 ships with a hardcoded `DEFAULTS` object duplicated across files, and Module 05's own `DECISIONS.md` explains exactly why that was a mistake and how `importScripts()` fixes it. Reading the `DECISIONS.md` files in order is itself a lesson in how a real codebase evolves under real constraints.
+Every module ships a `tutorial.html` walkthrough and a `DECISIONS.md`, usually six or so numbered decisions, each one stated as choice, then why, then the trade-off, with an explicit pointer forward to whichever later module comes back and revisits it. I tried to be honest about my own mistakes here. Module 01 ships with a hardcoded `DEFAULTS` object duplicated across files, and Module 05's `DECISIONS.md` explains exactly why that was wrong and how `importScripts()` fixes it. Reading the `DECISIONS.md` files in order is itself a lesson in how a real codebase evolves under real constraints, warts included.
 
-### Why it exists
+## Track and module map
 
-Manifest V3 changed the rules for almost everything a Chrome extension developer used to know: no persistent background pages, no blocking `webRequest`, a five-minute service-worker idle kill, a strict CSP that blocks inline scripts and `eval`. This course exists to teach the *current* platform end to end — not as a list of API references, but as a sequence of real engineering decisions forced by MV3's actual constraints, each one demonstrated in running code and explained in a `DECISIONS.md` that also states the trade-off honestly rather than only the upside.
-
-## Track / module map
-
-NeuralTab accretes feature by feature. Rough phases, in build order:
+NeuralTab grows one feature at a time. Roughly, in build order:
 
 | Phase | Modules | What gets built |
 |---|---|---|
-| Foundations | 01–03 | Manifest V3 basics, zero-permission popup; content scripts and Shadow DOM isolation; options page, `chrome.storage`, and permissions UX |
-| Background & data | 04–08 | Tabs/bookmarks/history APIs; service worker lifecycle and keepalive; message-passing patterns; IndexedDB storage mastery; update migrations |
-| Platform depth | 09–17 | `declarativeNetRequest`; V8 isolated worlds; extension fingerprinting; OAuth2; WebAssembly; Chrome DevTools Protocol (parts 1–2); Side Panel API; cross-browser compatibility |
-| Production tooling | 18–20 | React + Vite + TypeScript build pipeline; automated testing (Jest + Playwright); performance monitoring |
-| Real-world literacy | 21–23 | Extension "autopsies" — Honey and Grammarly, malware patterns, Chrome Web Store removals |
-| Shipping | 24–25 | Monetization patterns; publishing and CI/CD |
+| Foundations | 01-03 | Manifest V3 basics, zero-permission popup; content scripts and Shadow DOM isolation; options page, `chrome.storage`, and permissions UX |
+| Background & data | 04-08 | Tabs, bookmarks, and history APIs; service worker lifecycle and keepalive; message-passing patterns; IndexedDB storage mastery; update migrations |
+| Platform depth | 09-17 | `declarativeNetRequest`; V8 isolated worlds; extension fingerprinting; OAuth2; WebAssembly; Chrome DevTools Protocol (two parts); Side Panel API; cross-browser compatibility |
+| Production tooling | 18-20 | React, Vite, and TypeScript build pipeline; automated testing with Jest and Playwright; performance monitoring |
+| Real-world literacy | 21-23 | Extension autopsies (Honey and Grammarly), malware patterns, Chrome Web Store removals |
+| Shipping | 24-25 | Monetization patterns; publishing and CI/CD |
 
 | # | Module | Path |
 |---|---|---|
@@ -48,28 +44,30 @@ NeuralTab accretes feature by feature. Rough phases, in build order:
 | 18 | React + Vite + TypeScript | `module_18_react_vite_typescript/` |
 | 19 | Testing Extensions | `module_19_testing_extensions/` |
 | 20 | Performance & Memory Monitoring | `module_20_performance_monitoring/` |
-| 21 | Autopsy I — Honey & Grammarly | `module_21_autopsy_honey_grammarly/` |
-| 22 | Autopsy II — Malware Patterns | `module_22_autopsy_malware_patterns/` |
-| 23 | Autopsy III — Chrome Web Store Removals | `module_23_autopsy_cws_removals/` |
+| 21 | Autopsy I, Honey & Grammarly | `module_21_autopsy_honey_grammarly/` |
+| 22 | Autopsy II, Malware Patterns | `module_22_autopsy_malware_patterns/` |
+| 23 | Autopsy III, Chrome Web Store Removals | `module_23_autopsy_cws_removals/` |
 | 24 | Monetization | `module_24_monetization/` |
 | 25 | Publishing & CI/CD | `module_25_publishing_ci_cd/` |
 
 ## Tech stack
 
-- **Modules 01–17, 19–25:** vanilla JavaScript (ES2020+), Manifest V3, no build step — loaded as an unpacked extension via `chrome://extensions`.
-- **Module 18 onward (optional production track):** React, Vite (`vite-plugin-web-extension`), TypeScript with `@types/chrome`.
-- **Module 19:** Jest (unit tests, mocked `chrome.*`) and Playwright (E2E, `launchPersistentContext` with a loaded extension).
-- **Module 25:** GitHub Actions CI/CD against the Chrome Web Store publish API.
-- **Platform target:** Chrome/Chromium, Manifest V3. Module 17 covers Firefox/Safari compatibility deliberately, as a dedicated topic rather than an afterthought.
+Modules 01 through 17 and 19 through 25 are plain vanilla JavaScript (ES2020+) on Manifest V3, no build step, loaded straight as an unpacked extension from `chrome://extensions`. Starting at Module 18, there's an optional production track: React, Vite (`vite-plugin-web-extension`), and TypeScript with `@types/chrome`. Module 19 covers testing with Jest for unit tests (mocked `chrome.*`) and Playwright for end-to-end tests, using `launchPersistentContext` with the extension actually loaded. Module 25 wires up GitHub Actions CI/CD against the Chrome Web Store publish API.
 
-## Status
+Chrome and Chromium on Manifest V3 is the primary platform target, but I didn't want to treat Firefox and Safari as an afterthought, so Module 17 covers cross-browser compatibility as its own dedicated topic.
 
-Complete — all 25 numbered modules plus the HTTP Versions & Keep-Alive mini-module are written, each with a `tutorial.html` and a `DECISIONS.md`.
+## Where this stands
 
-## How to explore / run it
+Done. All 25 numbered modules plus the HTTP Versions & Keep-Alive mini-module are written, each one with its own `tutorial.html` and `DECISIONS.md`.
 
-1. Work modules in order — NeuralTab is cumulative, so `module_07`'s `IDBManager` assumes `module_03`'s `StorageManager` exists, and `module_18`'s Vite config assumes the vanilla file layout every prior module built.
-2. To run any module's extension as it stood at that point in the course, load that module's folder as an unpacked extension via `chrome://extensions` → Developer Mode → Load unpacked.
-3. Read each module's `DECISIONS.md` before or after `tutorial.html` — it is where the course names its own trade-offs and points forward to the module that eventually addresses them (e.g., Module 04's duplicated `DEFAULTS` object is explicitly fixed in Module 05).
-4. Modules 21–23 (the "autopsies") are read-only case studies grounded in public reporting on real extensions and real Chrome Web Store removals — no new NeuralTab code ships in those three.
-5. Module 25's `submission_checklist.html` and CI workflow are the two artifacts to reuse directly if you take a real extension to publication.
+## How to explore or run it
+
+Work the modules in order. NeuralTab is cumulative, so Module 07's `IDBManager` assumes Module 03's `StorageManager` already exists, and Module 18's Vite config assumes the plain vanilla file layout every earlier module built up.
+
+To run any module's extension exactly as it stood at that point in the course, load that module's folder as an unpacked extension: `chrome://extensions`, turn on Developer Mode, then Load unpacked.
+
+Read each module's `DECISIONS.md` alongside its `tutorial.html`. That's where I name my own trade-offs and point forward to whichever module eventually fixes them, like Module 04's duplicated `DEFAULTS` object getting cleaned up explicitly in Module 05.
+
+Modules 21 through 23, the autopsies, are read-only case studies grounded in public reporting on real extensions and real Chrome Web Store removals. No new NeuralTab code ships in those three, they're there to build judgment, not features.
+
+Module 25's `submission_checklist.html` and its CI workflow are the two pieces I'd reuse directly if you're taking a real extension to publication yourself.
